@@ -126,6 +126,29 @@
     </div>
   </section>
 
+  <!-- 🥚 인기 게임 BEST 10 -->
+  <section class="best">
+    <div class="wrap best-wrap">
+      <div class="best-panel">
+        <svg class="egg" viewBox="0 0 64 76" aria-hidden="true">
+          <ellipse cx="32" cy="72" rx="18" ry="3.5" fill="rgba(120,70,20,.18)"/>
+          <path d="M32 3 C15 3 5 28 5 46 C5 62 17 71 32 71 C47 71 59 62 59 46 C59 28 49 3 32 3 Z" fill="#FFF8E7" stroke="#E2B97A" stroke-width="2.5"/>
+          <ellipse cx="22" cy="30" rx="6" ry="7.5" fill="#8FD19E"/><ellipse cx="41" cy="22" rx="4.5" ry="5.5" fill="#8FD19E"/>
+          <ellipse cx="44" cy="47" rx="7" ry="6" fill="#8FD19E"/><ellipse cx="24" cy="55" rx="4.5" ry="4" fill="#8FD19E"/>
+          <path d="M14 40 L21 35 L26 42 L32 36 L37 43 L43 37 L50 41" fill="none" stroke="#C98A3E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <ellipse cx="22" cy="17" rx="4" ry="7" fill="#fff" opacity=".8" transform="rotate(25 22 17)"/>
+        </svg>
+        <h2>인기 게임 <span class="nb">BEST 10</span></h2>
+        <p class="best-page" id="bestPage">1 / 1</p>
+        <div class="best-nav">
+          <button type="button" id="bestPrev" aria-label="이전">‹</button>
+          <button type="button" id="bestNext" aria-label="다음">›</button>
+        </div>
+      </div>
+      <div class="best-track" id="bestTrack" aria-label="인기 게임 목록"></div>
+    </div>
+  </section>
+
   <!-- 찾기 도구 -->
   <div class="toolbar">
     <div class="wrap">
@@ -150,7 +173,7 @@
   <section class="zone-list">
     <div class="wrap">
       <p class="zone-count" id="zoneCount"></p>
-      <div class="game-grid" id="zoneGrid"></div>
+      <div class="game-grid compact" id="zoneGrid"></div>
       <div class="empty" id="zoneEmpty" hidden>
         <svg viewBox="0 0 220 200" aria-hidden="true"><use href="#dino"/></svg>
         조건에 맞는 게임이 없어요. 다른 영역이나 학년을 골라 보세요!

@@ -6,9 +6,10 @@
 'use strict';
 
 // data.js 의 CONFIG · GAMES · CHECKS 를 읽어요 (없어도 오류 없이 동작)
-const CFG = Object.assign({ bugReportUrl:'', latestCount:4, newDays:14 }, typeof CONFIG !== 'undefined' ? CONFIG : {});
+const CFG = Object.assign({ bugReportUrl:'', latestCount:4, newDays:14, statsUrl:'' }, typeof CONFIG !== 'undefined' ? CONFIG : {});
 const GAME_LIST  = typeof GAMES  !== 'undefined' && Array.isArray(GAMES)  ? GAMES  : [];
 const UNIT_LIST  = typeof UNITS  !== 'undefined' && Array.isArray(UNITS)  ? UNITS  : [];
+const BEST_LIST  = typeof BEST   !== 'undefined' && Array.isArray(BEST)   ? BEST   : [];
 const LISTS = { games: GAME_LIST };
 // 2022 개정 교육과정 4개 영역
 const AREAS = [
@@ -182,7 +183,7 @@ function renderInto(el, key, indexes){
   el.innerHTML = indexes.map(i => cardHTML(key, i)).join('');
 }
 document.addEventListener('click', e => {
-  const b = e.target.closest('.game[data-list]');
+  const b = e.target.closest('.game[data-list], .best-card[data-list]');
   if (b) openItem(b.dataset.list, Number(b.dataset.i));
 });
 
@@ -190,10 +191,30 @@ document.addEventListener('click', e => {
    5. 게임 플레이어 (홈페이지 안에서 크게 열기)
    ========================================================= */
 let lastFocus = null, returnHash = '';
+// 이 기기에서 게임을 연 횟수 기록 (인기 게임 자동 순위에 사용)
+function getPlays(){ try { return JSON.parse(store.get('tm-plays') || '{}') || {}; } catch(e){ return {}; } }
+function countPlay(file){
+  const p = getPlays(); p[file] = (p[file] || 0) + 1; store.set('tm-plays', JSON.stringify(p));
+  // 구글 시트에도 +1 (게임 파일만, 실패해도 게임은 그대로 열려요)
+  if (CFG.statsUrl && /^games\//.test(file)){
+    try { fetch(CFG.statsUrl + '?action=hit&file=' + encodeURIComponent(file), { mode:'no-cors', keepalive:true }).catch(() => {}); } catch(e){}
+  }
+}
+// 구글 시트에서 전체 플레이 수 가져오기 (4초 안에 응답이 없으면 포기)
+async function fetchGlobalPlays(){
+  if (!CFG.statsUrl) return null;
+  const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 4000);
+  try {
+    const res = await fetch(CFG.statsUrl + '?action=list', { signal: ctrl.signal });
+    const data = await res.json();
+    return data && data.ok && data.counts ? data.counts : null;
+  } catch(e){ return null; } finally { clearTimeout(t); }
+}
 function openItem(key, i){ openEntry(LISTS[key] && LISTS[key][i]); }
 // entry = { title, icon, file, newTab }
 function openEntry(g){
   if (!g || !g.file){ toast('곧 만나요! 열심히 만들고 있어요 🛠️'); return; }
+  countPlay(g.file);
   if (g.newTab){ window.open(g.file, '_blank', 'noopener'); return; }
   lastFocus = document.activeElement;
   returnHash = location.hash.startsWith('#game=') ? '' : location.hash;
@@ -278,6 +299,54 @@ document.addEventListener('click', e => {
 if ($('#latestGrid')){
   const latest = GAME_LIST.map((item, i) => ({ item, i })).filter(x => x.item.file).sort(byLatest).slice(0, CFG.latestCount).map(x => x.i);
   renderInto($('#latestGrid'), 'games', latest);
+}
+
+/* =========================================================
+   7-1. 🔥 인기 게임 BEST 10
+   ========================================================= */
+if ($('#bestTrack')){
+  const track = $('#bestTrack');
+  const ready = GAME_LIST.map((item, i) => ({ item, i })).filter(r => r.item.file);
+  let ranked = [];
+  function renderBest(plays, global){
+    if (BEST_LIST.length){
+      // data.js 의 BEST 순서대로 (목록에 없는 경로는 건너뛰어요)
+      ranked = BEST_LIST.map(f => ready.find(r => r.item.file === f)).filter(Boolean);
+    } else {
+      ranked = [...ready].sort((a, b) => (plays[b.item.file] || 0) - (plays[a.item.file] || 0) || byLatest(a, b));
+    }
+    ranked = ranked.slice(0, 10);
+    track.innerHTML = ranked.length ? ranked.map((r, n) => {
+      const g = r.item, cnt = plays[g.file] || 0;
+      return `<button type="button" class="best-card" data-list="games" data-i="${r.i}" title="${esc(g.title)}">
+        <div class="thumb" style="background:${esc(g.color || '#E4F5D6')}">
+          <span class="rank${n < 3 ? ' r' + (n + 1) : ''}">${n + 1}</span>
+          ${g.image ? `<img src="${esc(g.image)}" alt="" loading="lazy">` : `<span aria-hidden="true">${esc(g.icon || '🎲')}</span>`}
+          ${global && cnt ? `<span class="plays">▶ ${cnt.toLocaleString()}회</span>` : ''}
+        </div>
+        <div class="name">${esc(g.title)}</div>
+      </button>`;
+    }).join('') : '<p class="best-empty">아직 게임이 없어요.</p>';
+    if (typeof updateNav === 'function') updateNav();
+  }
+  renderBest(getPlays(), false);                 // 먼저 이 기기 기준으로 바로 보여 주고
+  fetchGlobalPlays().then(c => { if (c) { renderBest(c, true); track.scrollLeft = 0; } });   // 시트 응답이 오면 전체 기준으로 바꿔요
+
+  const per = () => Number(getComputedStyle(track).getPropertyValue('--per')) || 5;
+  const pages = () => Math.max(1, Math.ceil(ranked.length / per()));
+  const page = () => Math.min(pages(), Math.round(track.scrollLeft / Math.max(1, track.clientWidth)) + 1);
+  var updateNav = function(){
+    const p = page(), total = pages();
+    $('#bestPage').textContent = `${p} / ${total}`;
+    $('#bestPrev').disabled = p <= 1;
+    $('#bestNext').disabled = p >= total;
+  };
+  $('#bestPrev').addEventListener('click', () => track.scrollBy({ left: -track.clientWidth, behavior: 'smooth' }));
+  $('#bestNext').addEventListener('click', () => track.scrollBy({ left: track.clientWidth, behavior: 'smooth' }));
+  let sT; track.addEventListener('scroll', () => { clearTimeout(sT); sT = setTimeout(updateNav, 80); });
+  window.addEventListener('resize', updateNav);
+  $$('.tab').forEach(t => t.addEventListener('click', () => setTimeout(updateNav, 50)));
+  updateNav();
 }
 
 /* =========================================================
