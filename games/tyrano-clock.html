@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>티라노 시계 읽기 · TyranoMath</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="engine/tyrano-quiz.css">
+<style>.clock{width:clamp(150px, 36vmin, 400px)}</style>
+</head>
+<body>
+<script src="engine/tyrano-quiz.js"></script>
+<script>
+/* ⏰ 티라노 시계 읽기 — 1~2학년 · 도형과 측정(시각)
+   쉬움: 몇 시 / 보통: 몇 시 30분 / 도전: 5분 단위 */
+const { rnd, pick, shuffle } = TyranoQuiz;
+const ACTIVITY = ['일어났어요 🌅', '아침을 먹어요 🍳', '학교에 가요 🎒', '공원에서 놀아요 🛝', '간식을 먹어요 🍪', '숙제를 해요 ✏️', '책을 읽어요 📖', '잠을 자요 🌙'];
+
+function clockSVG(h, m) {
+  let ticks = '', nums = '';
+  for (let i = 0; i < 60; i++) {
+    const a = (i * 6 - 90) * Math.PI / 180, big = i % 5 === 0;
+    const r1 = big ? 78 : 83, r2 = 89;
+    ticks += `<line x1="${100 + r1 * Math.cos(a)}" y1="${100 + r1 * Math.sin(a)}" x2="${100 + r2 * Math.cos(a)}" y2="${100 + r2 * Math.sin(a)}" stroke="#22314A" stroke-width="${big ? 3 : 1.2}"/>`;
+  }
+  for (let n = 1; n <= 12; n++) {
+    const a = (n * 30 - 90) * Math.PI / 180;
+    nums += `<text x="${100 + 64 * Math.cos(a)}" y="${100 + 64 * Math.sin(a)}" text-anchor="middle" dominant-baseline="central" font-family="Fredoka, sans-serif" font-weight="700" font-size="17" fill="#22314A">${n}</text>`;
+  }
+  const ha = ((h % 12) + m / 60) * 30, ma = m * 6;
+  return `<svg class="clock" viewBox="0 0 200 200">
+    <circle cx="100" cy="100" r="96" fill="#4CB963"/><circle cx="100" cy="100" r="90" fill="#fff"/>
+    ${ticks}${nums}
+    <line x1="100" y1="100" x2="100" y2="58" stroke="#E5546B" stroke-width="7" stroke-linecap="round" transform="rotate(${ha} 100 100)"/>
+    <line x1="100" y1="100" x2="100" y2="28" stroke="#2f7fc1" stroke-width="4.5" stroke-linecap="round" transform="rotate(${ma} 100 100)"/>
+    <circle cx="100" cy="100" r="6" fill="#22314A"/></svg>`;
+}
+const label = (h, m) => m === 0 ? `${h}시` : `${h}시 ${m}분`;
+const wrapH = h => ((h - 1 + 12) % 12) + 1;
+
+TyranoQuiz.start({
+  title: '티라노 시계 읽기',
+  emoji: '⏰',
+  intro: '티라노의 하루를 따라가요! 시계를 보고 몇 시 몇 분인지 맞혀 보세요. (빨간 바늘: 시침, 파란 바늘: 분침)',
+  time: 60,
+  scoreIcon: '⏰',
+  accent: '#2f7fc1',
+  bg: ['#DDF0FF', '#BFE3C6'],
+  levels: [
+    { label: '몇 시', value: 1 },
+    { label: '몇 시 30분', value: 2 },
+    { label: '5분 단위', value: 3 }
+  ],
+  make(level) {
+    const h = rnd(1, 12);
+    const m = level === 1 ? 0 : level === 2 ? pick([0, 30, 30]) : rnd(1, 11) * 5;
+    const ans = label(h, m), set = new Set([ans]);
+    const cands = [
+      label(wrapH(h + 1), m), label(wrapH(h - 1), m),
+      m % 5 === 0 && m > 0 && m / 5 <= 12 ? label(m / 5, (h % 12) * 5) : null,  // 시침·분침을 바꿔 읽은 경우
+      label(h, (m + 30) % 60), label(h, (m + 5) % 60), label(h, (m + 55) % 60)
+    ].filter(Boolean).filter(c => level !== 1 || !c.includes('분'));   // 쉬움 단계는 '몇 시'만
+    for (const c of shuffle(cands)) { if (set.size >= 4) break; set.add(c); }
+    while (set.size < 4) set.add(label(rnd(1, 12), level === 1 ? 0 : level === 2 ? pick([0, 30]) : rnd(0, 11) * 5));
+    return {
+      q: `${clockSVG(h, m)}<span class="sub">티라노가 ${pick(ACTIVITY)} 지금은 몇 시일까요?</span>`,
+      answer: ans,
+      choices: shuffle([...set]).map(s => ({ key: s, html: s })),
+      explain: `짧은 바늘이 ${m === 0 ? h : h + '와 ' + wrapH(h + 1) + ' 사이'}, 긴 바늘이 ${m === 0 ? 12 : m / 5}을(를) 가리켜서 ${ans}예요.`
+    };
+  }
+});
+</script>
+</body>
+</html>

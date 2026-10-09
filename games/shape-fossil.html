@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>도형 화석 발굴 · TyranoMath</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="engine/tyrano-quiz.css">
+<style>.fossil{width:clamp(150px, 34vmin, 380px)}</style>
+</head>
+<body>
+<script src="engine/tyrano-quiz.js"></script>
+<script>
+/* 🦴 도형 화석 발굴 — 1~4학년 · 도형과 측정
+   쉬움: 도형 이름 / 보통: 변의 수 / 도전: 각에 따른 삼각형 분류 */
+const { rnd, pick, shuffle, numChoices } = TyranoQuiz;
+const STONE = ['#E9D8BC', '#E2CDA9', '#EADFC9'];
+const INK = ['#8A5A35', '#7A4E2D', '#9B6B42'];
+
+// 돌판 위에 도형 화석 그리기
+function fossil(inner) {
+  return `<svg class="fossil" viewBox="0 0 200 200">
+    <rect x="6" y="6" width="188" height="188" rx="30" fill="${pick(STONE)}" stroke="#C9B08A" stroke-width="4"/>
+    <circle cx="30" cy="40" r="4" fill="#CDB792"/><circle cx="168" cy="160" r="5" fill="#CDB792"/><circle cx="160" cy="34" r="3" fill="#CDB792"/>
+    <g fill="rgba(122,78,45,.12)" stroke="${pick(INK)}" stroke-width="6" stroke-linejoin="round">${inner}</g></svg>`;
+}
+// 중심 (100,100)을 기준으로 정다각형/불규칙 다각형 꼭짓점 만들기
+function polygon(n, irregular) {
+  const rot = Math.random() * Math.PI * 2, pts = [];
+  for (let i = 0; i < n; i++) {
+    const ang = rot + (Math.PI * 2 * i) / n + (irregular ? (Math.random() - .5) * (Math.PI / n) * .8 : 0);
+    const r = irregular ? rnd(58, 72) : 68;
+    pts.push([100 + r * Math.cos(ang), 100 + r * Math.sin(ang)]);
+  }
+  return `<polygon points="${pts.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ')}"/>`;
+}
+const NAMES = { 3: '삼각형', 4: '사각형', 5: '오각형', 6: '육각형', 0: '원' };
+
+// 각의 크기로 삼각형 만들기 (밑변을 놓고 꼭대기 점 위치를 정해요)
+function triangle(kind) {
+  const ax = 40, bx = 160, y = 150;
+  let tx, ty;
+  if (kind === '직각삼각형') { tx = pick([ax, bx]); ty = rnd(50, 70); }
+  else if (kind === '예각삼각형') { tx = rnd(85, 115); ty = rnd(40, 60); }
+  else { tx = pick([rnd(-10, 10), rnd(190, 210)]); ty = rnd(85, 105); }
+  const pts = [[ax, y], [bx, y], [tx, ty]];
+  // 돌판 안에 들어오도록 좌우 위치 보정
+  const minX = Math.min(...pts.map(p => p[0])), maxX = Math.max(...pts.map(p => p[0]));
+  const shift = 100 - (minX + maxX) / 2, k = Math.min(1, 150 / (maxX - minX));
+  const P = pts.map(([x, yy]) => [100 + (x + shift - 100) * k, 100 + (yy - 100) * k]);
+  let mark = '';
+  if (kind === '직각삼각형') {   // 직각 표시
+    const c = tx === ax ? P[0] : P[1], dir = tx === ax ? 1 : -1, s = 14;
+    mark = `<path d="M${c[0] + dir * s} ${c[1]} L${c[0] + dir * s} ${c[1] - s} L${c[0]} ${c[1] - s}" fill="none" stroke-width="3"/>`;
+  }
+  return `<polygon points="${P.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ')}"/>${mark}`;
+}
+
+TyranoQuiz.start({
+  title: '도형 화석 발굴',
+  emoji: '🦴',
+  intro: '땅속에서 도형 모양 화석이 나왔어요! 화석을 잘 보고 알맞은 답을 골라요.',
+  time: 60,
+  scoreIcon: '🦴',
+  accent: '#B5763F',
+  bg: ['#F6EBD9', '#D9C29C'],
+  cheers: ['발굴 성공! ⛏️', '정답! 크앙~', '훌륭한 고생물학자예요! 🦴', '최고예요! 👏'],
+  levels: [
+    { label: '이름 맞히기', value: 1 },
+    { label: '변의 수', value: 2 },
+    { label: '삼각형 분류', value: 3 }
+  ],
+  make(level) {
+    if (level === 1) {
+      const n = pick([0, 3, 4, 5, 6]);
+      const shape = n === 0 ? '<circle cx="100" cy="100" r="66"/>' : polygon(n, Math.random() < .5);
+      const others = shuffle(Object.keys(NAMES).filter(k => Number(k) !== n)).slice(0, 2);
+      return {
+        q: `${fossil(shape)}<span class="sub">이 화석은 어떤 모양일까요?</span>`,
+        answer: NAMES[n],
+        choices: shuffle([n, ...others.map(Number)]).map(k => ({ key: NAMES[k], html: NAMES[k] })),
+        explain: `정답은 ${NAMES[n]}이에요.`
+      };
+    }
+    if (level === 2) {
+      const n = rnd(3, 8);
+      return {
+        q: `${fossil(polygon(n, true))}<span class="sub">이 도형의 변은 몇 개일까요?</span>`,
+        answer: String(n),
+        choices: numChoices(n, 4, 2, 3),
+        explain: `변을 하나씩 세어 보면 ${n}개예요.`
+      };
+    }
+    const kinds = ['직각삼각형', '예각삼각형', '둔각삼각형'];
+    const k = pick(kinds);
+    const tip = { '직각삼각형': '한 각이 직각이에요.', '예각삼각형': '세 각이 모두 예각이에요.', '둔각삼각형': '한 각이 둔각이에요.' };
+    return {
+      q: `${fossil(triangle(k))}<span class="sub">각의 크기를 보고 알맞은 이름을 골라요.</span>`,
+      answer: k,
+      choices: kinds.map(x => ({ key: x, html: x })),
+      explain: `${k}: ${tip[k]}`
+    };
+  }
+});
+</script>
+</body>
+</html>

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TyranoMath · 티라노와 함께하는 초등수학</title>
-<meta name="description" content="TyranoMath - 티라노와 함께 즐겁게 배우는 초등수학 홈페이지">
+<title>티라노 게임존 · TyranoMath</title>
+<meta name="description" content="TyranoMath 티라노 게임존 - 즐겁게 플레이하며 배우는 초등수학 게임 모음">
 <meta name="theme-color" content="#4CB963">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦖</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -66,9 +66,9 @@
     </a>
 
     <nav class="nav" aria-label="주요 메뉴">
-      <a href="#learn" title="차근차근 익히는 수학 개념"><span class="ico">🦖 </span>개념 탐험대</a>
-      <a href="#check" title="나만의 수학 실력 점검하기"><span class="ico">🎯 </span>실력 진단소</a>
-      <a href="gamezone.html" title="즐겁게 플레이하며 배우는 수학"><span class="ico">🎮 </span>티라노 게임존</a>
+      <a href="index.html#learn" title="차근차근 익히는 수학 개념"><span class="ico">🦖 </span>개념 탐험대</a>
+      <a href="index.html#check" title="나만의 수학 실력 점검하기"><span class="ico">🎯 </span>실력 진단소</a>
+      <a href="gamezone.html" aria-current="page" title="즐겁게 플레이하며 배우는 수학"><span class="ico">🎮 </span>티라노 게임존</a>
       <!-- 버그 제보방: 아래 CONFIG.bugReportUrl 에 링크를 넣으면 연결돼요 -->
       <a class="bug-tab" id="bugTab" href="#" target="_blank" rel="noopener" aria-label="버그 제보방"><span aria-hidden="true">🐞</span><span class="txt">&nbsp;버그 제보방</span></a>
     </nav>
@@ -109,63 +109,51 @@
   </div>
 </div>
 
-<main id="home">
-  <!-- 첫 화면 -->
-  <section class="hero">
+<main id="zone">
+  <!-- 게임존 머리말 -->
+  <section class="zone-hero">
     <div class="wrap">
-      <div>
-        <h1>크앙! 티라노와 함께<br><span class="hl">튼튼한 수학 기초</span>를 쌓아요</h1>
-        <p>TyranoMath는 초등학생을 위한 수학 놀이터예요. 개념을 배우고, 문제를 풀고, 게임으로 실력을 키워 봐요!</p>
+      <div class="txt">
+        <a class="back" href="index.html">← 홈으로</a>
+        <h1>🎮 티라노 게임존</h1>
+        <p>즐겁게 플레이하며 배우는 수학</p>
+        <div class="zone-stats">
+          <span>전체 게임 <b id="statTotal">0</b>개</span>
+          <span>🆕 새 게임 <b id="statNew">0</b>개</span>
+        </div>
       </div>
-      <div class="dino-stage">
-        <div class="bubble">1 + 1 = ?</div>
-        <span class="float-num" style="top:8%;right:6%;color:#FF9F43;font-size:2.2rem">+</span>
-        <span class="float-num" style="bottom:18%;left:2%;color:#2f7fc1;font-size:2rem;animation-delay:-1s">×</span>
-        <span class="float-num" style="bottom:4%;right:10%;color:#FF8FA3;font-size:1.8rem;animation-delay:-2s">÷</span>
-        <svg class="hero-dino" viewBox="0 0 220 200" role="img" aria-label="연필을 든 귀여운 초록 티라노"><use href="#dino"/></svg>
-      </div>
-      <div class="btns stages">
-        <a class="btn" href="#learn" title="차근차근 익히는 수학 개념"><span aria-hidden="true">🦖</span><span class="lbl">개념 탐험대<small>차근차근 익히는 수학 개념</small></span></a>
-        <a class="btn blue" href="#check" title="나만의 수학 실력 점검하기"><span aria-hidden="true">🎯</span><span class="lbl">실력 진단소<small>나만의 수학 실력 점검하기</small></span></a>
-        <a class="btn orange" href="gamezone.html" title="즐겁게 플레이하며 배우는 수학"><span aria-hidden="true">🎮</span><span class="lbl">티라노 게임존<small>즐겁게 플레이하며 배우는 수학</small></span></a>
-      </div>
+      <svg class="zone-dino" viewBox="0 0 220 200" aria-hidden="true"><use href="#dino"/></svg>
     </div>
   </section>
 
-  <!-- 1단계: 개념 탐험대 (학년 → 영역 → 단원) -->
-  <section id="learn" class="units learn">
+  <!-- 찾기 도구 -->
+  <div class="toolbar">
     <div class="wrap">
-      <div class="sec-title">
-        <h2><span class="step">1단계</span>🦖 개념 탐험대</h2>
-        <p>차근차근 익히는 수학 개념</p>
+      <div class="area-chips" id="areaChips" role="group" aria-label="영역"></div>
+      <div class="filters">
+        <select id="gradeSel" aria-label="학년">
+          <option value="0">전체 학년</option>
+          <option value="1">1학년</option><option value="2">2학년</option><option value="3">3학년</option>
+          <option value="4">4학년</option><option value="5">5학년</option><option value="6">6학년</option>
+        </select>
+        <select id="sortSel" aria-label="정렬">
+          <option value="new">최신순</option>
+          <option value="name">이름순</option>
+          <option value="grade">학년순</option>
+        </select>
+        <input type="search" id="searchBox" placeholder="🔍 게임 찾기" aria-label="게임 이름으로 찾기">
       </div>
-      <div class="grade-tabs" role="tablist" aria-label="학년 선택" data-for="learn"></div>
-      <div class="area-grid" id="learnBoard" role="tabpanel"></div>
     </div>
-  </section>
+  </div>
 
-  <!-- 2단계: 실력 진단소 (학년 → 영역 → 단원) -->
-  <section id="check" class="units checks">
+  <!-- 게임 목록 -->
+  <section class="zone-list">
     <div class="wrap">
-      <div class="sec-title">
-        <h2><span class="step s2">2단계</span>🎯 실력 진단소</h2>
-        <p>나만의 수학 실력 점검하기</p>
-      </div>
-      <div class="grade-tabs" role="tablist" aria-label="학년 선택" data-for="check"></div>
-      <div class="area-grid" id="checkBoard" role="tabpanel"></div>
-    </div>
-  </section>
-
-  <!-- 3단계: 티라노 게임존 (최신 게임만 보여 줘요) -->
-  <section id="games" class="games">
-    <div class="wrap">
-      <div class="sec-title">
-        <h2><span class="step s3">3단계</span>🎮 티라노 게임존</h2>
-        <p>새로 올라온 게임이에요 🆕</p>
-      </div>
-      <div class="game-grid" id="latestGrid"></div>
-      <div class="more-row">
-        <a class="btn orange" href="gamezone.html"><span>🎮 티라노 게임존 전체 보기 (<span class="game-total">0</span>개) →</span></a>
+      <p class="zone-count" id="zoneCount"></p>
+      <div class="game-grid" id="zoneGrid"></div>
+      <div class="empty" id="zoneEmpty" hidden>
+        <svg viewBox="0 0 220 200" aria-hidden="true"><use href="#dino"/></svg>
+        조건에 맞는 게임이 없어요. 다른 영역이나 학년을 골라 보세요!
       </div>
     </div>
   </section>

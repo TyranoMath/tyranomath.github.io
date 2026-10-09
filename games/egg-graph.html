@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>공룡 알 그래프 · TyranoMath</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="engine/tyrano-quiz.css">
+<style>
+.tq-q{padding:1.4vmin 3vmin}
+.graph{width:clamp(260px, 72vmin, 760px)}
+.ask{display:block; font-size:.85em; margin-top:.3em}
+</style>
+</head>
+<body>
+<script src="engine/tyrano-quiz.js"></script>
+<script>
+/* 📊 공룡 알 그래프 — 2~4학년 · 자료와 가능성
+   쉬움: 그림그래프 읽기 / 보통: 막대그래프 읽기 / 도전: 차이·합계 구하기 */
+const { rnd, pick, shuffle, numChoices } = TyranoQuiz;
+const DINOS = [
+  { name: '티라노', color: '#4CB963' }, { name: '브라키오', color: '#3B8FD9' },
+  { name: '트리케라', color: '#FF9F43' }, { name: '스테고', color: '#E5546B' }
+];
+
+// 서로 다른 알 개수 4개 만들기 (가장 많은/적은 것이 하나로 정해지게)
+function makeData(max) {
+  const nums = shuffle(Array.from({ length: max }, (_, i) => i + 1)).slice(0, 4);
+  return DINOS.map((d, i) => ({ ...d, n: nums[i] }));
+}
+function pictograph(data) {
+  const rowH = 40, w = 400, h = data.length * rowH + 20;
+  let rows = '';
+  data.forEach((d, i) => {
+    const y = 14 + i * rowH;
+    rows += `<rect x="0" y="${y - 4}" width="${w}" height="${rowH - 4}" rx="8" fill="${i % 2 ? '#FFFDF6' : '#FFF6E2'}"/>
+      <text x="12" y="${y + 18}" font-family="Jua, sans-serif" font-size="18" fill="${d.color}" dominant-baseline="middle">${d.name}</text>`;
+    for (let k = 0; k < d.n; k++) rows += `<text x="${110 + k * 32}" y="${y + 19}" font-size="24" dominant-baseline="middle">🥚</text>`;
+  });
+  return `<svg class="graph" viewBox="0 0 ${w} ${h}">${rows}</svg>`;
+}
+function barGraph(data, max) {
+  const W = 420, H = 250, left = 40, bottom = 210, top = 16, colW = (W - left - 10) / data.length;
+  const yOf = v => bottom - (v / max) * (bottom - top);
+  let g = '';
+  for (let v = 0; v <= max; v++) {
+    g += `<line x1="${left}" y1="${yOf(v)}" x2="${W - 6}" y2="${yOf(v)}" stroke="${v % 5 === 0 ? '#C9B08A' : '#EFE3CC'}" stroke-width="${v % 5 === 0 ? 1.5 : 1}"/>`;
+    if (max <= 10 || v % 2 === 0) g += `<text x="${left - 8}" y="${yOf(v)}" text-anchor="end" dominant-baseline="middle" font-family="Fredoka, sans-serif" font-size="13" fill="#5D6C83">${v}</text>`;
+  }
+  data.forEach((d, i) => {
+    const x = left + i * colW + colW * .2, bw = colW * .6;
+    g += `<rect x="${x}" y="${yOf(d.n)}" width="${bw}" height="${bottom - yOf(d.n)}" rx="6" fill="${d.color}"/>
+      <text x="${x + bw / 2}" y="${bottom + 22}" text-anchor="middle" font-family="Jua, sans-serif" font-size="16" fill="#22314A">${d.name}</text>`;
+  });
+  g += `<line x1="${left}" y1="${bottom}" x2="${W - 6}" y2="${bottom}" stroke="#22314A" stroke-width="2"/>
+        <text x="4" y="10" font-family="Jua, sans-serif" font-size="12" fill="#5D6C83">(개)</text>`;
+  return `<svg class="graph" viewBox="0 0 ${W} ${H}">${g}</svg>`;
+}
+const nameChoices = data => data.map(d => ({ key: d.name, html: `<span style="color:${d.color}">${d.name}</span>` }));
+
+TyranoQuiz.start({
+  title: '공룡 알 그래프',
+  emoji: '📊',
+  intro: '공룡들이 낳은 알의 수를 그래프로 나타냈어요. 그래프를 읽고 질문에 답해 보세요!',
+  time: 75,
+  scoreIcon: '🥚',
+  accent: '#E0A100',
+  bg: ['#FFF6D6', '#CDEBB4'],
+  levels: [
+    { label: '그림그래프', value: 1 },
+    { label: '막대그래프', value: 2 },
+    { label: '차이·합계', value: 3 }
+  ],
+  make(level) {
+    const max = level === 1 ? 8 : 10;
+    const data = makeData(max);
+    const graph = level === 1 ? pictograph(data) : barGraph(data, max);
+    const most = data.reduce((a, b) => (b.n > a.n ? b : a)), least = data.reduce((a, b) => (b.n < a.n ? b : a));
+    let type = level === 3 ? pick(['diff', 'sum', 'diff2']) : pick(['most', 'least', 'count', 'count']);
+    if (type === 'most') return { q: graph + '<span class="ask">알을 가장 많이 낳은 공룡은?</span>', answer: most.name, choices: nameChoices(data), explain: `${most.name}가 ${most.n}개로 가장 많아요.` };
+    if (type === 'least') return { q: graph + '<span class="ask">알을 가장 적게 낳은 공룡은?</span>', answer: least.name, choices: nameChoices(data), explain: `${least.name}가 ${least.n}개로 가장 적어요.` };
+    if (type === 'count') {
+      const d = pick(data);
+      return { q: graph + `<span class="ask"><b style="color:${d.color}">${d.name}</b>의 알은 몇 개일까요?</span>`, answer: String(d.n), choices: numChoices(d.n, 4, 2, 1), explain: `${d.name}의 알은 ${d.n}개예요.` };
+    }
+    if (type === 'diff') {
+      const v = most.n - least.n;
+      return { q: graph + '<span class="ask">가장 많은 공룡과 가장 적은 공룡의 알 수 차이는?</span>', answer: String(v), choices: numChoices(v, 4, 2, 0), explain: `${most.n} - ${least.n} = ${v}개예요.` };
+    }
+    if (type === 'diff2') {
+      const [a, b] = shuffle(data).slice(0, 2), v = Math.abs(a.n - b.n);
+      return { q: graph + `<span class="ask"><b style="color:${a.color}">${a.name}</b>와 <b style="color:${b.color}">${b.name}</b>의 알 수 차이는?</span>`, answer: String(v), choices: numChoices(v, 4, 2, 0), explain: `${Math.max(a.n, b.n)} - ${Math.min(a.n, b.n)} = ${v}개예요.` };
+    }
+    const total = data.reduce((s, d) => s + d.n, 0);
+    return { q: graph + '<span class="ask">공룡들이 낳은 알은 모두 몇 개일까요?</span>', answer: String(total), choices: numChoices(total, 4, 3, 1), explain: `${data.map(d => d.n).join(' + ')} = ${total}개예요.` };
+  }
+});
+</script>
+</body>
+</html>

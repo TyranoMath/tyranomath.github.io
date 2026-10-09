@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>발자국 규칙 찾기 · TyranoMath</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="engine/tyrano-quiz.css">
+<style>
+.trail{--s:min(10.5vmin, calc(60vw / var(--cnt))); display:flex; flex-wrap:nowrap; justify-content:center; gap:calc(var(--s) * .12); margin:1vmin 0 2vmin}
+.step{
+  flex:none; min-width:var(--s); height:var(--s); padding:0 calc(var(--s) * .08); border-radius:50% 50% 45% 45%;
+  background:#F3E3C3; border:3px dashed #C9A56E; display:grid; place-items:center;
+  font-family:'Fredoka',sans-serif; font-weight:700; font-size:calc(var(--s) * .45); line-height:1
+}
+@media (max-aspect-ratio: 3/4){ .trail{--s:min(11vmin, calc(80vw / var(--cnt)))} }
+.step:nth-child(even){transform:translateY(1.6vmin) rotate(6deg)}
+.step:nth-child(odd){transform:rotate(-6deg)}
+.step.q{background:#fff; border:4px solid var(--accent); color:var(--accent)}
+.tq-choice .emo{font-size:clamp(30px, 8vmin, 90px)}
+</style>
+</head>
+<body>
+<script src="engine/tyrano-quiz.js"></script>
+<script>
+/* 🐾 발자국 규칙 찾기 — 1~4학년 · 변화와 관계
+   쉬움: 모양 규칙 / 보통: 일정하게 커지는 수 / 도전: 커지는 폭이 변하는 수·곱하는 수 */
+const { rnd, pick, shuffle, numChoices } = TyranoQuiz;
+const EMOJI = ['🦖', '🥚', '🌿', '🦴', '🌋', '⭐', '🍖', '🌸'];
+const trail = items => `<div class="trail" style="--cnt:${items.length + 1}">${items.map(v => `<span class="step${v === '?' ? ' q' : ''}">${v}</span>`).join('')}</div>`;
+
+TyranoQuiz.start({
+  title: '발자국 규칙 찾기',
+  emoji: '🐾',
+  intro: '공룡이 남긴 발자국에 규칙이 숨어 있어요. 규칙을 찾아 ? 자리에 올 것을 골라요!',
+  time: 60,
+  scoreIcon: '🐾',
+  accent: '#8E5BD6',
+  bg: ['#EFE6FF', '#CDEBB4'],
+  levels: [
+    { label: '모양 규칙', value: 1 },
+    { label: '수 규칙', value: 2 },
+    { label: '도전 규칙', value: 3 }
+  ],
+  make(level) {
+    if (level === 1) {
+      const kinds = [[0, 1], [0, 0, 1], [0, 1, 1], [0, 1, 2], [0, 0, 1, 1]];
+      const unit = pick(kinds), syms = shuffle(EMOJI).slice(0, 3);
+      const len = unit.length * 2 + rnd(1, unit.length);           // 규칙이 두 번 이상 보이게
+      const seq = Array.from({ length: len }, (_, i) => syms[unit[i % unit.length]]);
+      const ans = seq[len - 1]; seq[len - 1] = '?';
+      const used = [...new Set(unit.map(u => syms[u]))];
+      // 오답은 규칙에 나온 다른 모양을 먼저 쓰고, 모자라면 새 모양으로 채워요
+      const others = [...used.filter(v => v !== ans), ...shuffle(EMOJI.filter(v => !used.includes(v)))].slice(0, 2);
+      const choices = shuffle([ans, ...others]);
+      return {
+        q: `${trail(seq)}<span class="sub">? 자리에 올 발자국은?</span>`,
+        answer: ans,
+        choices: choices.map(e => ({ key: e, html: `<span class="emo">${e}</span>` })),
+        explain: `규칙: ${unit.map(u => syms[u]).join(' ')} 이(가) 반복돼요.`
+      };
+    }
+    let seq, ans, rule;
+    if (level === 2) {
+      const step = pick([2, 3, 5, 10, 4]), start = rnd(1, 20), down = Math.random() < .25;
+      const s0 = down ? start + step * 6 : start, d = down ? -step : step;
+      seq = Array.from({ length: 5 }, (_, i) => s0 + d * i);
+      ans = s0 + d * 5;
+      rule = `${Math.abs(d)}씩 ${down ? '작아져요' : '커져요'}`;
+    } else {
+      if (Math.random() < .5) {          // 커지는 폭이 1, 2, 3, ... 늘어나는 규칙
+        const s0 = rnd(1, 10), inc0 = rnd(1, 3);
+        seq = [s0]; for (let i = 1; i < 6; i++) seq.push(seq[i - 1] + inc0 + i - 1);
+        ans = seq.pop();
+        rule = `더하는 수가 ${inc0}, ${inc0 + 1}, ${inc0 + 2}, … 처럼 1씩 커져요`;
+      } else {                           // 곱해서 커지는 규칙
+        const r = pick([2, 2, 3]), s0 = rnd(1, 3);
+        seq = Array.from({ length: 4 }, (_, i) => s0 * r ** i);
+        ans = s0 * r ** 4;
+        rule = `앞의 수에 ${r}을(를) 곱해요`;
+      }
+    }
+    const last = seq[seq.length - 1], diff = ans - last;
+    return {
+      q: `${trail([...seq, '?'])}<span class="sub">? 자리에 올 수는?</span>`,
+      answer: String(ans),
+      choices: numChoices(ans, 4, 3, 0, [ans + 1, ans - 1, last + diff - 1, last + diff * 2, ans + 2]),
+      explain: `규칙: ${rule}. 그래서 ${ans}!`
+    };
+  }
+});
+</script>
+</body>
+</html>

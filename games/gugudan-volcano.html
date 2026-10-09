@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구구단 화산 탈출 · TyranoMath</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="engine/tyrano-quiz.css">
+</head>
+<body>
+<script src="engine/tyrano-quiz.js"></script>
+<script>
+/* 🌋 구구단 화산 탈출 — 2~3학년 · 수와 연산 */
+const { rnd, numChoices } = TyranoQuiz;
+TyranoQuiz.start({
+  title: '구구단 화산 탈출',
+  emoji: '🌋',
+  intro: '화산이 부글부글! 구구단 20문제를 맞혀서 90초 안에 화산을 탈출해요.',
+  time: 90,
+  goal: 20,
+  goalText: '탈출까지',
+  scoreIcon: '🧗',
+  accent: '#FF6B3D',
+  bg: ['#FFE1CC', '#F3B48C'],
+  winEmoji: '🦖🎉', winTitle: '화산 탈출 성공!',
+  cheers: ['한 칸 올라갔어요! 🧗', '정답! 크앙~', '화산이 멀어져요! 🌋', '최고예요! 🔥'],
+  levels: [
+    { label: '2~5단', value: [2, 5] },
+    { label: '6~9단', value: [6, 9] },
+    { label: '2~9단', value: [2, 9] }
+  ],
+  make([lo, hi]) {
+    const a = rnd(lo, hi), b = rnd(1, 9), ans = a * b;
+    return {
+      q: `<span class="big">${a} × ${b} = <span class="qm">?</span></span>`,
+      answer: String(ans),
+      // 헷갈리기 쉬운 오답: 한 단 위·아래, 앞뒤 칸
+      choices: numChoices(ans, 4, 3, 1, [a * (b + 1), a * (b - 1), (a + 1) * b, (a - 1) * b]),
+      explain: `${a} × ${b} = ${ans}`
+    };
+  }
+});
+</script>
+</body>
+</html>

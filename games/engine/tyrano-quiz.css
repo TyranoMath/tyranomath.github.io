@@ -1,0 +1,64 @@
+/* TyranoMath 게임 엔진 공통 화면 (games/engine) */
+:root{
+  --bg1:#DDF0FF; --bg2:#CDEBB4; --ink:#22314A; --green:#4CB963; --green-d:#2F8A47;
+  --orange:#FF9F43; --line:#ECDFC8; --pink:#FF8FA3; --red:#E5546B; --accent:#FF9F43;
+}
+*{box-sizing:border-box}
+html,body{margin:0; height:100%}
+body{
+  background:linear-gradient(var(--bg1) 0 64%, var(--bg2) 64% 100%); color:var(--ink);
+  font-family:'Jua', system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  display:flex; flex-direction:column; overflow:hidden; user-select:none; -webkit-user-select:none;
+  word-break:keep-all;
+}
+.tq-top{display:flex; align-items:center; gap:2vmin; padding:2vmin 3vmin; font-size:clamp(15px, 3.2vmin, 32px)}
+.tq-top .sp{flex:1}
+.tq-pill{background:#fff; border:3px solid var(--line); border-radius:999px; padding:.15em .8em; white-space:nowrap}
+.tq-back{text-decoration:none; color:var(--green-d)}
+.tq-progress{flex:1; height:clamp(12px, 2.4vmin, 26px); background:rgba(255,255,255,.7); border:3px solid var(--line); border-radius:999px; overflow:hidden; position:relative}
+.tq-progress i{position:absolute; inset:0 auto 0 0; width:0; background:linear-gradient(90deg, var(--accent), #FFD43B); transition:width .4s}
+.tq-stage{flex:1; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.2vmin; padding:0 3vmin 3vmin}
+.tq-qrow{display:flex; align-items:center; justify-content:center; gap:3vmin; max-width:100%}
+.tq-dino{width:clamp(80px, 19vmin, 220px); flex:none}
+.tq-dino.eat{animation:tq-eat .6s ease}
+.tq-dino.no{animation:tq-no .5s ease}
+@keyframes tq-eat{0%,100%{transform:none}40%{transform:translateY(-6%) scale(1.12) rotate(-6deg)}}
+@keyframes tq-no{0%,100%{transform:none}25%{transform:translateX(-12px)}75%{transform:translateX(12px)}}
+.tq-q{
+  background:#fff; border:4px solid var(--line); border-radius:4vmin; padding:2vmin 4vmin; text-align:center;
+  font-size:clamp(20px, 5vmin, 56px); line-height:1.3; max-width:min(1100px, 100%);
+}
+.tq-q .big{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(40px, 11vmin, 140px); line-height:1.15; display:block}
+.tq-q .qm{color:var(--accent)}
+.tq-q .sub{display:block; font-size:.7em; color:#5D6C83; margin-top:.2em}
+.tq-q svg{display:block; margin:0 auto; max-width:100%; height:auto}
+.tq-choices{display:grid; grid-template-columns:repeat(var(--n, 4), minmax(0, 1fr)); gap:2.4vmin; width:min(1100px, 100%)}
+.tq-choice{
+  font:inherit; cursor:pointer; touch-action:manipulation; color:var(--ink);
+  min-height:clamp(64px, 14vmin, 170px); padding:1.5vmin; border-radius:3vmin;
+  background:#fff; border:4px solid var(--line); box-shadow:0 .7vmin 0 var(--line);
+  font-size:clamp(20px, 5.4vmin, 64px); display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.2;
+  transition:transform .08s;
+}
+.tq-choice:active{transform:translateY(.5vmin); box-shadow:0 .2vmin 0 var(--line)}
+.tq-choice.num{font-family:'Fredoka',sans-serif; font-weight:700}
+.tq-choice.ok{background:var(--green); border-color:var(--green-d); color:#fff; box-shadow:0 .7vmin 0 var(--green-d)}
+.tq-choice.bad{background:var(--red); border-color:#b93a50; color:#fff; animation:tq-no .4s}
+.tq-choice svg{max-height:12vmin; width:auto}
+.tq-msg{min-height:1.4em; font-size:clamp(17px, 4.2vmin, 44px); text-align:center}
+.tq-overlay{position:fixed; inset:0; background:rgba(255,248,236,.95); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.5vmin; text-align:center; padding:4vmin; z-index:10}
+.tq-overlay[hidden]{display:none}
+.tq-overlay h1{margin:0; font-size:clamp(28px, 7.5vmin, 88px); color:var(--green-d); font-weight:400}
+.tq-overlay p{margin:0; font-size:clamp(16px, 3.8vmin, 40px); max-width:900px}
+.tq-overlay .emoji{font-size:clamp(50px, 14vmin, 160px); line-height:1}
+.tq-levels{display:flex; gap:2vmin; flex-wrap:wrap; justify-content:center}
+.tq-levels button{font:inherit; font-size:clamp(16px, 3.8vmin, 40px); padding:.3em .9em; border-radius:2.5vmin; border:3px solid var(--line); background:#fff; cursor:pointer; color:var(--ink)}
+.tq-levels button[aria-pressed="true"]{background:var(--accent); color:#fff; border-color:var(--accent)}
+.tq-btn{font:inherit; font-size:clamp(20px, 5vmin, 54px); cursor:pointer; color:#fff; background:var(--green); border:0; border-radius:3vmin; padding:.35em 1.3em; box-shadow:0 .25em 0 var(--green-d)}
+.tq-btn:active{transform:translateY(.15em); box-shadow:0 .1em 0 var(--green-d)}
+@media (max-aspect-ratio: 3/4){
+  .tq-qrow{flex-direction:column; gap:1vmin}
+  .tq-choices{grid-template-columns:repeat(2, minmax(0, 1fr))}
+  .tq-choice:last-child:nth-child(odd){grid-column:1 / -1}
+}
+@media (prefers-reduced-motion:reduce){ *{animation:none !important; transition:none !important} }
