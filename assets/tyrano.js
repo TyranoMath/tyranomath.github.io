@@ -249,7 +249,7 @@ if ($('#player')){
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeItem(); });
   // 게임 화면 안에서 Esc 를 눌러도 닫히게 (같은 사이트의 게임일 때)
   $('#playerFrame').addEventListener('load', () => {
-    try { $('#playerFrame').contentWindow.addEventListener('keydown', e => { if (e.key === 'Escape') closeItem(); }); } catch(e){}
+    try { $('#playerFrame').contentWindow.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.defaultPrevented) closeItem(); }); } catch(e){}
   });
   $('#playerReload').addEventListener('click', () => { const f = $('#playerFrame'); const src = f.src; f.src = 'about:blank'; setTimeout(() => f.src = src, 50); });
   $('#playerFull').addEventListener('click', () => {

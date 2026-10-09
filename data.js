@@ -129,7 +129,8 @@ const GAMES = [
   { title:'티라노 시계 읽기',      desc:'티라노의 하루! 시계를 보고 몇 시인지 맞혀요.',    grade:'1~2학년', area:'도형과 측정',   icon:'⏰', color:'#DDF0FF', date:'2026-10-07', file:'games/tyrano-clock.html' },
   { title:'발자국 규칙 찾기',      desc:'공룡 발자국에 숨은 규칙을 찾아 다음을 맞혀요.',   grade:'1~4학년', area:'변화와 관계',   icon:'🐾', color:'#E4F5D6', date:'2026-10-08', file:'games/pattern-footprint.html' },
   { title:'공룡 알 그래프',        desc:'그림그래프와 막대그래프를 읽고 질문에 답해요.',   grade:'2~4학년', area:'자료와 가능성', icon:'📊', color:'#FFF3C4', date:'2026-10-09', file:'games/egg-graph.html' },
-  { title:'줄다리기 연산 대결',    desc:'문제를 맞힐 때마다 티라노들이 줄을 당겨요! 친구나 컴퓨터와 대결해요.', grade:'1~6학년', area:'수와 연산', icon:'🦖', image:'games/thumbs/tug-of-war.svg', color:'#DDF0FF', date:'2026-10-09', file:'games/tug-of-war.html' }
+  { title:'줄다리기 연산 대결',    desc:'문제를 맞힐 때마다 티라노들이 줄을 당겨요! 친구나 컴퓨터와 대결해요.', grade:'1~6학년', area:'수와 연산', icon:'🦖', image:'games/thumbs/tug-of-war.svg', color:'#DDF0FF', date:'2026-10-09', file:'games/tug-of-war.html' },
+  { title:'풍선 활쏘기 연산 대결', desc:'문제의 답이 적힌 풍선을 활로 맞혀요! 혼자 기록 도전 또는 친구와 대결.', grade:'1~6학년', area:'수와 연산', icon:'🎈', image:'games/thumbs/balloon-archery.svg', color:'#DDF0FF', date:'2026-10-10', file:'games/balloon-archery.html' }
 ];
 
 /* ---------------------------------------------------------

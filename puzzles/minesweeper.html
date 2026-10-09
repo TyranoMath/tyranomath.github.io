@@ -22,6 +22,10 @@
 .cell.mine::after{content:'🌋'; font-size:calc(var(--cs) * .6)}
 .cell.badflag{background:#FFD6DD !important}
 .cell.badflag::after{content:'❌'; font-size:calc(var(--cs) * .45)}
+.cell.blink{animation:blink .32s steps(1) infinite}
+.cell.blink:not(.open){box-shadow:inset 0 0 0 3px #FF9F43}
+.cell.press{box-shadow:inset 0 0 0 3px #FFD43B}
+@keyframes blink{0%{background:#FFD43B; filter:brightness(1.05)}50%{background:#FF9F43}}
 .n1{color:#3B8FD9} .n2{color:#2F8A47} .n3{color:#E5546B} .n4{color:#6C3FB4} .n5{color:#B4600F} .n6{color:#138A8A} .n7{color:#22314A} .n8{color:#7A7A7A}
 .flagmode{display:grid; grid-template-columns:1fr 1fr; gap:8px}
 .flagmode button{border-radius:16px; border:3px solid var(--line); background:#fff; padding:10px 6px; font-family:'Jua',sans-serif; font-size:clamp(16px,1.7vw,22px); box-shadow:0 4px 0 var(--line)}
@@ -52,7 +56,7 @@
       <button class="tool" id="levelBtn">⚙️ 단계</button>
     </div>
     <div class="msg" id="msg">아무 칸이나 눌러 시작해요!</div>
-    <p class="note">숫자는 둘레 8칸에 숨은 화산 수예요.<br>오른쪽 클릭·길게 누르기로 🚩 깃발을 꽂아요.<br>숫자를 누르면 깃발 수가 맞을 때 주변을 한 번에 열어요.</p>
+    <p class="note">숫자는 둘레 8칸에 숨은 화산 수예요.<br>오른쪽 클릭·길게 누르기로 🚩 깃발을 꽂아요.<br>숫자 위에서 <b>마우스 왼쪽·오른쪽을 함께</b> 누르면 화산이 있을 수 있는 칸이 깜박여요. 깃발 수가 맞으면 놓을 때 한 번에 열려요.</p>
   </div>
 </div>
 
@@ -141,10 +145,24 @@ function dig(i){
 function chord(i){
   if (!adj[i]) return;
   const ns = around(i);
-  if (ns.filter(j => flag[j]).length !== adj[i]) { $('#msg').textContent = `깃발이 ${adj[i]}개 꽂혀야 주변을 열 수 있어요`; return; }
+  if (ns.filter(j => flag[j]).length !== adj[i]){
+    $('#msg').textContent = `깜박이는 칸 중에 화산 ${adj[i]}개가 숨어 있어요! (깃발 ${ns.filter(j => flag[j]).length}개)`;
+    blinkAround(i, 1300); return;
+  }
   for (const j of ns){ if (!flag[j] && !open[j] && mine[j]) return lose(j); }
   ns.forEach(j => reveal(j)); render(); checkWin();
 }
+// 숫자 둘레에서 아직 안 열고 깃발도 없는 칸 = 화산이 있을 수 있는 칸을 깜박여요
+let blinkT = null;
+function candidates(i){ return around(i).filter(j => !open[j] && !flag[j]); }
+function blinkAround(i, ms){
+  stopBlink();
+  const cells = $('#field').children;
+  const list = open[i] ? candidates(i) : [i, ...candidates(i)];
+  list.forEach(j => cells[j].classList.add('blink'));
+  if (ms) blinkT = setTimeout(stopBlink, ms);
+}
+function stopBlink(){ clearTimeout(blinkT); $('#field').querySelectorAll('.blink').forEach(c => c.classList.remove('blink')); }
 function toggleFlag(i){
   if (over || open[i]) return;
   flag[i] = !flag[i]; render(); updateLeft();
@@ -196,24 +214,61 @@ function fit(){
   $('#field').style.setProperty('--cs', Math.max(18, cs) + 'px');
 }
 
-/* ---------- 입력: 클릭=파기, 오른쪽 클릭·길게 누르기=깃발 ---------- */
+/* ---------- 입력 ----------
+   마우스: 왼쪽 클릭=파기, 오른쪽 클릭=깃발, 왼쪽+오른쪽 동시에 누르기=둘레 후보 칸 깜박임(놓으면 한 번에 열기)
+   터치: 톡=파기, 길게 누르기=깃발, 열린 숫자 톡=둘레 열기 */
 const field = $('#field');
-let pressT = null, longDone = false;
-field.addEventListener('contextmenu', e => { e.preventDefault(); const c = e.target.closest('.cell'); if (c) toggleFlag(+c.dataset.i); });
-field.addEventListener('pointerdown', e => {
-  const c = e.target.closest('.cell'); if (!c || e.button === 2) return;
-  longDone = false;
-  if (e.pointerType !== 'mouse'){
-    pressT = setTimeout(() => { longDone = true; toggleFlag(+c.dataset.i); }, 420);
+let pressT = null, longDone = false, chording = null, chordUsed = false, rightPending = null;
+const cellOf = e => e.target.closest && e.target.closest('.cell');
+field.addEventListener('contextmenu', e => e.preventDefault());
+field.addEventListener('mousedown', e => {
+  const c = cellOf(e); if (!c || over) return;
+  const i = +c.dataset.i;
+  if ((e.buttons & 3) === 3 || e.button === 1){        // 양쪽(또는 가운데) 버튼 → 후보 칸 깜박
+    chording = i; chordUsed = true; rightPending = null;
+    blinkAround(i); $('#face').textContent = '🤔';
+    return;
   }
+  if (e.button === 2){ rightPending = i; chordUsed = false; }
+  else if (e.button === 0){ chordUsed = false; $('#face').textContent = '😮'; }
+});
+field.addEventListener('mouseover', e => {                // 누른 채로 옮기면 깜박이는 칸도 따라가요
+  if (chording === null) return;
+  const c = cellOf(e); if (!c) return;
+  chording = +c.dataset.i; blinkAround(chording);
+});
+document.addEventListener('mouseup', e => {
+  if (chording !== null){
+    const i = chording; chording = null;
+    if (!over){
+      if (open[i] && adj[i] && around(i).filter(j => flag[j]).length === adj[i]){ stopBlink(); chord(i); }
+      else if (open[i] && adj[i]) chord(i);               // 깃발이 모자라면 잠깐 더 깜박이며 알려 줘요
+      else blinkAround(i, 700);
+    }
+    if (!over) $('#face').textContent = '🦖';
+    return;
+  }
+  if (e.button === 2 && rightPending !== null){
+    const c = cellOf(e);
+    if (c && +c.dataset.i === rightPending && !chordUsed) toggleFlag(rightPending);
+    rightPending = null;
+  }
+  if (!over) $('#face').textContent = '🦖';
+});
+field.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse') return;
+  const c = cellOf(e); if (!c) return;
+  longDone = false;
+  pressT = setTimeout(() => { longDone = true; toggleFlag(+c.dataset.i); }, 420);
   if (!over) $('#face').textContent = '😮';
 });
-const cancelPress = () => { clearTimeout(pressT); if (!over) $('#face').textContent = '🦖'; };
+const cancelPress = () => { clearTimeout(pressT); };
 field.addEventListener('pointerup', cancelPress);
 field.addEventListener('pointerleave', cancelPress);
 field.addEventListener('pointercancel', cancelPress);
 field.addEventListener('click', e => {
-  const c = e.target.closest('.cell'); if (!c || longDone) return;
+  const c = cellOf(e); if (!c || longDone) return;
+  if (chordUsed){ chordUsed = false; return; }           // 양쪽 버튼으로 누른 뒤에는 파지 않아요
   const i = +c.dataset.i;
   if (flagMode && !open[i]) toggleFlag(i); else dig(i);
 });
