@@ -202,8 +202,6 @@ section{padding:48px 0}
 .game.soon{cursor:default; opacity:.75}
 .game.soon:hover{transform:none}
 .game.soon .play{background:var(--orange-l); color:#b4600f}
-.add-tip{margin-top:18px; font-size:.92rem; color:var(--muted); background:#fff; border:var(--border) dashed #b9dba1; border-radius:14px; padding:10px 14px}
-.add-tip code{background:var(--leaf); padding:1px 6px; border-radius:6px}
 
 /* 게임 플레이어 (팝업) */
 .player{position:fixed; inset:0; z-index:100; background:rgba(22,34,52,.62); display:none; align-items:center; justify-content:center; padding:16px}
@@ -226,7 +224,6 @@ footer{padding:28px 0 36px; color:var(--muted); font-size:.9rem; border-top:var(
 footer .wrap{display:flex; justify-content:flex-end; align-items:center; gap:14px}
 footer svg{width:60px; flex:none}
 .copy{text-align:right; line-height:1.7}
-.copy .warn{font-family:'Jua',sans-serif; color:#d2475f}
 .copy .owner{color:var(--ink)}
 
 /* =========================================================
@@ -442,7 +439,6 @@ html[data-device="board"] .player-box{width:100%; height:100%}
         <p>게임을 눌러 바로 시작해요</p>
       </div>
       <div class="game-grid" id="gameGrid"></div>
-      <p class="add-tip" id="addTip">🛠️ <b>관리자 안내:</b> 만든 게임 HTML 파일을 <code>games</code> 폴더에 올리고, index.html 아래쪽 <code>GAMES</code> 목록에 한 줄 추가하면 여기에 나타나요. (확인 후 <code>showAdminTip: false</code>로 이 안내를 숨기세요)</p>
     </div>
   </section>
 </main>
@@ -466,7 +462,6 @@ html[data-device="board"] .player-box{width:100%; height:100%}
   <div class="wrap">
     <svg viewBox="0 0 220 200" aria-hidden="true"><use href="#dino"/></svg>
     <div class="copy">
-      <div class="warn">무단 전재 및 재배포 금지</div>
       <div class="owner"><span class="notranslate" translate="no" style="white-space:nowrap">© 2026 TyranoMath 백태진</span> <span style="white-space:nowrap">All rights reserved.</span></div>
       <div>티라노와 함께 즐거운 수학 시간!</div>
     </div>
@@ -479,9 +474,7 @@ html[data-device="board"] .player-box{width:100%; height:100%}
    ========================================================= */
 const CONFIG = {
   // 🐞 버그 제보방 링크 (구글 설문, 패들렛, GitHub Issues 등 원하는 주소)
-  bugReportUrl: '',                // 예: 'https://forms.gle/xxxxxxxx'
-  // 게임 추가 안내 문구 표시 여부 (게임을 다 올린 뒤 false 로 바꾸세요)
-  showAdminTip: true
+  bugReportUrl: ''                 // 예: 'https://forms.gle/xxxxxxxx'
 };
 
 /* 🎮 게임 목록 — 한 줄이 게임 카드 1개예요
@@ -642,7 +635,6 @@ function renderGames(){
         <span class="play">${g.file ? '▶ 시작하기' : '준비 중'}</span>
       </div>
     </button>`).join('');
-  $('#addTip').hidden = !CONFIG.showAdminTip;
 }
 let lastFocus = null;
 function openGame(i){
