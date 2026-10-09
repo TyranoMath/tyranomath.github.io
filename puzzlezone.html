@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>티라노 게임존 · TyranoMath</title>
-<meta name="description" content="TyranoMath 티라노 게임존 - 즐겁게 플레이하며 배우는 초등수학 게임 모음">
+<title>티라노 퍼즐존 · TyranoMath</title>
+<meta name="description" content="TyranoMath 티라노 퍼즐존 - 생각하며 푸는 초등 수학 퍼즐 모음">
 <meta name="theme-color" content="#4CB963">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦖</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,8 +68,8 @@
     <nav class="nav" aria-label="주요 메뉴">
       <a href="index.html#learn" title="차근차근 익히는 수학 개념"><span class="ico">🦖 </span>개념 탐험대</a>
       <a href="index.html#check" title="나만의 수학 실력 점검하기"><span class="ico">🎯 </span>실력 진단소</a>
-      <a href="gamezone.html" aria-current="page" title="즐겁게 플레이하며 배우는 수학"><span class="ico">🎮 </span>티라노 게임존</a>
-      <a href="puzzlezone.html" title="생각하며 푸는 수학 퍼즐"><span class="ico">🧩 </span>티라노 퍼즐존</a>
+      <a href="gamezone.html" title="즐겁게 플레이하며 배우는 수학"><span class="ico">🎮 </span>티라노 게임존</a>
+      <a href="puzzlezone.html" aria-current="page" title="생각하며 푸는 수학 퍼즐"><span class="ico">🧩 </span>티라노 퍼즐존</a>
       <!-- 버그 제보방: 아래 CONFIG.bugReportUrl 에 링크를 넣으면 연결돼요 -->
       <a class="bug-tab" id="bugTab" href="#" target="_blank" rel="noopener" aria-label="버그 제보방"><span aria-hidden="true">🐞</span><span class="txt">&nbsp;버그 제보방</span></a>
     </nav>
@@ -110,52 +110,27 @@
   </div>
 </div>
 
-<main id="zone" data-list="games">
+<main id="zone" data-list="puzzles">
   <!-- 게임존 머리말 -->
-  <section class="zone-hero">
+  <section class="zone-hero puzzle">
     <div class="wrap">
       <div class="txt">
         <a class="back" href="index.html">← 홈으로</a>
-        <h1>🎮 티라노 게임존</h1>
-        <p>즐겁게 플레이하며 배우는 수학</p>
+        <h1>🧩 티라노 퍼즐존</h1>
+        <p>생각하며 푸는 수학 퍼즐</p>
         <div class="zone-stats">
-          <span>전체 게임 <b id="statTotal">0</b>개</span>
-          <span>🆕 새 게임 <b id="statNew">0</b>개</span>
+          <span>전체 퍼즐 <b id="statTotal">0</b>개</span>
+          <span>🆕 새 퍼즐 <b id="statNew">0</b>개</span>
         </div>
       </div>
       <svg class="zone-dino" viewBox="0 0 220 200" aria-hidden="true"><use href="#dino"/></svg>
     </div>
   </section>
 
-  <!-- 🥚 인기 게임 BEST 10 -->
-  <section class="best">
-    <div class="wrap best-wrap">
-      <div class="best-panel">
-        <div class="best-head">
-          <svg class="egg" viewBox="0 0 64 76" aria-hidden="true">
-          <ellipse cx="32" cy="72" rx="18" ry="3.5" fill="rgba(120,70,20,.18)"/>
-          <path d="M32 3 C15 3 5 28 5 46 C5 62 17 71 32 71 C47 71 59 62 59 46 C59 28 49 3 32 3 Z" fill="#FFF8E7" stroke="#E2B97A" stroke-width="2.5"/>
-          <ellipse cx="22" cy="30" rx="6" ry="7.5" fill="#8FD19E"/><ellipse cx="41" cy="22" rx="4.5" ry="5.5" fill="#8FD19E"/>
-          <ellipse cx="44" cy="47" rx="7" ry="6" fill="#8FD19E"/><ellipse cx="24" cy="55" rx="4.5" ry="4" fill="#8FD19E"/>
-          <path d="M14 40 L21 35 L26 42 L32 36 L37 43 L43 37 L50 41" fill="none" stroke="#C98A3E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-          <ellipse cx="22" cy="17" rx="4" ry="7" fill="#fff" opacity=".8" transform="rotate(25 22 17)"/>
-        </svg>
-          <h2>인기 게임 <span class="nb">BEST 10</span></h2>
-        </div>
-        <div class="best-nav">
-          <button type="button" id="bestPrev" aria-label="이전">‹</button>
-          <p class="best-page" id="bestPage">1 / 1</p>
-          <button type="button" id="bestNext" aria-label="다음">›</button>
-        </div>
-      </div>
-      <div class="best-track" id="bestTrack" aria-label="인기 게임 목록"></div>
-    </div>
-  </section>
-
   <!-- 찾기 도구 -->
   <div class="toolbar">
     <div class="wrap">
-      <div class="area-chips" id="areaChips" role="group" aria-label="영역"></div>
+      <div class="area-chips" id="areaChips" role="group" aria-label="퍼즐 분류"></div>
       <div class="filters">
         <select id="gradeSel" aria-label="학년">
           <option value="0">전체 학년</option>
@@ -167,19 +142,19 @@
           <option value="name">이름순</option>
           <option value="grade">학년순</option>
         </select>
-        <input type="search" id="searchBox" placeholder="🔍 게임 찾기" aria-label="게임 이름으로 찾기">
+        <input type="search" id="searchBox" placeholder="🔍 퍼즐 찾기" aria-label="퍼즐 이름으로 찾기">
       </div>
     </div>
   </div>
 
-  <!-- 게임 목록 -->
+  <!-- 퍼즐 목록 -->
   <section class="zone-list">
     <div class="wrap">
       <p class="zone-count" id="zoneCount"></p>
       <div class="game-grid compact" id="zoneGrid"></div>
       <div class="empty" id="zoneEmpty" hidden>
         <svg viewBox="0 0 220 200" aria-hidden="true"><use href="#dino"/></svg>
-        조건에 맞는 게임이 없어요. 다른 영역이나 학년을 골라 보세요!
+        조건에 맞는 퍼즐이 없어요. 다른 분류나 학년을 골라 보세요!
       </div>
     </div>
   </section>

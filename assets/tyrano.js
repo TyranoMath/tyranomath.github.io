@@ -10,7 +10,15 @@ const CFG = Object.assign({ bugReportUrl:'', latestCount:4, newDays:14, statsUrl
 const GAME_LIST  = typeof GAMES  !== 'undefined' && Array.isArray(GAMES)  ? GAMES  : [];
 const UNIT_LIST  = typeof UNITS  !== 'undefined' && Array.isArray(UNITS)  ? UNITS  : [];
 const BEST_LIST  = typeof BEST   !== 'undefined' && Array.isArray(BEST)   ? BEST   : [];
-const LISTS = { games: GAME_LIST };
+const PUZZLE_LIST = typeof PUZZLES !== 'undefined' && Array.isArray(PUZZLES) ? PUZZLES : [];
+const LISTS = { games: GAME_LIST, puzzles: PUZZLE_LIST };
+// 퍼즐존 분류
+const PUZZLE_TYPES = [
+  { name:'수 퍼즐',   icon:'🔢' },
+  { name:'전략 퍼즐', icon:'♟️' },
+  { name:'논리 퍼즐', icon:'💡' },
+  { name:'도형 퍼즐', icon:'🔷' }
+];
 // 2022 개정 교육과정 4개 영역
 const AREAS = [
   { name:'수와 연산',     icon:'🔢', color:'#FFE7CC', desc:'수 · 사칙계산 · 분수와 소수' },
@@ -196,7 +204,7 @@ function getPlays(){ try { return JSON.parse(store.get('tm-plays') || '{}') || {
 function countPlay(file){
   const p = getPlays(); p[file] = (p[file] || 0) + 1; store.set('tm-plays', JSON.stringify(p));
   // 구글 시트에도 +1 (게임 파일만, 실패해도 게임은 그대로 열려요)
-  if (CFG.statsUrl && /^games\//.test(file)){
+  if (CFG.statsUrl && /^(games|puzzles)\//.test(file)){
     try { fetch(CFG.statsUrl + '?action=hit&file=' + encodeURIComponent(file), { mode:'no-cors', keepalive:true }).catch(() => {}); } catch(e){}
   }
 }
@@ -296,10 +304,12 @@ document.addEventListener('click', e => {
   const b = e.target.closest('.unit[data-kind]');
   if (b) openEntry(unitEntry(b.dataset.kind, Number(b.dataset.u)));
 });
-if ($('#latestGrid')){
-  const latest = GAME_LIST.map((item, i) => ({ item, i })).filter(x => x.item.file).sort(byLatest).slice(0, CFG.latestCount).map(x => x.i);
-  renderInto($('#latestGrid'), 'games', latest);
-}
+// data-latest="games" 또는 "puzzles" 인 칸에 최신 항목을 보여 줘요
+$$('[data-latest]').forEach(el => {
+  const key = el.dataset.latest, list = LISTS[key] || [];
+  const latest = list.map((item, i) => ({ item, i })).filter(x => x.item.file).sort(byLatest).slice(0, CFG.latestCount).map(x => x.i);
+  renderInto(el, key, latest);
+});
 
 /* =========================================================
    7-1. 🔥 인기 게임 BEST 10
@@ -353,15 +363,19 @@ if ($('#bestTrack')){
    7. 티라노 게임존 페이지: 영역·학년·검색·정렬
    ========================================================= */
 if ($('#zoneGrid')){
+  // 게임존(games) / 퍼즐존(puzzles) 공통 — <main data-list="..."> 로 구분해요
+  const ZKEY = ($('main[data-list]') && $('main[data-list]').dataset.list) || 'games';
+  const ZLIST = LISTS[ZKEY] || [];
+  const NOUN = ZKEY === 'puzzles' ? '퍼즐' : '게임';
   const state = { area: '전체', grade: '0', q: '', sort: 'new' };
-  const ready = GAME_LIST.filter(g => g.file);
+  const ready = ZLIST.filter(g => g.file);
   $('#statTotal').textContent = ready.length;
   $('#statNew').textContent = ready.filter(isNew).length;
 
   // 영역 버튼
-  const chips = [{ name:'전체', icon:'🎮' }, ...AREAS];
+  const chips = ZKEY === 'puzzles' ? [{ name:'전체', icon:'🧩' }, ...PUZZLE_TYPES] : [{ name:'전체', icon:'🎮' }, ...AREAS];
   $('#areaChips').innerHTML = chips.map(a => {
-    const n = a.name === '전체' ? GAME_LIST.length : GAME_LIST.filter(g => g.area === a.name).length;
+    const n = a.name === '전체' ? ZLIST.length : ZLIST.filter(g => g.area === a.name).length;
     return `<button type="button" data-area="${esc(a.name)}" aria-pressed="${a.name === '전체'}"><span aria-hidden="true">${a.icon}</span>${esc(a.name)}<small>${n}</small></button>`;
   }).join('');
   $('#areaChips').addEventListener('click', e => {
@@ -382,7 +396,7 @@ if ($('#zoneGrid')){
   }
 
   function renderZone(){
-    let rows = GAME_LIST.map((item, i) => ({ item, i }));
+    let rows = ZLIST.map((item, i) => ({ item, i }));
     if (state.area !== '전체') rows = rows.filter(r => r.item.area === state.area);
     if (state.grade !== '0'){
       const g = Number(state.grade);
@@ -395,9 +409,9 @@ if ($('#zoneGrid')){
     // 준비 중인 게임은 항상 뒤로
     rows.sort((a, b) => (!a.item.file) - (!b.item.file));
 
-    $('#zoneCount').textContent = `${rows.length}개의 게임`;
+    $('#zoneCount').textContent = `${rows.length}개의 ${NOUN}`;
     $('#zoneEmpty').hidden = rows.length > 0;
-    renderInto($('#zoneGrid'), 'games', rows.map(r => r.i));
+    renderInto($('#zoneGrid'), ZKEY, rows.map(r => r.i));
   }
   renderZone();
 }
@@ -409,8 +423,10 @@ if ($('#zoneGrid')){
   const m = location.hash.match(/^#game=(.+)$/);
   if (!m || !$('#player')) return;
   const file = decodeURIComponent(m[1]);
-  const gi = GAME_LIST.findIndex(g => g.file === file);
-  if (gi >= 0) return openItem('games', gi);
+  for (const key of ['games', 'puzzles']){
+    const gi = LISTS[key].findIndex(g => g.file === file);
+    if (gi >= 0) return openItem(key, gi);
+  }
   for (const kind of ['learn', 'check']){
     const ui = UNIT_LIST.findIndex(u => u[KINDS[kind].field] === file);
     if (ui >= 0) return openEntry(unitEntry(kind, ui));

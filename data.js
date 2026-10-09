@@ -1,6 +1,6 @@
 /* =========================================================
    ⚙️ TyranoMath 관리 파일 — 앞으로는 이 파일만 고치면 돼요!
-   (index.html · gamezone.html 이 함께 사용해요)
+   (index.html · gamezone.html · puzzlezone.html 이 함께 사용해요)
    ========================================================= */
 
 const CONFIG = {
@@ -128,5 +128,16 @@ const GAMES = [
   { title:'도형 화석 발굴',        desc:'땅속에서 나온 도형 화석의 이름과 특징을 맞혀요.', grade:'1~4학년', area:'도형과 측정',   icon:'🦴', color:'#F3E6D3', date:'2026-10-05', file:'games/shape-fossil.html' },
   { title:'티라노 시계 읽기',      desc:'티라노의 하루! 시계를 보고 몇 시인지 맞혀요.',    grade:'1~2학년', area:'도형과 측정',   icon:'⏰', color:'#DDF0FF', date:'2026-10-07', file:'games/tyrano-clock.html' },
   { title:'발자국 규칙 찾기',      desc:'공룡 발자국에 숨은 규칙을 찾아 다음을 맞혀요.',   grade:'1~4학년', area:'변화와 관계',   icon:'🐾', color:'#E4F5D6', date:'2026-10-08', file:'games/pattern-footprint.html' },
-  { title:'공룡 알 그래프',        desc:'그림그래프와 막대그래프를 읽고 질문에 답해요.',   grade:'2~4학년', area:'자료와 가능성', icon:'📊', color:'#FFF3C4', date:'2026-10-09', file:'games/egg-graph.html' }
+  { title:'공룡 알 그래프',        desc:'그림그래프와 막대그래프를 읽고 질문에 답해요.',   grade:'2~4학년', area:'자료와 가능성', icon:'📊', color:'#FFF3C4', date:'2026-10-09', file:'games/egg-graph.html' },
+  { title:'줄다리기 연산 대결',    desc:'문제를 맞힐 때마다 티라노들이 줄을 당겨요! 친구나 컴퓨터와 대결해요.', grade:'1~6학년', area:'수와 연산', icon:'🦖', image:'games/thumbs/tug-of-war.svg', color:'#DDF0FF', date:'2026-10-09', file:'games/tug-of-war.html' }
+];
+
+/* ---------------------------------------------------------
+   🧩 티라노 퍼즐존 — 게임 카드와 같은 방법으로 써요 (새 퍼즐은 맨 아래에 추가)
+   area : 퍼즐 분류 — '수 퍼즐' / '전략 퍼즐' / '논리 퍼즐' / '도형 퍼즐'
+   file : puzzles 폴더 안 HTML 경로
+   --------------------------------------------------------- */
+const PUZZLES = [
+  { title:'티라노 스도쿠', desc:'가로·세로·상자에 같은 숫자가 겹치지 않게 빈칸을 채워요. 4×4부터 9×9까지!', grade:'1~6학년', area:'수 퍼즐',   icon:'🔢', image:'puzzles/thumbs/sudoku.svg', color:'#EFE6FF', date:'2026-10-09', file:'puzzles/sudoku.html' },
+  { title:'티라노 오목',   desc:'공룡 알 5개를 먼저 한 줄로 이으면 승리! 친구나 컴퓨터 티라노와 겨뤄요.',     grade:'1~6학년', area:'전략 퍼즐', icon:'🥚', image:'puzzles/thumbs/omok.svg',   color:'#F6E3C0', date:'2026-10-09', file:'puzzles/omok.html' }
 ];

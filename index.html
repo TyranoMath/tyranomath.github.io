@@ -69,6 +69,7 @@
       <a href="#learn" title="차근차근 익히는 수학 개념"><span class="ico">🦖 </span>개념 탐험대</a>
       <a href="#check" title="나만의 수학 실력 점검하기"><span class="ico">🎯 </span>실력 진단소</a>
       <a href="gamezone.html" title="즐겁게 플레이하며 배우는 수학"><span class="ico">🎮 </span>티라노 게임존</a>
+      <a href="puzzlezone.html" title="생각하며 푸는 수학 퍼즐"><span class="ico">🧩 </span>티라노 퍼즐존</a>
       <!-- 버그 제보방: 아래 CONFIG.bugReportUrl 에 링크를 넣으면 연결돼요 -->
       <a class="bug-tab" id="bugTab" href="#" target="_blank" rel="noopener" aria-label="버그 제보방"><span aria-hidden="true">🐞</span><span class="txt">&nbsp;버그 제보방</span></a>
     </nav>
@@ -128,6 +129,7 @@
         <a class="btn" href="#learn" title="차근차근 익히는 수학 개념"><span aria-hidden="true">🦖</span><span class="lbl">개념 탐험대<small>차근차근 익히는 수학 개념</small></span></a>
         <a class="btn blue" href="#check" title="나만의 수학 실력 점검하기"><span aria-hidden="true">🎯</span><span class="lbl">실력 진단소<small>나만의 수학 실력 점검하기</small></span></a>
         <a class="btn orange" href="gamezone.html" title="즐겁게 플레이하며 배우는 수학"><span aria-hidden="true">🎮</span><span class="lbl">티라노 게임존<small>즐겁게 플레이하며 배우는 수학</small></span></a>
+        <a class="btn purple" href="puzzlezone.html" title="생각하며 푸는 수학 퍼즐"><span aria-hidden="true">🧩</span><span class="lbl">티라노 퍼즐존<small>생각하며 푸는 수학 퍼즐</small></span></a>
       </div>
     </div>
   </section>
@@ -163,7 +165,17 @@
         <h2><span class="step s3">3단계</span>🎮 티라노 게임존 <a class="all-tab" href="gamezone.html">티라노 게임존 전체보기 →</a></h2>
         <p>새로 올라온 게임이에요 🆕</p>
       </div>
-      <div class="game-grid latest" id="latestGrid"></div>
+      <div class="game-grid latest" id="latestGrid" data-latest="games"></div>
+    </div>
+  </section>
+  <!-- 4단계: 티라노 퍼즐존 (최신 퍼즐만 보여 줘요) -->
+  <section id="puzzles" class="puzzles">
+    <div class="wrap">
+      <div class="sec-title">
+        <h2><span class="step s4">4단계</span>🧩 티라노 퍼즐존 <a class="all-tab purple" href="puzzlezone.html">티라노 퍼즐존 전체보기 →</a></h2>
+        <p>생각하며 푸는 수학 퍼즐 🧠</p>
+      </div>
+      <div class="game-grid latest" id="latestPuzzles" data-latest="puzzles"></div>
     </div>
   </section>
 </main>

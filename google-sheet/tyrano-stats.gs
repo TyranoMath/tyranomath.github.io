@@ -11,7 +11,7 @@
 const SHEET_NAME = '플레이수';
 
 // 게임 파일 주소처럼 생긴 것만 받아요 (엉뚱한 값이 쌓이지 않게)
-const FILE_RULE = /^games\/[A-Za-z0-9_\-\/]+\.html$/;
+const FILE_RULE = /^(games|puzzles)\/[A-Za-z0-9_\-\/]+\.html$/;
 
 function doGet(e) {
   const p = (e && e.parameter) || {};
