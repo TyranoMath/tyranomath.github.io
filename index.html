@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ko" data-device="pc">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TyranoMath · 티라노와 함께하는 초등수학</title>
+<meta name="description" content="TyranoMath - 티라노와 함께 즐겁게 배우는 초등수학 홈페이지">
+<meta name="theme-color" content="#4CB963">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦖</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================
+   기본 색상 · 크기 변수
+   ========================================================= */
+:root{
+  color-scheme: light;
+  --bg:#FFF8EC;
+  --ink:#22314A;
+  --muted:#5D6C83;
+  --green:#4CB963;
+  --green-d:#2F8A47;
+  --leaf:#E4F5D6;
+  --orange:#FF9F43;
+  --orange-l:#FFE7CC;
+  --sky:#DDF0FF;
+  --pink:#FF8FA3;
+  --card:#FFFFFF;
+  --line:#ECDFC8;
+  --shadow:0 6px 0 rgba(34,49,74,.08), 0 14px 30px rgba(34,49,74,.08);
+
+  --fs:17px;        /* 기기별 기본 글자 크기 */
+  --scale:1;        /* 사용자가 조절하는 글자 배율 */
+  --tap:44px;       /* 버튼 최소 크기 */
+  --maxw:1180px;    /* 본문 최대 폭 */
+  --radius:22px;
+  --border:2px;
+  --cols:4;         /* 학습 카드 열 수 */
+  --gcols:3;        /* 게임 카드 열 수 */
+  --hero-dino:300px;
+}
+html{font-size:calc(var(--fs) * var(--scale)); scroll-behavior:smooth;}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Gowun Dodum', system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  line-height:1.6;
+  word-break:keep-all; overflow-wrap:anywhere;
+  top:0 !important;               /* 구글 번역 배너가 페이지를 밀어내지 않게 */
+}
+h1,h2,h3,.btn,.tab,.brand,.chip,.nav a{font-family:'Jua', system-ui, sans-serif; font-weight:400}
+a{color:inherit}
+img,svg{max-width:100%}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 16px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* =========================================================
+   상단 헤더
+   ========================================================= */
+header.top{
+  position:sticky; top:0; z-index:50;
+  background:#fff; border-bottom:var(--border) solid var(--line);
+}
+.top .wrap{display:flex; align-items:center; gap:14px; min-height:calc(var(--tap) + 24px)}
+.brand{display:flex; align-items:center; gap:8px; text-decoration:none; font-size:1.6rem; color:var(--green-d); white-space:nowrap}
+.brand svg{width:46px; height:42px}
+.brand b{color:var(--orange); font-weight:400}
+.nav{display:flex; gap:4px; margin-left:auto; flex-wrap:wrap}
+.nav a{
+  text-decoration:none; padding:8px 14px; border-radius:999px; font-size:1.05rem;
+  min-height:var(--tap); display:inline-flex; align-items:center;
+}
+.nav a:hover{background:var(--leaf)}
+
+/* 번역 버튼 (오른쪽 위) */
+.lang{position:relative}
+.lang-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  min-height:var(--tap); padding:6px 14px; border-radius:999px;
+  border:var(--border) solid var(--green); background:var(--leaf); color:var(--green-d);
+  font:inherit; font-family:'Jua',sans-serif; font-size:1.05rem; cursor:pointer;
+}
+.lang-btn:hover{background:#d4efc0}
+.lang-panel{
+  position:absolute; right:0; top:calc(100% + 8px); width:300px; max-height:420px;
+  background:#fff; border:var(--border) solid var(--line); border-radius:18px; box-shadow:var(--shadow);
+  padding:12px; display:none; flex-direction:column; gap:8px; z-index:60;
+}
+.lang-panel.open{display:flex}
+.lang-panel input{
+  font:inherit; padding:10px 12px; border-radius:12px; border:var(--border) solid var(--line); width:100%;
+}
+.lang-list{overflow:auto; flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:max-content; align-content:start; gap:6px; padding-right:2px}
+.lang-list button{
+  font:inherit; font-size:.95rem; text-align:left; padding:8px 10px; border-radius:10px; cursor:pointer;
+  border:1px solid var(--line); background:#fff; min-height:40px; line-height:1.3; color:var(--ink);
+}
+.lang-list button:hover{background:var(--sky)}
+.lang-list button[aria-current="true"]{background:var(--green); color:#fff; border-color:var(--green)}
+.lang-note{font-size:.8rem; color:var(--muted); margin:0}
+
+/* 구글 번역 기본 UI 숨기기 (기능만 사용) */
+#google_translate_element{position:absolute; left:-9999px; top:-9999px}
+.goog-te-banner-frame, iframe.skiptranslate, .VIpgJd-ZVi9od-ORHb-OEVmcd, #goog-gt-tt, .goog-te-balloon-frame{display:none !important}
+.goog-text-highlight{background:none !important; box-shadow:none !important}
+
+/* =========================================================
+   화면 설정 탭 (전자칠판 · 패드 · 스마트폰 · 컴퓨터)
+   ========================================================= */
+.device-bar{background:var(--sky); border-bottom:var(--border) solid #c7e3f7}
+.device-bar .wrap{display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding-top:8px; padding-bottom:8px}
+.device-bar .label{font-family:'Jua',sans-serif; color:#2a5a86; margin-right:2px}
+.tabs{display:flex; gap:6px; flex-wrap:wrap}
+.tab{
+  font:inherit; font-family:'Jua',sans-serif; font-size:1rem; cursor:pointer;
+  min-height:var(--tap); padding:6px 14px; border-radius:14px;
+  border:var(--border) solid #b9daf2; background:#fff; color:#2a5a86;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.tab[aria-selected="true"]{background:#2f7fc1; border-color:#2f7fc1; color:#fff}
+.device-tools{display:flex; gap:6px; margin-left:auto; align-items:center; flex-wrap:wrap}
+.tool{
+  font:inherit; font-family:'Jua',sans-serif; cursor:pointer; min-height:var(--tap); min-width:var(--tap);
+  padding:4px 12px; border-radius:14px; border:var(--border) solid #b9daf2; background:#fff; color:#2a5a86;
+}
+.tool:hover,.tab:hover{filter:brightness(.97)}
+.auto-hint{font-size:.85rem; color:#2a5a86}
+
+/* =========================================================
+   메인 영역
+   ========================================================= */
+section{padding:48px 0}
+.hero{padding:40px 0 30px}
+.hero .wrap{display:grid; grid-template-columns:1.2fr 1fr; align-items:center; gap:24px}
+.hero h1{font-size:2.9rem; line-height:1.2; margin:0 0 12px}
+.hero h1 .hl{color:var(--green-d); background:linear-gradient(transparent 62%, var(--orange-l) 62%)}
+.hero p{font-size:1.15rem; color:var(--muted); margin:0 0 22px}
+.btns{display:flex; gap:10px; flex-wrap:wrap}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;
+  min-height:calc(var(--tap) + 6px); padding:10px 22px; border-radius:16px; text-decoration:none;
+  font:inherit; font-family:'Jua',sans-serif; font-size:1.15rem;
+  border:var(--border) solid var(--green-d); background:var(--green); color:#fff;
+  box-shadow:0 5px 0 var(--green-d); transition:transform .1s, box-shadow .1s;
+}
+.btn:active{transform:translateY(4px); box-shadow:0 1px 0 var(--green-d)}
+.btn.alt{background:#fff; color:var(--green-d)}
+.btn.orange{background:var(--orange); border-color:#d97a1f; box-shadow:0 5px 0 #d97a1f}
+
+.dino-stage{position:relative; display:flex; justify-content:center}
+.dino-stage .hero-dino{width:var(--hero-dino); height:auto; animation:bob 3s ease-in-out infinite; filter:drop-shadow(0 12px 0 rgba(47,138,71,.12))}
+.bubble{
+  position:absolute; top:6%; left:4%; background:#fff; border:var(--border) solid var(--line);
+  border-radius:18px; padding:8px 14px; font-family:'Jua',sans-serif; font-size:1.1rem; box-shadow:var(--shadow);
+}
+.bubble::after{content:""; position:absolute; right:-10px; bottom:12px; border:8px solid transparent; border-left-color:#fff}
+.float-num{position:absolute; font-family:'Fredoka',sans-serif; font-weight:700; opacity:.85; animation:floaty 4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-14px) rotate(6deg)}}
+
+.sec-title{display:flex; align-items:end; justify-content:space-between; gap:12px; margin-bottom:20px; flex-wrap:wrap}
+.sec-title h2{font-size:2rem; margin:0}
+.sec-title p{margin:0; color:var(--muted)}
+
+/* 학습 영역 카드 */
+.cards{display:grid; grid-template-columns:repeat(var(--cols), 1fr); gap:16px}
+.card{
+  background:var(--card); border:var(--border) solid var(--line); border-radius:var(--radius);
+  padding:20px; box-shadow:var(--shadow); text-decoration:none; display:flex; flex-direction:column; gap:8px;
+  transition:transform .15s;
+}
+.card:hover{transform:translateY(-4px)}
+.card .icon{width:58px; height:58px; border-radius:16px; display:grid; place-items:center; font-size:1.9rem}
+.card h3{margin:4px 0 0; font-size:1.35rem}
+.card p{margin:0; color:var(--muted); font-size:.95rem; flex:1}
+.chips{display:flex; gap:6px; flex-wrap:wrap}
+.chip{font-size:.85rem; padding:3px 10px; border-radius:999px; background:var(--leaf); color:var(--green-d)}
+.chip.soon{background:var(--orange-l); color:#b4600f}
+
+/* 게임 코너 */
+.games{background:var(--leaf); border-top:var(--border) solid #cfe9bb; border-bottom:var(--border) solid #cfe9bb}
+.game-grid{display:grid; grid-template-columns:repeat(var(--gcols), 1fr); gap:18px}
+.game{
+  position:relative; display:flex; flex-direction:column; text-align:left; cursor:pointer;
+  font:inherit; color:inherit; padding:0; overflow:hidden;
+  background:#fff; border:var(--border) solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+  transition:transform .15s;
+}
+.game:hover{transform:translateY(-4px)}
+.game:focus-visible{outline:3px solid var(--green); outline-offset:3px}
+.game .thumb{height:calc(var(--tap) * 2.6); display:grid; place-items:center; font-size:calc(var(--tap) * 1.3); position:relative}
+.game .thumb img{width:100%; height:100%; object-fit:cover; position:absolute; inset:0}
+.game .body{padding:16px 18px 18px; display:flex; flex-direction:column; gap:6px; flex:1}
+.game h3{margin:0; font-size:1.3rem}
+.game p{margin:0; color:var(--muted); font-size:.95rem; flex:1}
+.game .play{
+  align-self:flex-start; margin-top:6px; font-family:'Jua',sans-serif; font-size:1.05rem;
+  padding:6px 16px; border-radius:999px; background:var(--green); color:#fff;
+}
+.game.soon{cursor:default; opacity:.75}
+.game.soon:hover{transform:none}
+.game.soon .play{background:var(--orange-l); color:#b4600f}
+.add-tip{margin-top:18px; font-size:.92rem; color:var(--muted); background:#fff; border:var(--border) dashed #b9dba1; border-radius:14px; padding:10px 14px}
+.add-tip code{background:var(--leaf); padding:1px 6px; border-radius:6px}
+
+/* 게임 플레이어 (팝업) */
+.player{position:fixed; inset:0; z-index:100; background:rgba(22,34,52,.62); display:none; align-items:center; justify-content:center; padding:16px}
+.player.open{display:flex}
+.player-box{background:#fff; width:min(1200px, 100%); height:min(860px, 100%); border-radius:22px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.player-bar{display:flex; align-items:center; gap:8px; padding:8px 12px; border-bottom:var(--border) solid var(--line); background:var(--bg); flex-wrap:wrap}
+.player-bar h3{margin:0 auto 0 4px; font-size:1.25rem; display:flex; align-items:center; gap:8px}
+.player-bar .tool{border-color:var(--line); color:var(--ink); text-decoration:none; display:inline-flex; align-items:center}
+.player-bar .close{background:var(--pink); border-color:var(--pink); color:#fff}
+.player iframe{flex:1; width:100%; border:0; background:#fff}
+body.no-scroll{overflow:hidden}
+
+/* 버그 제보 탭 */
+.nav a.bug-tab{background:var(--orange-l); color:#b4600f}
+.nav a.bug-tab:hover{background:#ffd9b0}
+.toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); opacity:0; background:var(--ink); color:#fff; padding:10px 18px; border-radius:999px; font-family:'Jua',sans-serif; transition:.25s; z-index:120; pointer-events:none}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+footer{padding:28px 0 36px; color:var(--muted); font-size:.9rem; border-top:var(--border) solid var(--line); background:#fff}
+footer .wrap{display:flex; justify-content:flex-end; align-items:center; gap:14px}
+footer svg{width:60px; flex:none}
+.copy{text-align:right; line-height:1.7}
+.copy .warn{font-family:'Jua',sans-serif; color:#d2475f}
+.copy .owner{color:var(--ink)}
+
+/* =========================================================
+   기기별 화면 모드
+   ========================================================= */
+/* 💻 컴퓨터 */
+html[data-device="pc"]{--fs:17px; --tap:44px; --maxw:1180px; --cols:4; --gcols:3}
+
+/* 📱 스마트폰 : 한 줄 배치, 좁은 폭 */
+html[data-device="phone"]{--fs:16px; --tap:48px; --maxw:560px; --cols:1; --gcols:1; --hero-dino:200px}
+html[data-device="phone"] .hero .wrap{grid-template-columns:1fr}
+html[data-device="phone"] .hero{text-align:center}
+html[data-device="phone"] .hero .btns{justify-content:center}
+html[data-device="phone"] .hero h1{font-size:2.1rem}
+html[data-device="phone"] .dino-stage{order:-1}
+html[data-device="phone"] .nav a:not(.bug-tab){display:none}
+html[data-device="phone"] .nav a.bug-tab .txt{display:none}
+html[data-device="phone"] .brand{font-size:1.35rem}
+html[data-device="phone"] .lang-btn .txt{display:none}
+html[data-device="phone"] .lang-panel{position:fixed; left:12px; right:12px; top:76px; width:auto}
+html[data-device="phone"] .device-tools{margin-left:0}
+html[data-device="phone"] .tab .txt{font-size:.9rem}
+html[data-device="phone"] .player{padding:0}
+html[data-device="phone"] .player-box{width:100%; height:100%; border-radius:0}
+
+/* 📲 패드 : 큰 터치 버튼, 2열 */
+html[data-device="pad"]{--fs:19px; --tap:54px; --maxw:1040px; --cols:2; --gcols:2; --hero-dino:260px}
+
+/* 🧑‍🏫 전자칠판 : 아주 큰 글자, 굵은 선, 게임 화면 크게 */
+html[data-device="board"]{--fs:24px; --tap:72px; --maxw:1700px; --cols:4; --gcols:3; --border:3px; --hero-dino:340px; --line:#D9C7A6}
+html[data-device="board"] body{--muted:#3E4C63}
+html[data-device="board"] .hero p{font-size:1.2rem}
+html[data-device="board"] .card p{font-size:1rem}
+html[data-device="board"] .player{padding:10px}
+html[data-device="board"] .player-box{width:100%; height:100%}
+
+/* 자동 모드에서 실제 화면이 아주 좁을 때 안전장치 */
+@media (max-width:720px){
+  .hero .wrap{grid-template-columns:1fr}
+  .cards, .game-grid{grid-template-columns:1fr}
+  .nav a:not(.bug-tab){display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important; transition:none !important}
+}
+</style>
+</head>
+
+<body>
+<!-- =========================================================
+     티라노 그림 (한 번 그려 두고 여러 곳에서 재사용)
+     ========================================================= -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="dino" viewBox="0 0 220 200">
+    <!-- 꼬리 -->
+    <path d="M58 142 Q18 142 6 106 Q30 126 62 118 Z" fill="#4CB963"/>
+    <!-- 등 가시 -->
+    <path d="M86 88 L80 68 L98 82 Z" fill="#FF9F43"/>
+    <path d="M71 98 L60 80 L81 92 Z" fill="#FF9F43"/>
+    <path d="M59 112 L44 98 L67 106 Z" fill="#FF9F43"/>
+    <path d="M108 34 L110 14 L126 28 Z" fill="#FF9F43"/>
+    <path d="M128 28 L136 9 L146 26 Z" fill="#FF9F43"/>
+    <!-- 다리 -->
+    <rect x="68" y="156" width="25" height="32" rx="11" fill="#3A9D51"/>
+    <rect x="106" y="156" width="25" height="32" rx="11" fill="#3A9D51"/>
+    <!-- 몸통 -->
+    <ellipse cx="96" cy="128" rx="47" ry="44" fill="#5CC46F"/>
+    <ellipse cx="108" cy="134" rx="26" ry="32" fill="#E8F7C8"/>
+    <path d="M94 120 h28 M94 134 h30 M96 148 h26" stroke="#CFE9A9" stroke-width="3" stroke-linecap="round"/>
+    <!-- 머리 -->
+    <rect x="92" y="26" width="112" height="80" rx="38" fill="#5CC46F"/>
+    <!-- 눈 -->
+    <circle cx="150" cy="56" r="15" fill="#fff" stroke="#2E6B3A" stroke-width="2"/>
+    <circle cx="154" cy="58" r="8.5" fill="#22314A"/>
+    <circle cx="157.5" cy="54" r="3" fill="#fff"/>
+    <!-- 볼터치 · 콧구멍 -->
+    <ellipse cx="174" cy="76" rx="10" ry="5.5" fill="#FF8FA3" opacity=".65"/>
+    <ellipse cx="191" cy="50" rx="3.2" ry="2.2" fill="#2E6B3A"/>
+    <!-- 웃는 입 + 이빨 -->
+    <path d="M140 86 Q166 102 194 84" stroke="#2E6B3A" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M152 91 l4 7 l4 -5 Z M174 92 l4 7 l4 -7 Z" fill="#fff" stroke="#2E6B3A" stroke-width="1.2" stroke-linejoin="round"/>
+    <!-- 연필 -->
+    <g transform="rotate(-32 160 116)">
+      <rect x="152" y="92" width="11" height="40" rx="2" fill="#FFD43B" stroke="#E0A800" stroke-width="1.5"/>
+      <rect x="152" y="92" width="11" height="7" rx="2" fill="#FF8FA3"/>
+      <path d="M152 132 L157.5 144 L163 132 Z" fill="#F5D6A8"/>
+      <path d="M155.5 140 L157.5 144 L159.5 140 Z" fill="#22314A"/>
+    </g>
+    <!-- 짧은 팔 -->
+    <path d="M136 118 q16 -4 20 8 q-3 5 -9 2 q-4 -4 -11 -1 Z" fill="#3A9D51"/>
+  </symbol>
+</svg>
+
+<div id="google_translate_element" aria-hidden="true"></div>
+
+<!-- =========================================================
+     헤더
+     ========================================================= -->
+<header class="top">
+  <div class="wrap">
+    <a class="brand notranslate" href="#home" translate="no" aria-label="TyranoMath 처음으로">
+      <svg><use href="#dino"/></svg>
+      <span>Tyrano<b>Math</b></span>
+    </a>
+
+    <nav class="nav" aria-label="주요 메뉴">
+      <a href="#learn">학습</a>
+      <a href="#games">게임</a>
+      <!-- 버그 제보방: 아래 CONFIG.bugReportUrl 에 링크를 넣으면 연결돼요 -->
+      <a class="bug-tab" id="bugTab" href="#" target="_blank" rel="noopener" aria-label="버그 제보방"><span aria-hidden="true">🐞</span><span class="txt">&nbsp;버그 제보방</span></a>
+    </nav>
+
+    <!-- 1. 번역 기능 (상단 오른쪽) -->
+    <div class="lang">
+      <button class="lang-btn" id="langBtn" aria-haspopup="true" aria-expanded="false" aria-controls="langPanel">
+        <span aria-hidden="true">🌐</span>
+        <span class="txt notranslate" translate="no" id="langCurrent">한국어</span>
+        <span aria-hidden="true">▾</span>
+      </button>
+      <div class="lang-panel notranslate" translate="no" id="langPanel" role="dialog" aria-label="언어 선택">
+        <input type="text" id="langSearch" placeholder="Search language / 언어 검색" autocomplete="off">
+        <div class="lang-list" id="langList"></div>
+        <p class="lang-note">Google 번역으로 자동 번역됩니다. Powered by Google Translate.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- 3. 기기별 화면 설정 탭 -->
+<div class="device-bar">
+  <div class="wrap">
+    <span class="label">화면 설정</span>
+    <div class="tabs" role="tablist" aria-label="화면 모드">
+      <button class="tab" role="tab" data-mode="auto"><span aria-hidden="true">✨</span><span class="txt">자동</span></button>
+      <button class="tab" role="tab" data-mode="board"><span aria-hidden="true">🧑‍🏫</span><span class="txt">전자칠판</span></button>
+      <button class="tab" role="tab" data-mode="pad"><span aria-hidden="true">📲</span><span class="txt">패드</span></button>
+      <button class="tab" role="tab" data-mode="phone"><span aria-hidden="true">📱</span><span class="txt">스마트폰</span></button>
+      <button class="tab" role="tab" data-mode="pc"><span aria-hidden="true">💻</span><span class="txt">컴퓨터</span></button>
+    </div>
+    <span class="auto-hint" id="autoHint"></span>
+    <div class="device-tools">
+      <button class="tool" id="fontDown" aria-label="글자 작게">가−</button>
+      <button class="tool" id="fontUp" aria-label="글자 크게">가+</button>
+      <button class="tool" id="fullBtn">⛶ 전체 화면</button>
+    </div>
+  </div>
+</div>
+
+<main id="home">
+  <!-- 첫 화면 -->
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <h1>크앙! 티라노와 함께<br><span class="hl">튼튼한 수학 기초</span>를 쌓아요</h1>
+        <p>TyranoMath는 초등학생을 위한 수학 놀이터예요. 개념을 배우고, 문제를 풀고, 게임으로 실력을 키워 봐요!</p>
+        <div class="btns">
+          <a class="btn" href="#games">🎮 게임하러 가기</a>
+          <a class="btn alt" href="#learn">📚 학습 둘러보기</a>
+        </div>
+      </div>
+      <div class="dino-stage">
+        <div class="bubble">1 + 1 = ?</div>
+        <span class="float-num" style="top:8%;right:6%;color:#FF9F43;font-size:2.2rem">+</span>
+        <span class="float-num" style="bottom:18%;left:2%;color:#2f7fc1;font-size:2rem;animation-delay:-1s">×</span>
+        <span class="float-num" style="bottom:4%;right:10%;color:#FF8FA3;font-size:1.8rem;animation-delay:-2s">÷</span>
+        <svg class="hero-dino" viewBox="0 0 220 200" role="img" aria-label="연필을 든 귀여운 초록 티라노"><use href="#dino"/></svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 학습 영역 -->
+  <section id="learn">
+    <div class="wrap">
+      <div class="sec-title">
+        <h2>📚 무엇을 배워 볼까요?</h2>
+        <p>초등 수학 4개 영역</p>
+      </div>
+      <div class="cards">
+        <!-- href 값을 실제 학습 페이지(예: number.html)로 바꿔 주세요 -->
+        <a class="card" href="#">
+          <div class="icon" style="background:#FFE7CC">🔢</div>
+          <h3>수와 연산</h3>
+          <p>덧셈·뺄셈부터 곱셈 구구단, 나눗셈, 분수와 소수까지</p>
+          <div class="chips"><span class="chip">1~6학년</span><span class="chip soon">준비 중</span></div>
+        </a>
+        <a class="card" href="#">
+          <div class="icon" style="background:#DDF0FF">🔺</div>
+          <h3>도형과 측정</h3>
+          <p>여러 가지 모양, 길이·시각·무게·넓이·부피 재기</p>
+          <div class="chips"><span class="chip">1~6학년</span><span class="chip soon">준비 중</span></div>
+        </a>
+        <a class="card" href="#">
+          <div class="icon" style="background:#E4F5D6">🔁</div>
+          <h3>변화와 관계</h3>
+          <p>규칙 찾기, 대응 관계, 비와 비율</p>
+          <div class="chips"><span class="chip">1~6학년</span><span class="chip soon">준비 중</span></div>
+        </a>
+        <a class="card" href="#">
+          <div class="icon" style="background:#FFE3EA">📊</div>
+          <h3>자료와 가능성</h3>
+          <p>분류하기, 표와 그래프, 평균과 가능성</p>
+          <div class="chips"><span class="chip">1~6학년</span><span class="chip soon">준비 중</span></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 게임 코너 -->
+  <section id="games" class="games">
+    <div class="wrap">
+      <div class="sec-title">
+        <h2>🎮 어떤 게임을 해볼까요?</h2>
+        <p>게임을 눌러 바로 시작해요</p>
+      </div>
+      <div class="game-grid" id="gameGrid"></div>
+      <p class="add-tip" id="addTip">🛠️ <b>관리자 안내:</b> 만든 게임 HTML 파일을 <code>games</code> 폴더에 올리고, index.html 아래쪽 <code>GAMES</code> 목록에 한 줄 추가하면 여기에 나타나요. (확인 후 <code>showAdminTip: false</code>로 이 안내를 숨기세요)</p>
+    </div>
+  </section>
+</main>
+
+<!-- 게임 플레이어 -->
+<div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="playerTitle">
+  <div class="player-box">
+    <div class="player-bar">
+      <h3 id="playerTitle"></h3>
+      <button class="tool" id="playerReload" aria-label="처음부터 다시">↻ 다시</button>
+      <button class="tool" id="playerFull">⛶ 크게</button>
+      <a class="tool" id="playerNew" href="#" target="_blank" rel="noopener">↗ 새 창</a>
+      <button class="tool close" id="playerClose" aria-label="닫기">✕ 닫기</button>
+    </div>
+    <iframe id="playerFrame" title="게임 화면" allow="fullscreen; autoplay" allowfullscreen></iframe>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<footer>
+  <div class="wrap">
+    <svg viewBox="0 0 220 200" aria-hidden="true"><use href="#dino"/></svg>
+    <div class="copy">
+      <div class="warn">무단 전재 및 재배포 금지</div>
+      <div class="owner"><span class="notranslate" translate="no" style="white-space:nowrap">© 2026 TyranoMath 백태진</span> <span style="white-space:nowrap">All rights reserved.</span></div>
+      <div>티라노와 함께 즐거운 수학 시간!</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   ⚙️ 관리자 설정 — 여기만 바꾸면 돼요
+   ========================================================= */
+const CONFIG = {
+  // 🐞 버그 제보방 링크 (구글 설문, 패들렛, GitHub Issues 등 원하는 주소)
+  bugReportUrl: '',                // 예: 'https://forms.gle/xxxxxxxx'
+  // 게임 추가 안내 문구 표시 여부 (게임을 다 올린 뒤 false 로 바꾸세요)
+  showAdminTip: true
+};
+
+/* 🎮 게임 목록 — 한 줄이 게임 카드 1개예요
+   file  : games 폴더 안의 HTML 파일 경로 (비워 두면 '준비 중' 카드)
+   icon  : 이모지 / image : 썸네일 그림 경로 (선택, 있으면 이모지 대신 표시)
+   color : 카드 윗부분 배경색 */
+const GAMES = [
+  { title:'티라노 덧셈 먹이 주기', desc:'정답 고기를 골라 배고픈 티라노에게 먹여요!', grade:'1~2학년', icon:'🍖', color:'#FFE7CC', file:'games/tyrano-plus.html' },
+  { title:'구구단 화산 탈출',     desc:'구구단을 맞히며 화산을 빠져나가요.',          grade:'2~3학년', icon:'🌋', color:'#FFE3EA', file:'' },
+  { title:'도형 화석 찾기',       desc:'숨어 있는 도형 화석을 찾아요.',              grade:'1~4학년', icon:'🦴', color:'#DDF0FF', file:'' }
+];
+
+/* 브라우저 저장 (사용 불가한 환경에서도 오류 없이 동작) */
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+};
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+
+/* =========================================================
+   1. 번역 기능 (Google 번역)
+   ========================================================= */
+const LANGS = [
+  ['ko','한국어'],['en','English'],['ja','日本語'],['zh-CN','中文(简体)'],['zh-TW','中文(繁體)'],
+  ['vi','Tiếng Việt'],['th','ไทย'],['id','Bahasa Indonesia'],['ms','Bahasa Melayu'],['tl','Filipino'],
+  ['mn','Монгол'],['uz','Oʻzbek'],['kk','Қазақ'],['ru','Русский'],['uk','Українська'],
+  ['hi','हिन्दी'],['bn','বাংলা'],['ne','नेपाली'],['ur','اردو'],['ar','العربية'],
+  ['fa','فارسی'],['tr','Türkçe'],['km','ខ្មែរ'],['lo','ລາວ'],['my','မြန်မာ'],
+  ['en','English'],['es','Español'],['fr','Français'],['de','Deutsch'],['pt','Português'],
+  ['it','Italiano'],['nl','Nederlands'],['pl','Polski'],['sv','Svenska'],['el','Ελληνικά'],
+  ['he','עברית'],['sw','Kiswahili'],['am','አማርኛ'],['si','සිංහල'],['ta','தமிழ்']
+].filter((v,i,a)=>a.findIndex(x=>x[0]===v[0])===i);
+
+function currentLang(){
+  const m = document.cookie.match(/(?:^|;\s*)googtrans=\/[^/]*\/([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : 'ko';
+}
+function setCookie(val, clear){
+  const host = location.hostname;
+  const exp = clear ? ';expires=Thu, 01 Jan 1970 00:00:00 GMT' : '';
+  document.cookie = 'googtrans=' + val + ';path=/' + exp;
+  if (host && host.includes('.')) document.cookie = 'googtrans=' + val + ';path=/;domain=' + host + exp;
+}
+function setLang(code){
+  if (code === 'ko'){ setCookie('', true); location.reload(); return; }
+  setCookie('/ko/' + code);
+  const combo = document.querySelector('.goog-te-combo');
+  if (combo){
+    combo.value = code;
+    combo.dispatchEvent(new Event('change'));
+    renderLangUI(); closeLang();
+  } else {
+    location.reload();
+  }
+}
+function renderLangUI(filter=''){
+  const cur = currentLang();
+  const found = LANGS.find(l => l[0] === cur);
+  $('#langCurrent').textContent = found ? found[1] : cur;
+  const list = $('#langList');
+  list.innerHTML = '';
+  const f = filter.trim().toLowerCase();
+  LANGS.filter(([c,n]) => !f || n.toLowerCase().includes(f) || c.toLowerCase().includes(f))
+    .forEach(([c,n]) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = n; b.lang = c;
+      b.setAttribute('aria-current', c === cur ? 'true' : 'false');
+      b.addEventListener('click', () => setLang(c));
+      list.appendChild(b);
+    });
+}
+function openLang(){ $('#langPanel').classList.add('open'); $('#langBtn').setAttribute('aria-expanded','true'); $('#langSearch').focus(); }
+function closeLang(){ $('#langPanel').classList.remove('open'); $('#langBtn').setAttribute('aria-expanded','false'); }
+$('#langBtn').addEventListener('click', e => { e.stopPropagation(); $('#langPanel').classList.contains('open') ? closeLang() : openLang(); });
+$('#langPanel').addEventListener('click', e => e.stopPropagation());
+document.addEventListener('click', closeLang);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLang(); });
+$('#langSearch').addEventListener('input', e => renderLangUI(e.target.value));
+renderLangUI();
+
+window.googleTranslateElementInit = function(){
+  new google.translate.TranslateElement({ pageLanguage:'ko', autoDisplay:false }, 'google_translate_element');
+};
+(function loadGoogleTranslate(){
+  const s = document.createElement('script');
+  s.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+  s.async = true;
+  document.body.appendChild(s);
+})();
+
+/* =========================================================
+   3. 기기별 화면 설정
+   ========================================================= */
+const MODE_NAMES = { pc:'컴퓨터', phone:'스마트폰', pad:'패드', board:'전자칠판' };
+const SCALES = [0.85, 1, 1.15, 1.3, 1.5];
+let modeChoice = store.get('tm-mode') || 'auto';
+let scaleIdx = Number(store.get('tm-scale') ?? 1);
+if (!(scaleIdx >= 0 && scaleIdx < SCALES.length)) scaleIdx = 1;
+
+function detectDevice(){
+  const w = window.innerWidth;
+  const touch = window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+  if (w < 640) return 'phone';
+  if (touch && w >= 1600) return 'board';
+  if (touch) return 'pad';
+  return 'pc';
+}
+function applyMode(){
+  const actual = modeChoice === 'auto' ? detectDevice() : modeChoice;
+  document.documentElement.dataset.device = actual;
+  $$('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.mode === modeChoice ? 'true' : 'false'));
+  $('#autoHint').textContent = modeChoice === 'auto' ? '(감지됨: ' + MODE_NAMES[actual] + ')' : '';
+  document.documentElement.style.setProperty('--scale', SCALES[scaleIdx]);
+}
+$$('.tab').forEach(t => t.addEventListener('click', () => {
+  modeChoice = t.dataset.mode; store.set('tm-mode', modeChoice); applyMode();
+}));
+$('#fontUp').addEventListener('click', () => { scaleIdx = Math.min(SCALES.length-1, scaleIdx+1); store.set('tm-scale', scaleIdx); applyMode(); });
+$('#fontDown').addEventListener('click', () => { scaleIdx = Math.max(0, scaleIdx-1); store.set('tm-scale', scaleIdx); applyMode(); });
+$('#fullBtn').addEventListener('click', () => {
+  const d = document;
+  if (!d.fullscreenElement){ (d.documentElement.requestFullscreen || d.documentElement.webkitRequestFullscreen || (()=>{})).call(d.documentElement); }
+  else { (d.exitFullscreen || d.webkitExitFullscreen).call(d); }
+});
+document.addEventListener('fullscreenchange', () => {
+  $('#fullBtn').textContent = document.fullscreenElement ? '⛶ 전체 화면 끄기' : '⛶ 전체 화면';
+});
+let rT; window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(() => { if (modeChoice === 'auto') applyMode(); }, 150); });
+
+/* =========================================================
+   🐞 버그 제보 탭
+   ========================================================= */
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+if (CONFIG.bugReportUrl){ $('#bugTab').href = CONFIG.bugReportUrl; }
+else {
+  $('#bugTab').addEventListener('click', e => { e.preventDefault(); toast('버그 제보방 링크를 준비하고 있어요 🦖'); });
+}
+
+/* =========================================================
+   🎮 게임 코너
+   ========================================================= */
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function renderGames(){
+  const grid = $('#gameGrid');
+  grid.innerHTML = GAMES.map((g, i) => `
+    <button type="button" class="game${g.file ? '' : ' soon'}" data-i="${i}" ${g.file ? '' : 'aria-disabled="true"'}>
+      <div class="thumb" style="background:${esc(g.color || '#E4F5D6')}">
+        ${g.image ? `<img src="${esc(g.image)}" alt="" loading="lazy">` : `<span aria-hidden="true">${esc(g.icon || '🎲')}</span>`}
+      </div>
+      <div class="body">
+        <h3>${esc(g.title)}</h3>
+        <p>${esc(g.desc)}</p>
+        <div class="chips">${g.grade ? `<span class="chip">${esc(g.grade)}</span>` : ''}</div>
+        <span class="play">${g.file ? '▶ 시작하기' : '준비 중'}</span>
+      </div>
+    </button>`).join('');
+  $('#addTip').hidden = !CONFIG.showAdminTip;
+}
+let lastFocus = null;
+function openGame(i){
+  const g = GAMES[i];
+  if (!g || !g.file){ toast('곧 만나요! 열심히 만들고 있어요 🛠️'); return; }
+  lastFocus = document.activeElement;
+  $('#playerTitle').innerHTML = `<span aria-hidden="true">${esc(g.icon || '🎮')}</span><span>${esc(g.title)}</span>`;
+  $('#playerFrame').src = g.file;
+  $('#playerNew').href = g.file;
+  $('#player').classList.add('open');
+  document.body.classList.add('no-scroll');
+  $('#playerClose').focus();
+  try { history.replaceState(null, '', '#game=' + encodeURIComponent(g.file)); } catch(e){}
+}
+function closeGame(){
+  if (!$('#player').classList.contains('open')) return;
+  if (document.fullscreenElement) document.exitFullscreen?.();
+  $('#player').classList.remove('open');
+  $('#playerFrame').src = 'about:blank';
+  document.body.classList.remove('no-scroll');
+  try { history.replaceState(null, '', '#games'); } catch(e){}
+  lastFocus?.focus();
+}
+$('#gameGrid').addEventListener('click', e => { const b = e.target.closest('.game'); if (b) openGame(Number(b.dataset.i)); });
+$('#playerClose').addEventListener('click', closeGame);
+// 게임 화면 안에서 Esc 를 눌러도 닫히게 (같은 사이트의 게임일 때)
+$('#playerFrame').addEventListener('load', () => {
+  try { $('#playerFrame').contentWindow.addEventListener('keydown', e => { if (e.key === 'Escape') closeGame(); }); } catch(e){}
+});
+$('#player').addEventListener('click', e => { if (e.target.id === 'player') closeGame(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeGame(); });
+$('#playerReload').addEventListener('click', () => { const f = $('#playerFrame'); const src = f.src; f.src = 'about:blank'; setTimeout(() => f.src = src, 50); });
+$('#playerFull').addEventListener('click', () => {
+  const box = $('.player-box');
+  if (!document.fullscreenElement) (box.requestFullscreen || box.webkitRequestFullscreen || (()=>toast('이 기기에서는 크게 보기를 지원하지 않아요'))).call(box);
+  else document.exitFullscreen();
+});
+renderGames();
+// 주소에 #game=파일 이 있으면 바로 그 게임을 열어요 (수업용 바로가기 링크)
+(function openFromHash(){
+  const m = location.hash.match(/^#game=(.+)$/);
+  if (!m) return;
+  const i = GAMES.findIndex(g => g.file === decodeURIComponent(m[1]));
+  if (i >= 0) openGame(i);
+})();
+
+applyMode();
+</script>
+</body>
+</html>

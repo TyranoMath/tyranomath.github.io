@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>티라노 덧셈 먹이 주기 · TyranoMath</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+<!--
+  ✏️ 게임 만들기 예시 파일
+  - 이 파일처럼 HTML 하나에 그림·CSS·JS를 모두 넣으면 TyranoMath 게임 코너에서 바로 실행돼요.
+  - 화면 크기는 100% 로 맞춰 두면 컴퓨터·패드·스마트폰·전자칠판 어디서든 꽉 차게 보여요.
+-->
+<style>
+:root{--bg:#FFF8EC; --ink:#22314A; --green:#4CB963; --green-d:#2F8A47; --orange:#FF9F43; --line:#ECDFC8; --pink:#FF8FA3}
+*{box-sizing:border-box}
+html,body{margin:0; height:100%}
+body{
+  background:linear-gradient(#DDF0FF 0 62%, #CDEBB4 62% 100%); color:var(--ink);
+  font-family:'Jua', system-ui, sans-serif; display:flex; flex-direction:column; align-items:center;
+  overflow:hidden; user-select:none; -webkit-user-select:none;
+}
+.top{width:100%; display:flex; justify-content:space-between; align-items:center; padding:2vmin 3vmin; font-size:clamp(16px, 3.4vmin, 34px)}
+.pill{background:#fff; border:3px solid var(--line); border-radius:999px; padding:.2em .8em}
+.back{text-decoration:none; color:var(--green-d)}
+.stage{flex:1; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2vmin; padding:0 3vmin 3vmin}
+.question{
+  font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(40px, 12vmin, 150px);
+  background:#fff; border:4px solid var(--line); border-radius:4vmin; padding:.1em .6em; line-height:1.2;
+}
+.question .q{color:var(--orange)}
+.dino{width:clamp(120px, 30vmin, 340px); transition:transform .2s}
+.dino.eat{animation:eat .6s ease}
+.dino.no{animation:no .5s ease}
+@keyframes eat{0%,100%{transform:scale(1)}40%{transform:scale(1.15) rotate(-6deg)}}
+@keyframes no{0%,100%{transform:translateX(0)}25%{transform:translateX(-14px)}75%{transform:translateX(14px)}}
+.choices{display:flex; gap:3vmin; flex-wrap:wrap; justify-content:center}
+.meat{
+  font:inherit; cursor:pointer; border:0; background:none; padding:0; position:relative;
+  width:clamp(90px, 22vmin, 230px); aspect-ratio:1.3; touch-action:manipulation;
+}
+.meat svg{width:100%; height:100%; filter:drop-shadow(0 6px 0 rgba(0,0,0,.12)); transition:transform .1s}
+.meat:active svg{transform:scale(.92)}
+.meat span{
+  position:absolute; inset:0; display:grid; place-items:center; padding-right:18%;
+  font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(26px, 7vmin, 80px); color:#fff;
+  text-shadow:0 3px 0 rgba(0,0,0,.25);
+}
+.msg{min-height:1.4em; font-size:clamp(18px, 4.5vmin, 46px)}
+.overlay{position:fixed; inset:0; background:rgba(255,248,236,.94); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.5vmin; text-align:center; padding:4vmin}
+.overlay[hidden]{display:none}
+.overlay h1{margin:0; font-size:clamp(28px, 8vmin, 90px); color:var(--green-d); font-weight:400}
+.overlay p{margin:0; font-size:clamp(16px, 4vmin, 40px)}
+.btn{
+  font:inherit; font-size:clamp(20px, 5vmin, 54px); cursor:pointer; color:#fff; background:var(--green);
+  border:0; border-radius:3vmin; padding:.35em 1.2em; box-shadow:0 .25em 0 var(--green-d);
+}
+.btn:active{transform:translateY(.15em); box-shadow:0 .1em 0 var(--green-d)}
+.lv{display:flex; gap:2vmin}
+.lv button{font:inherit; font-size:clamp(16px, 4vmin, 40px); padding:.3em .9em; border-radius:2.5vmin; border:3px solid var(--line); background:#fff; cursor:pointer}
+.lv button[aria-pressed="true"]{background:var(--orange); color:#fff; border-color:var(--orange)}
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" id="back" href="../index.html#games" hidden>← TyranoMath</a>
+  <span class="pill">⏱ <b id="time">60</b>초</span>
+  <span class="pill">🍖 <b id="score">0</b>점</span>
+</div>
+
+<div class="stage">
+  <div class="question" id="question">3 + 4 = <span class="q">?</span></div>
+  <svg class="dino" id="dino" viewBox="0 0 220 200" aria-hidden="true">
+    <path d="M58 142 Q18 142 6 106 Q30 126 62 118 Z" fill="#4CB963"/>
+    <path d="M86 88 L80 68 L98 82 Z M71 98 L60 80 L81 92 Z M59 112 L44 98 L67 106 Z M108 34 L110 14 L126 28 Z M128 28 L136 9 L146 26 Z" fill="#FF9F43"/>
+    <rect x="68" y="156" width="25" height="32" rx="11" fill="#3A9D51"/><rect x="106" y="156" width="25" height="32" rx="11" fill="#3A9D51"/>
+    <ellipse cx="96" cy="128" rx="47" ry="44" fill="#5CC46F"/><ellipse cx="108" cy="134" rx="26" ry="32" fill="#E8F7C8"/>
+    <rect x="92" y="26" width="112" height="80" rx="38" fill="#5CC46F"/>
+    <circle cx="150" cy="56" r="15" fill="#fff" stroke="#2E6B3A" stroke-width="2"/><circle cx="154" cy="58" r="8.5" fill="#22314A"/><circle cx="157.5" cy="54" r="3" fill="#fff"/>
+    <ellipse cx="174" cy="76" rx="10" ry="5.5" fill="#FF8FA3" opacity=".65"/>
+    <path id="mouth" d="M140 82 Q166 108 194 80 Z" fill="#B23A4E" stroke="#2E6B3A" stroke-width="3"/>
+    <path d="M136 118 q16 -4 20 8 q-3 5 -9 2 q-4 -4 -11 -1 Z" fill="#3A9D51"/>
+  </svg>
+  <div class="choices" id="choices"></div>
+  <div class="msg" id="msg">배고픈 티라노에게 정답 고기를 주세요!</div>
+</div>
+
+<div class="overlay" id="start">
+  <h1>🍖 티라노 덧셈 먹이 주기</h1>
+  <p>60초 동안 정답 고기를 골라 티라노를 배부르게 해 주세요!</p>
+  <div class="lv" id="lv">
+    <button data-max="10" aria-pressed="true">10까지</button>
+    <button data-max="20" aria-pressed="false">20까지</button>
+    <button data-max="100" aria-pressed="false">100까지</button>
+  </div>
+  <button class="btn" id="startBtn">시작하기</button>
+</div>
+
+<div class="overlay" id="end" hidden>
+  <h1>크앙~ 배불러요! 🦖</h1>
+  <p>맞힌 고기 <b id="final">0</b>개</p>
+  <p id="best"></p>
+  <button class="btn" id="againBtn">다시 하기</button>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+let max = 10, score = 0, time = 60, timer = null, answer = 0, busy = false;
+
+// 홈페이지 안(게임 코너)에서 열리면 뒤로가기 링크를 숨기고, 따로 열리면 보여줘요
+if (window.top === window) $('#back').hidden = false;
+
+const meatSVG = color => `<svg viewBox="0 0 130 100"><ellipse cx="55" cy="50" rx="50" ry="40" fill="${color}"/><ellipse cx="50" cy="45" rx="34" ry="24" fill="rgba(255,255,255,.18)"/><rect x="95" y="42" width="26" height="16" rx="6" fill="#FFF3DD"/><circle cx="122" cy="40" r="8" fill="#FFF3DD"/><circle cx="122" cy="60" r="8" fill="#FFF3DD"/></svg>`;
+const colors = ['#E8664F', '#D9534F', '#C8553D'];
+
+function next(){
+  let a, b;
+  if (max === 10){ a = rnd(0, 9); b = rnd(1, 10 - a); }
+  else if (max === 20){ a = rnd(3, 15); b = rnd(2, 20 - a); }
+  else { a = rnd(10, 80); b = rnd(5, 99 - a); }
+  answer = a + b;
+  $('#question').innerHTML = `${a} + ${b} = <span class="q">?</span>`;
+  const opts = new Set([answer]);
+  while (opts.size < 3){ const w = answer + rnd(-4, 4); if (w >= 0 && w !== answer) opts.add(w); }
+  const list = [...opts].sort(() => Math.random() - .5);
+  $('#choices').innerHTML = list.map((n, i) => `<button class="meat" data-n="${n}" aria-label="${n}">${meatSVG(colors[i])}<span>${n}</span></button>`).join('');
+  busy = false;
+}
+function pick(n, el){
+  if (busy || !timer) return;
+  busy = true;
+  const dino = $('#dino'); dino.classList.remove('eat', 'no'); void dino.offsetWidth;
+  if (n === answer){
+    score++; $('#score').textContent = score;
+    $('#msg').textContent = ['냠냠! 맛있어요!', '정답! 크앙~', '최고예요! 🦖'][rnd(0, 2)];
+    $('#question .q').textContent = answer;
+    el.style.visibility = 'hidden'; dino.classList.add('eat');
+    setTimeout(next, 650);
+  } else {
+    $('#msg').textContent = `앗, 그건 아니에요! 정답은 ${answer}`;
+    dino.classList.add('no');
+    setTimeout(next, 1100);
+  }
+}
+$('#choices').addEventListener('click', e => { const b = e.target.closest('.meat'); if (b) pick(Number(b.dataset.n), b); });
+
+function start(){
+  score = 0; time = 60; $('#score').textContent = 0; $('#time').textContent = time;
+  $('#start').hidden = true; $('#end').hidden = true;
+  $('#msg').textContent = '배고픈 티라노에게 정답 고기를 주세요!';
+  next();
+  clearInterval(timer);
+  timer = setInterval(() => { time--; $('#time').textContent = time; if (time <= 0) end(); }, 1000);
+}
+function end(){
+  clearInterval(timer); timer = null;
+  $('#final').textContent = score;
+  let best = 0; const key = 'tyrano-plus-best-' + max;
+  try { best = Number(localStorage.getItem(key) || 0); if (score > best){ localStorage.setItem(key, score); best = score; } } catch(e){ best = score; }
+  $('#best').textContent = `최고 기록: ${best}개`;
+  $('#end').hidden = false;
+}
+document.querySelectorAll('#lv button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#lv button').forEach(x => x.setAttribute('aria-pressed', 'false'));
+  b.setAttribute('aria-pressed', 'true'); max = Number(b.dataset.max);
+}));
+$('#startBtn').addEventListener('click', start);
+$('#againBtn').addEventListener('click', () => { $('#end').hidden = true; $('#start').hidden = false; });
+</script>
+</body>
+</html>
