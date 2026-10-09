@@ -6,7 +6,7 @@
 'use strict';
 
 // data.js 의 CONFIG · GAMES · CHECKS 를 읽어요 (없어도 오류 없이 동작)
-const CFG = Object.assign({ bugReportUrl:'', latestCount:3, newDays:14 }, typeof CONFIG !== 'undefined' ? CONFIG : {});
+const CFG = Object.assign({ bugReportUrl:'', latestCount:4, newDays:14 }, typeof CONFIG !== 'undefined' ? CONFIG : {});
 const GAME_LIST  = typeof GAMES  !== 'undefined' && Array.isArray(GAMES)  ? GAMES  : [];
 const UNIT_LIST  = typeof UNITS  !== 'undefined' && Array.isArray(UNITS)  ? UNITS  : [];
 const LISTS = { games: GAME_LIST };
@@ -278,7 +278,6 @@ document.addEventListener('click', e => {
 if ($('#latestGrid')){
   const latest = GAME_LIST.map((item, i) => ({ item, i })).filter(x => x.item.file).sort(byLatest).slice(0, CFG.latestCount).map(x => x.i);
   renderInto($('#latestGrid'), 'games', latest);
-  $$('.game-total').forEach(el => el.textContent = GAME_LIST.filter(g => g.file).length);
 }
 
 /* =========================================================

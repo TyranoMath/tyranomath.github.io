@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내 게임 · TyranoMath</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="engine/tyrano-quiz.css">
+</head>
+<body>
+<script src="engine/tyrano-quiz.js"></script>
+<script>
+/* =========================================================
+   🛠️ 내 게임 만들기 틀 (TyranoMath 게임 엔진 사용)
+   1) 이 파일을 복사해서 이름을 바꿔요   예: games/subtract-river.html
+   2) 아래 ✏️ 표시가 있는 곳만 고쳐요
+   3) data.js 의 GAMES 목록에 한 줄 추가하면 게임존에 나타나요
+   ========================================================= */
+const { rnd, pick, shuffle, numChoices } = TyranoQuiz;
+// rnd(1, 9)        → 1~9 사이 아무 정수
+// pick([...])      → 목록에서 아무거나 하나
+// shuffle([...])   → 목록 순서 섞기
+// numChoices(정답, 보기개수, 흩어짐, 최솟값) → 정답 + 비슷한 오답 숫자 보기 만들기
+
+TyranoQuiz.start({
+  title: '뺄셈 강 건너기',                 // ✏️ 게임 이름
+  emoji: '🌊',                            // ✏️ 시작 화면 그림
+  intro: '정답 돌을 밟고 강을 건너요!',      // ✏️ 시작 화면 설명
+  time: 60,                               // ✏️ 제한 시간(초)
+  // goal: 15,                            // ✏️ (선택) 이 점수에 도달하면 '성공!'
+  scoreIcon: '🪨',                        // ✏️ 점수 옆 그림
+  accent: '#2f7fc1',                      // ✏️ 강조 색
+  bg: ['#DDF0FF', '#BFE3F5'],             // ✏️ 배경색 [위, 아래]
+
+  // ✏️ 난이도 버튼 (value 값이 아래 make(level) 로 들어가요)
+  levels: [
+    { label: '10까지', value: 10 },
+    { label: '20까지', value: 20 },
+    { label: '100까지', value: 100 }
+  ],
+
+  // ✏️ 문제 한 개를 만드는 곳 — 부를 때마다 새 문제를 돌려줘요
+  make(max) {
+    const a = rnd(2, max);
+    const b = rnd(1, a);
+    const ans = a - b;
+    return {
+      q: `<span class="big">${a} − ${b} = <span class="qm">?</span></span>`,  // 문제 (HTML)
+      answer: String(ans),                                                // 정답 (보기의 key 와 같아야 해요)
+      choices: numChoices(ans, 4, 3, 0),                                  // 보기 4개
+      explain: `${a} − ${b} = ${ans}`                                     // 틀렸을 때 보여 줄 설명 (선택)
+    };
+    /* 글자 보기를 쓰고 싶으면 이렇게:
+       choices: shuffle(['삼각형','사각형','원']).map(t => ({ key: t, html: t })),
+       answer: '원' */
+  }
+});
+</script>
+</body>
+</html>

@@ -8,7 +8,7 @@ const CONFIG = {
   bugReportUrl: '',        // 예: 'https://forms.gle/xxxxxxxx'
 
   // 🏠 메인 화면에 보여 줄 최신 게임 개수
-  latestCount: 3,
+  latestCount: 4,
 
   // 🆕 올린 날짜(date)로부터 며칠 동안 NEW 표시를 붙일지
   newDays: 14
