@@ -359,20 +359,21 @@ html[data-device="board"] .grade-tabs button{font-size:1.25rem}
 .best{padding:22px 0 8px}
 .best-wrap{display:flex; gap:14px; align-items:stretch}
 .best-panel{
-  flex:none; width:calc(var(--tap) * 3.3); border-radius:var(--radius); padding:14px 10px;
+  flex:none; width:calc(var(--tap) * 3.3); border-radius:18px; padding:10px; margin:4px 0 10px;
   background:linear-gradient(160deg, #FFE7CC 0%, #FFD08A 100%); color:#5B3412;
   border:var(--border) solid #F2C27E; box-shadow:0 5px 0 #F2C27E;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:6px
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:8px
 }
-.best-panel .egg{width:calc(var(--tap) * 1.3); height:auto; transform-origin:50% 90%; animation:egg-wobble 2.6s ease-in-out infinite}
+.best-head{display:flex; align-items:center; gap:8px; text-align:left}
+.best-panel .egg{flex:none; width:calc(var(--tap) * .8); height:auto; transform-origin:50% 90%; animation:egg-wobble 2.6s ease-in-out infinite}
 @keyframes egg-wobble{0%,60%,100%{transform:rotate(0)}68%{transform:rotate(-10deg)}76%{transform:rotate(9deg)}84%{transform:rotate(-6deg)}92%{transform:rotate(3deg)}}
-.best-panel h2{margin:0; font-size:1.2rem; line-height:1.3}
+.best-panel h2{margin:0; font-size:1.05rem; line-height:1.25; white-space:nowrap}
 .best-panel h2 .nb{display:block; color:#E0731A}
-.best-page{margin:0; white-space:nowrap; font-family:'Fredoka',sans-serif; font-size:.9rem; color:#9A6230}
-.best-nav{display:flex; gap:8px}
+.best-page{margin:0; min-width:2.6em; white-space:nowrap; font-family:'Fredoka',sans-serif; font-size:.85rem; color:#9A6230}
+.best-nav{display:flex; align-items:center; gap:6px}
 .best-nav button{
-  width:var(--tap); height:var(--tap); border-radius:50%; border:var(--border) solid #F2C27E; background:#fff;
-  color:#E0731A; font-size:1.6rem; line-height:1; cursor:pointer; display:grid; place-items:center; box-shadow:0 3px 0 #F2C27E
+  width:calc(var(--tap) * .78); height:calc(var(--tap) * .78); border-radius:50%; border:var(--border) solid #F2C27E; background:#fff;
+  color:#E0731A; font-size:1.3rem; line-height:1; cursor:pointer; display:grid; place-items:center; box-shadow:0 3px 0 #F2C27E
 }
 .best-nav button:hover{background:#FFF6EA}
 .best-nav button:active{transform:translateY(2px); box-shadow:0 1px 0 #F2C27E}
@@ -384,23 +385,23 @@ html[data-device="board"] .grade-tabs button{font-size:1.25rem}
 }
 .best-track::-webkit-scrollbar{display:none}
 .best-card{
-  scroll-snap-align:start; position:relative; cursor:pointer; font:inherit; color:inherit; padding:0; text-align:left;
+  align-self:start; scroll-snap-align:start; position:relative; cursor:pointer; font:inherit; color:inherit; padding:0; text-align:left;
   background:#fff; border:var(--border) solid var(--line); border-radius:18px; overflow:hidden; box-shadow:var(--shadow);
   display:flex; flex-direction:column; transition:transform .15s
 }
 .best-card:hover{transform:translateY(-3px)}
-.best-card .thumb{flex:1; min-height:calc(var(--tap) * 2.4); display:grid; place-items:center; font-size:calc(var(--tap) * 1.15); position:relative}
+.best-card .thumb{height:calc(var(--tap) * 1.75); display:grid; place-items:center; font-size:calc(var(--tap) * .95); position:relative}
 .best-card .thumb img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
 .best-card .rank{
-  position:absolute; top:8px; left:8px; z-index:2; width:calc(var(--tap) * .8); height:calc(var(--tap) * .8); border-radius:50%;
-  display:grid; place-items:center; font-family:'Fredoka',sans-serif; font-weight:700; font-size:1.05rem; color:#fff;
-  background:#4A7BEF; border:3px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,.2)
+  position:absolute; top:6px; left:6px; z-index:2; width:calc(var(--tap) * .62); height:calc(var(--tap) * .62); border-radius:50%;
+  display:grid; place-items:center; font-family:'Fredoka',sans-serif; font-weight:700; font-size:.88rem; color:#fff;
+  background:#4A7BEF; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,.2)
 }
 .best-card .rank.r1{background:#F5B700}
 .best-card .rank.r2{background:#9AA7B8}
 .best-card .rank.r3{background:#D08B4F}
 .best-card .name{
-  font-family:'Jua',sans-serif; font-size:1rem; padding:10px 12px; text-align:center;
+  font-family:'Jua',sans-serif; font-size:.95rem; padding:7px 10px; text-align:center;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-top:var(--border) solid var(--line)
 }
 .best-empty{grid-column:1 / -1; align-self:center; color:var(--muted); padding:20px}
@@ -411,10 +412,9 @@ html[data-device="pad"]{--zcols:3}
 html[data-device="pad"] .best-track{--per:3}
 html[data-device="phone"]{--zcols:2}
 html[data-device="phone"] .best-wrap{flex-direction:column}
-html[data-device="phone"] .best-panel{width:auto; flex-direction:row; justify-content:space-between; padding:10px 14px}
-html[data-device="phone"] .best-panel h2{font-size:1.1rem; white-space:nowrap; flex:1; text-align:left}
+html[data-device="phone"] .best-panel{width:auto; flex-direction:row; justify-content:space-between; margin:0 0 4px; padding:8px 12px}
+html[data-device="phone"] .best-panel h2{font-size:1.05rem}
 html[data-device="phone"] .best-panel h2 .nb{display:inline}
-html[data-device="phone"] .best-nav button{width:calc(var(--tap) - 6px); height:calc(var(--tap) - 6px)}
 html[data-device="phone"] .best-panel .egg{width:34px}
 html[data-device="phone"] .best-track{--per:2}
 html[data-device="phone"] .compact .game p{display:none}
