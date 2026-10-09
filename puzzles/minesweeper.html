@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>티라노 지뢰 찾기 · TyranoMath</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="puzzle.css">
+<style>
+.board-area{flex:1; min-width:0; height:100%; display:grid; place-items:center}
+.field{--cs:34px; display:grid; gap:3px; background:#A9D88B; border:5px solid #7FBF5E; border-radius:18px; padding:6px; box-shadow:0 7px 0 #6AA84B; touch-action:manipulation}
+.cell{
+  width:var(--cs); height:var(--cs); border:0; padding:0; border-radius:calc(var(--cs) * .22);
+  background:linear-gradient(#7FCF70, #5CB85C); box-shadow:inset 0 -3px 0 rgba(0,0,0,.15), inset 0 2px 0 rgba(255,255,255,.35);
+  font-family:'Fredoka',sans-serif; font-weight:700; font-size:calc(var(--cs) * .58); line-height:1; display:grid; place-items:center
+}
+.cell.alt:not(.open){background:linear-gradient(#8ED97F, #69C266)}
+.cell:hover:not(.open){filter:brightness(1.07)}
+.cell.open{background:#FFF3DA; box-shadow:inset 0 0 0 1px #F0DDB4; cursor:default}
+.cell.flag::after{content:'🚩'; font-size:calc(var(--cs) * .55)}
+.cell.boom{background:#E5546B !important}
+.cell.mine::after{content:'🌋'; font-size:calc(var(--cs) * .6)}
+.cell.badflag{background:#FFD6DD !important}
+.cell.badflag::after{content:'❌'; font-size:calc(var(--cs) * .45)}
+.n1{color:#3B8FD9} .n2{color:#2F8A47} .n3{color:#E5546B} .n4{color:#6C3FB4} .n5{color:#B4600F} .n6{color:#138A8A} .n7{color:#22314A} .n8{color:#7A7A7A}
+.flagmode{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.flagmode button{border-radius:16px; border:3px solid var(--line); background:#fff; padding:10px 6px; font-family:'Jua',sans-serif; font-size:clamp(16px,1.7vw,22px); box-shadow:0 4px 0 var(--line)}
+.flagmode button[aria-pressed="true"]{background:var(--purple); border-color:var(--purple-d); color:#fff; box-shadow:0 4px 0 var(--purple-d)}
+.face{font-size:44px; text-align:center; line-height:1}
+@media (max-aspect-ratio: 1/1){ .board-area{height:auto; width:100%} .face{display:none} }
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" id="back" href="../puzzlezone.html" hidden>← 퍼즐존</a>
+  <div class="title"><span class="dino-logo"></span>티라노 지뢰 찾기</div>
+  <span class="pill" id="lvPill">초급</span>
+  <span class="pill">🌋 <b id="left">10</b></span>
+  <span class="pill">⏱ <b id="time">0:00</b></span>
+</div>
+
+<div class="main">
+  <div class="board-area" id="area"><div class="field" id="field" role="grid" aria-label="지뢰 찾기 판"></div></div>
+  <div class="side">
+    <div class="face" id="face">🦖</div>
+    <div class="flagmode" id="fm">
+      <button data-f="0" aria-pressed="true">⛏️ 파기</button>
+      <button data-f="1" aria-pressed="false">🚩 깃발</button>
+    </div>
+    <div class="tools">
+      <button class="tool" id="restart">↻ 새 판</button>
+      <button class="tool" id="levelBtn">⚙️ 단계</button>
+    </div>
+    <div class="msg" id="msg">아무 칸이나 눌러 시작해요!</div>
+    <p class="note">숫자는 둘레 8칸에 숨은 화산 수예요.<br>오른쪽 클릭·길게 누르기로 🚩 깃발을 꽂아요.<br>숫자를 누르면 깃발 수가 맞을 때 주변을 한 번에 열어요.</p>
+  </div>
+</div>
+
+<div class="overlay" id="startOv">
+  <div class="sheet">
+    <span class="dino-logo big"></span>
+    <h1>🌋 티라노 지뢰 찾기</h1>
+    <p>잔디 밑에 숨은 화산을 피해서 안전한 칸을 모두 열어요! 숫자는 둘레에 화산이 몇 개 있는지 알려 줘요.</p>
+    <h3>단계</h3>
+    <div class="chips" id="lvChips">
+      <button data-lv="0">초급<small>9×9 · 화산 10개</small></button>
+      <button data-lv="1">중급<small>12×12 · 화산 24개</small></button>
+      <button data-lv="2">고급<small>16×16 · 화산 40개</small></button>
+    </div>
+    <p id="bestTxt"></p>
+    <button class="btn" id="go">시작하기 🦖</button>
+  </div>
+</div>
+
+<div class="overlay" id="endOv" hidden>
+  <div class="sheet">
+    <span class="dino-logo big wobble"></span>
+    <h1 id="endTitle"></h1>
+    <p id="endTxt"></p>
+    <div class="row"><button class="btn" id="again">한 판 더!</button><button class="btn alt" id="toStart">단계 바꾸기</button><button class="btn alt" id="look">판 보기</button></div>
+  </div>
+</div>
+
+<script src="puzzle-common.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const { store, fmt } = TM;
+const LEVELS = [ { name:'초급', w:9, h:9, m:10 }, { name:'중급', w:12, h:12, m:24 }, { name:'고급', w:16, h:16, m:40 } ];
+let lv = Number(store.get('tm-mine-lv') || 0); if (!LEVELS[lv]) lv = 0;
+let W, H, M, mine, open, flag, adj, started, over, flagMode = false, t0 = 0, timer = null, elapsed = 0, opened = 0;
+
+const idx = (x, y) => y * W + x;
+function around(i){
+  const x = i % W, y = Math.floor(i / W), out = [];
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){
+    if (!dx && !dy) continue;
+    const nx = x + dx, ny = y + dy;
+    if (nx >= 0 && ny >= 0 && nx < W && ny < H) out.push(idx(nx, ny));
+  }
+  return out;
+}
+function newGame(){
+  ({ w: W, h: H, m: M } = LEVELS[lv]);
+  mine = Array(W * H).fill(false); open = Array(W * H).fill(false); flag = Array(W * H).fill(false); adj = Array(W * H).fill(0);
+  started = false; over = false; opened = 0;
+  clearInterval(timer); elapsed = 0; $('#time').textContent = '0:00';
+  $('#lvPill').textContent = LEVELS[lv].name; $('#face').textContent = '🦖';
+  const f = $('#field'); f.style.gridTemplateColumns = `repeat(${W}, var(--cs))`;
+  f.innerHTML = Array.from({ length: W * H }, (_, i) => `<button class="cell${(i % W + Math.floor(i / W)) % 2 ? ' alt' : ''}" data-i="${i}" aria-label="${i % W + 1}열 ${Math.floor(i / W) + 1}행"></button>`).join('');
+  fit(); updateLeft();
+  $('#msg').textContent = '아무 칸이나 눌러 시작해요!';
+}
+// 첫 칸과 그 둘레에는 화산을 두지 않아요
+function plant(first){
+  const safe = new Set([first, ...around(first)]);
+  const pool = [...Array(W * H).keys()].filter(i => !safe.has(i));
+  for (let k = 0; k < M; k++){ const j = k + Math.floor(Math.random() * (pool.length - k)); [pool[k], pool[j]] = [pool[j], pool[k]]; mine[pool[k]] = true; }
+  for (let i = 0; i < W * H; i++) adj[i] = around(i).filter(j => mine[j]).length;
+  started = true; t0 = Date.now(); timer = setInterval(() => { elapsed = Math.floor((Date.now() - t0) / 1000); $('#time').textContent = fmt(elapsed); }, 500);
+}
+function reveal(i){
+  if (open[i] || flag[i]) return;
+  const stack = [i];
+  while (stack.length){
+    const k = stack.pop();
+    if (open[k] || flag[k]) continue;
+    open[k] = true; opened++;
+    if (adj[k] === 0 && !mine[k]) around(k).forEach(j => { if (!open[j]) stack.push(j); });
+  }
+}
+function dig(i){
+  if (over) return;
+  if (!started) plant(i);
+  if (flag[i]) return;
+  if (open[i]){ chord(i); return; }
+  if (mine[i]) return lose(i);
+  reveal(i); render(); checkWin();
+}
+function chord(i){
+  if (!adj[i]) return;
+  const ns = around(i);
+  if (ns.filter(j => flag[j]).length !== adj[i]) { $('#msg').textContent = `깃발이 ${adj[i]}개 꽂혀야 주변을 열 수 있어요`; return; }
+  for (const j of ns){ if (!flag[j] && !open[j] && mine[j]) return lose(j); }
+  ns.forEach(j => reveal(j)); render(); checkWin();
+}
+function toggleFlag(i){
+  if (over || open[i]) return;
+  flag[i] = !flag[i]; render(); updateLeft();
+  if (navigator.vibrate) navigator.vibrate(15);
+}
+function updateLeft(){ $('#left').textContent = M - flag.filter(Boolean).length; }
+function render(){
+  const cells = $('#field').children;
+  for (let i = 0; i < W * H; i++){
+    const el = cells[i];
+    el.className = 'cell' + ((i % W + Math.floor(i / W)) % 2 ? ' alt' : '');
+    el.textContent = '';
+    if (open[i]){
+      el.classList.add('open');
+      if (mine[i]) el.classList.add('mine');
+      else if (adj[i]){ el.textContent = adj[i]; el.classList.add('n' + adj[i]); }
+    } else if (flag[i]) el.classList.add('flag');
+  }
+  if (!over && started) $('#msg').textContent = ['조심조심~ 🦖', '잘하고 있어요!', '숫자를 잘 살펴봐요 🔍'][opened % 3];
+}
+function lose(i){
+  over = true; clearInterval(timer);
+  for (let k = 0; k < W * H; k++){ if (mine[k] && !flag[k]) open[k] = true; }
+  render();
+  const cells = $('#field').children;
+  cells[i].classList.add('boom');
+  for (let k = 0; k < W * H; k++) if (flag[k] && !mine[k]){ cells[k].className = 'cell badflag'; }
+  $('#face').textContent = '😵'; $('#msg').textContent = '앗! 화산이 펑! 🌋';
+  $('#endTitle').textContent = '앗! 화산이 펑! 🌋';
+  $('#endTxt').textContent = `안전한 칸 ${W * H - M}개 중 ${opened}개를 열었어요. 다시 도전해 볼까요?`;
+  setTimeout(() => $('#endOv').hidden = false, 1100);
+}
+function checkWin(){
+  if (opened !== W * H - M) return;
+  over = true; clearInterval(timer);
+  for (let k = 0; k < W * H; k++) if (mine[k]) flag[k] = true;
+  render(); updateLeft();
+  const key = 'tm-mine-best-' + lv, old = Number(store.get(key) || 0), isBest = !old || elapsed < old;
+  if (isBest) store.set(key, elapsed);
+  $('#face').textContent = '😎'; $('#msg').textContent = '크앙! 화산을 모두 피했어요! 🎉';
+  $('#endTitle').textContent = '크앙! 모두 찾았어요! 🎉';
+  $('#endTxt').textContent = `${LEVELS[lv].name}을 ${fmt(elapsed)} 만에 깼어요!` + (isBest ? ' 🏆 새 최고 기록!' : ` (최고 기록 ${fmt(old)})`);
+  setTimeout(() => $('#endOv').hidden = false, 800);
+}
+function fit(){
+  const area = $('#area'), portrait = innerHeight > innerWidth;
+  const aw = (portrait ? innerWidth - 28 : area.clientWidth) - 30, ah = (portrait ? innerHeight * .64 : area.clientHeight) - 30;
+  const cs = Math.floor(Math.min((aw - (W - 1) * 3) / W, (ah - (H - 1) * 3) / H, 54));
+  $('#field').style.setProperty('--cs', Math.max(18, cs) + 'px');
+}
+
+/* ---------- 입력: 클릭=파기, 오른쪽 클릭·길게 누르기=깃발 ---------- */
+const field = $('#field');
+let pressT = null, longDone = false;
+field.addEventListener('contextmenu', e => { e.preventDefault(); const c = e.target.closest('.cell'); if (c) toggleFlag(+c.dataset.i); });
+field.addEventListener('pointerdown', e => {
+  const c = e.target.closest('.cell'); if (!c || e.button === 2) return;
+  longDone = false;
+  if (e.pointerType !== 'mouse'){
+    pressT = setTimeout(() => { longDone = true; toggleFlag(+c.dataset.i); }, 420);
+  }
+  if (!over) $('#face').textContent = '😮';
+});
+const cancelPress = () => { clearTimeout(pressT); if (!over) $('#face').textContent = '🦖'; };
+field.addEventListener('pointerup', cancelPress);
+field.addEventListener('pointerleave', cancelPress);
+field.addEventListener('pointercancel', cancelPress);
+field.addEventListener('click', e => {
+  const c = e.target.closest('.cell'); if (!c || longDone) return;
+  const i = +c.dataset.i;
+  if (flagMode && !open[i]) toggleFlag(i); else dig(i);
+});
+$('#fm').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return; flagMode = b.dataset.f === '1';
+  $('#fm').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+});
+$('#restart').addEventListener('click', newGame);
+$('#levelBtn').addEventListener('click', showStart);
+$('#again').addEventListener('click', () => { $('#endOv').hidden = true; newGame(); });
+$('#toStart').addEventListener('click', () => { $('#endOv').hidden = true; showStart(); });
+$('#look').addEventListener('click', () => { $('#endOv').hidden = true; });
+window.addEventListener('resize', () => { if (W) fit(); });
+
+function showStart(){
+  document.querySelectorAll('#lvChips button').forEach(b => b.setAttribute('aria-pressed', Number(b.dataset.lv) === lv));
+  const best = Number(store.get('tm-mine-best-' + lv) || 0);
+  $('#bestTxt').textContent = best ? `🏆 ${LEVELS[lv].name} 최고 기록: ${fmt(best)}` : '';
+  $('#startOv').hidden = false;
+}
+$('#lvChips').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; lv = Number(b.dataset.lv); store.set('tm-mine-lv', lv); showStart(); });
+$('#go').addEventListener('click', () => { $('#startOv').hidden = true; newGame(); });
+
+showStart();
+window.__mine = { get mine(){ return mine; }, get over(){ return over; }, get opened(){ return opened; }, dig, get W(){ return W; } };
+})();
+</script>
+</body>
+</html>

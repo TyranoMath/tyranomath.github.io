@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>티라노 블록 쌓기 · TyranoMath</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="puzzle.css">
+<style>
+.stage{display:grid; grid-template-columns:auto clamp(160px,19vw,240px); grid-template-rows:1fr auto; gap:clamp(10px,1.6vw,22px); height:100%; max-height:100%}
+.well{grid-row:1 / 3; position:relative; height:100%; aspect-ratio:1/2; background:#2B3A55; border:5px solid #22314A; border-radius:16px; overflow:hidden; box-shadow:0 8px 0 #1A2538}
+#cv{display:block; width:100%; height:100%; touch-action:none}
+.panel{display:flex; flex-direction:column; gap:10px; min-height:0}
+.box{background:#fff; border:3px solid var(--line); border-radius:18px; padding:8px 10px; text-align:center}
+.box h4{margin:0 0 4px; font-family:'Jua',sans-serif; font-weight:400; font-size:clamp(14px,1.3vw,18px); color:var(--purple-d)}
+.box canvas{width:100%; aspect-ratio:2/1.2; display:block}
+.stat{display:flex; justify-content:space-between; align-items:baseline; font-family:'Jua',sans-serif; font-size:clamp(14px,1.3vw,18px); padding:2px 4px}
+.stat b{font-family:'Fredoka',sans-serif; font-weight:700; font-size:1.35em; color:var(--ink)}
+.pad{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; align-self:end}
+.pad button{border-radius:16px; border:3px solid var(--line); background:#fff; box-shadow:0 4px 0 var(--line); font-size:clamp(20px,2.2vw,30px); padding:8px 0; font-family:'Jua',sans-serif}
+.pad button:active, .pad button.down{transform:translateY(3px); box-shadow:0 1px 0 var(--line); background:var(--purple-l)}
+.pad .wide{grid-column:span 3; font-size:clamp(16px,1.6vw,22px)}
+.keys{font-size:12px; color:var(--muted); text-align:center; margin:0; line-height:1.5}
+.paused{position:absolute; inset:0; display:grid; place-items:center; background:rgba(34,49,74,.6); color:#fff; font-family:'Jua',sans-serif; font-size:clamp(24px,3vw,40px)}
+.pop{position:absolute; left:50%; top:40%; transform:translateX(-50%); font-family:'Jua',sans-serif; font-size:clamp(22px,3vw,40px); color:var(--gold);
+  text-shadow:0 3px 0 #22314A; pointer-events:none; animation:up 1s ease-out forwards; white-space:nowrap}
+@keyframes up{from{opacity:0; transform:translate(-50%,10px) scale(.8)}20%{opacity:1; transform:translate(-50%,0) scale(1.1)}to{opacity:0; transform:translate(-50%,-40px)}}
+@media (max-aspect-ratio: 1/1){
+  body{overflow:hidden}
+  .main{align-items:stretch; padding-bottom:10px}
+  .stage{width:100%; height:auto; grid-template-columns:auto minmax(0, 1fr); grid-template-rows:auto auto; justify-content:center; align-content:start}
+  .well{grid-row:1; height:auto; width:min(60vw, 50vh)}
+  .panel{max-width:220px}
+  .pad{grid-column:1 / 3; grid-template-columns:repeat(7,1fr); gap:6px}
+  .pad .wide{grid-column:auto; font-size:clamp(18px,4vw,26px)}
+  .pad .wide .t{display:none}
+  .keys{display:none}
+  .box canvas{aspect-ratio:2/1}
+}
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" id="back" href="../puzzlezone.html" hidden>← 퍼즐존</a>
+  <div class="title"><span class="dino-logo"></span>티라노 블록 쌓기</div>
+  <button class="pill" id="pauseBtn">⏸ 멈춤</button>
+</div>
+
+<div class="main">
+  <div class="stage">
+    <div class="well" id="well"><canvas id="cv" aria-label="블록 쌓기 판"></canvas><div class="paused" id="pausedOv" hidden>⏸ 잠깐 쉬어요</div></div>
+    <div class="panel">
+      <div class="box"><h4>다음 블록</h4><canvas id="nextCv" width="120" height="72"></canvas></div>
+      <div class="box"><h4>보관 (C)</h4><canvas id="holdCv" width="120" height="72"></canvas></div>
+      <div class="box">
+        <div class="stat">점수 <b id="score">0</b></div>
+        <div class="stat">줄 <b id="lines">0</b></div>
+        <div class="stat">단계 <b id="level">1</b></div>
+      </div>
+
+      <p class="keys">⌨️ ←→ 이동 · ↑ 돌리기 · ↓ 내리기<br>Space 바로 내리기 · C 보관 · P 멈춤</p>
+    </div>
+    <div class="pad" id="pad">
+        <button data-a="ccw" aria-label="왼쪽으로 돌리기">⟲</button>
+        <button data-a="hold" aria-label="보관">📦</button>
+        <button data-a="cw" aria-label="오른쪽으로 돌리기">⟳</button>
+        <button data-a="left" aria-label="왼쪽">◀</button>
+        <button data-a="down" aria-label="아래로">▼</button>
+        <button data-a="right" aria-label="오른쪽">▶</button>
+        <button data-a="drop" class="wide" aria-label="바로 내리기">⤓<span class="t"> 바로 내리기</span></button>
+      </div>
+  </div>
+</div>
+
+<div class="overlay" id="startOv">
+  <div class="sheet">
+    <span class="dino-logo big"></span>
+    <h1>🧱 티라노 블록 쌓기</h1>
+    <p>떨어지는 블록을 돌리고 옮겨서 가로 한 줄을 꽉 채우면 줄이 사라져요! 여러 줄을 한 번에 없애면 점수가 쑥쑥!</p>
+    <h3>시작 단계</h3>
+    <div class="chips" id="lvChips">
+      <button data-lv="1">1단계<small>천천히</small></button>
+      <button data-lv="4">4단계<small>조금 빠르게</small></button>
+      <button data-lv="8">8단계<small>빠르게</small></button>
+    </div>
+    <p id="bestTxt"></p>
+    <button class="btn" id="go">시작하기 🦖</button>
+  </div>
+</div>
+
+<div class="overlay" id="endOv" hidden>
+  <div class="sheet">
+    <span class="dino-logo big wobble"></span>
+    <h1>블록이 꼭대기까지!</h1>
+    <p id="endTxt"></p>
+    <p id="endBest"></p>
+    <div class="row"><button class="btn" id="again">다시 하기</button><button class="btn alt" id="toStart">단계 바꾸기</button></div>
+  </div>
+</div>
+
+<script src="puzzle-common.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const { store } = TM;
+const W = 10, H = 20;
+const COLORS = { I:'#4FC3F7', O:'#FFD43B', T:'#8E5BD6', S:'#4CB963', Z:'#E5546B', J:'#3B8FD9', L:'#FF9F43' };
+const SHAPES = {
+  I:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+  O:[[1,1],[1,1]],
+  T:[[0,1,0],[1,1,1],[0,0,0]],
+  S:[[0,1,1],[1,1,0],[0,0,0]],
+  Z:[[1,1,0],[0,1,1],[0,0,0]],
+  J:[[1,0,0],[1,1,1],[0,0,0]],
+  L:[[0,0,1],[1,1,1],[0,0,0]]
+};
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let grid, cur, next, hold, canHold, bag = [], score, lines, level, startLevel = Number(store.get('tm-block-lv') || 1);
+let dropT = 0, lockT = 0, lockMoves = 0, last = 0, running = false, paused = false, over = false, clearing = null;
+
+/* ---------- 블록 ---------- */
+function refill(){ const b = Object.keys(SHAPES); for (let i = b.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } bag.push(...b); }
+function take(){ if (bag.length < 2) refill(); const t = bag.shift(); return { t, m: SHAPES[t].map(r => [...r]), x: 0, y: 0 }; }
+function spawn(p){ p.x = Math.floor((W - p.m[0].length) / 2); p.y = p.t === 'I' ? -1 : 0; return p; }
+const rotate = (m, dir) => dir > 0 ? m[0].map((_, i) => m.map(r => r[i]).reverse()) : m[0].map((_, i) => m.map(r => r[r.length - 1 - i]));
+function fits(m, x, y){
+  for (let r = 0; r < m.length; r++) for (let c = 0; c < m[r].length; c++){
+    if (!m[r][c]) continue;
+    const gx = x + c, gy = y + r;
+    if (gx < 0 || gx >= W || gy >= H) return false;
+    if (gy >= 0 && grid[gy][gx]) return false;
+  }
+  return true;
+}
+
+/* ---------- 조작 ---------- */
+function move(dx){ if (fits(cur.m, cur.x + dx, cur.y)){ cur.x += dx; touchLock(); return true; } return false; }
+function turn(dir){
+  if (cur.t === 'O') return;
+  const m = rotate(cur.m, dir);
+  for (const [kx, ky] of [[0,0],[1,0],[-1,0],[0,-1],[2,0],[-2,0],[1,-1],[-1,-1]]){
+    if (fits(m, cur.x + kx, cur.y + ky)){ cur.m = m; cur.x += kx; cur.y += ky; touchLock(); return; }
+  }
+}
+function touchLock(){ if (lockT && lockMoves < 15){ lockT = performance.now(); lockMoves++; } }
+function soft(){ if (fits(cur.m, cur.x, cur.y + 1)){ cur.y++; score += 1; dropT = performance.now(); updateStats(); return true; } return false; }
+function hard(){ let n = 0; while (fits(cur.m, cur.x, cur.y + 1)){ cur.y++; n++; } score += n * 2; lock(); }
+function doHold(){
+  if (!canHold) return;
+  const t = cur.t;
+  if (hold){ cur = spawn({ t: hold, m: SHAPES[hold].map(r => [...r]), x: 0, y: 0 }); }
+  else { cur = spawn(next); next = take(); }
+  hold = t; canHold = false; lockT = 0; drawSide();
+}
+function lock(){
+  for (let r = 0; r < cur.m.length; r++) for (let c = 0; c < cur.m[r].length; c++){
+    if (!cur.m[r][c]) continue;
+    const gy = cur.y + r;
+    if (gy < 0){ return gameOver(); }
+    grid[gy][cur.x + c] = cur.t;
+  }
+  const full = []; for (let y = 0; y < H; y++) if (grid[y].every(v => v)) full.push(y);
+  if (full.length){ clearing = { rows: full, t: performance.now() }; }
+  else nextPiece();
+}
+function finishClear(){
+  const n = clearing.rows.length;
+  clearing.rows.forEach(y => { grid.splice(y, 1); grid.unshift(Array(W).fill(0)); });
+  clearing = null;
+  lines += n; score += [0, 100, 300, 500, 800][n] * level;
+  const newLevel = startLevel + Math.floor(lines / 10);
+  popText(n === 4 ? '크앙! 4줄! 🦖' : n === 3 ? '3줄 대단해요!' : n === 2 ? '2줄!' : '1줄!');
+  if (newLevel > level){ level = newLevel; setTimeout(() => popText(`${level}단계로! ⚡`), 600); }
+  nextPiece();
+}
+function nextPiece(){
+  cur = spawn(next); next = take(); canHold = true; lockT = 0; lockMoves = 0; dropT = performance.now();
+  if (!fits(cur.m, cur.x, cur.y)) return gameOver();
+  drawSide(); updateStats();
+}
+function popText(t){ const d = document.createElement('div'); d.className = 'pop'; d.textContent = t; $('#well').appendChild(d); setTimeout(() => d.remove(), 1000); }
+function gameOver(){
+  running = false; over = true;
+  const old = Number(store.get('tm-block-best') || 0), isBest = score > old;
+  if (isBest) store.set('tm-block-best', score);
+  $('#endTxt').textContent = `점수 ${score.toLocaleString()}점 · ${lines}줄 · ${level}단계까지 갔어요!`;
+  $('#endBest').textContent = isBest ? '🏆 새 최고 기록이에요!' : `🏆 최고 기록: ${old.toLocaleString()}점`;
+  setTimeout(() => $('#endOv').hidden = false, 500);
+}
+
+/* ---------- 그리기 ---------- */
+function sizeCanvas(){
+  const r = cv.getBoundingClientRect(), dpr = devicePixelRatio || 1;
+  cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+}
+function cell(c, x, y, s, color, alpha = 1){
+  c.globalAlpha = alpha;
+  const p = Math.max(1, s * .06), rr = s * .22;
+  c.fillStyle = color;
+  c.beginPath(); c.roundRect(x + p, y + p, s - 2 * p, s - 2 * p, rr); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.35)';
+  c.beginPath(); c.roundRect(x + s * .2, y + s * .16, s * .34, s * .18, s * .09); c.fill();
+  c.fillStyle = 'rgba(0,0,0,.14)';
+  c.beginPath(); c.roundRect(x + p, y + s * .72, s - 2 * p, s * .22, [0, 0, rr, rr]); c.fill();
+  c.globalAlpha = 1;
+}
+function draw(now){
+  const s = cv.width / W;
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1;
+  for (let x = 1; x < W; x++){ ctx.beginPath(); ctx.moveTo(x * s, 0); ctx.lineTo(x * s, cv.height); ctx.stroke(); }
+  for (let y = 1; y < H; y++){ ctx.beginPath(); ctx.moveTo(0, y * s); ctx.lineTo(cv.width, y * s); ctx.stroke(); }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++){
+    if (!grid[y][x]) continue;
+    const flash = clearing && clearing.rows.includes(y);
+    cell(ctx, x * s, y * s, s, flash ? '#fff' : COLORS[grid[y][x]], flash ? .5 + .5 * Math.sin(now / 40) : 1);
+  }
+  if (cur && !clearing && !over){
+    let gy = cur.y; while (fits(cur.m, cur.x, gy + 1)) gy++;
+    cur.m.forEach((row, r) => row.forEach((v, c) => { if (v && gy + r >= 0) cell(ctx, (cur.x + c) * s, (gy + r) * s, s, COLORS[cur.t], .22); }));
+    cur.m.forEach((row, r) => row.forEach((v, c) => { if (v && cur.y + r >= 0) cell(ctx, (cur.x + c) * s, (cur.y + r) * s, s, COLORS[cur.t]); }));
+  }
+}
+function drawMini(canvas, t){
+  const c = canvas.getContext('2d'); c.clearRect(0, 0, canvas.width, canvas.height);
+  if (!t) return;
+  const m = SHAPES[t].filter(r => r.some(v => v)), w = Math.max(...m.map(r => r.lastIndexOf(1) + 1)) - Math.min(...m.map(r => r.indexOf(1) < 0 ? 9 : r.indexOf(1)));
+  const s = Math.min(canvas.width / 4.6, canvas.height / 2.6), offL = Math.min(...m.map(r => r.indexOf(1) < 0 ? 9 : r.indexOf(1)));
+  const ox = (canvas.width - w * s) / 2, oy = (canvas.height - m.length * s) / 2;
+  m.forEach((row, r) => row.forEach((v, cc) => { if (v) cell(c, ox + (cc - offL) * s, oy + r * s, s, COLORS[t], canHold || canvas.id !== 'holdCv' ? 1 : .4); }));
+}
+function drawSide(){ drawMini($('#nextCv'), next && next.t); drawMini($('#holdCv'), hold); }
+function updateStats(){ $('#score').textContent = score.toLocaleString(); $('#lines').textContent = lines; $('#level').textContent = level; }
+
+/* ---------- 진행 ---------- */
+const speed = () => Math.max(70, 850 * Math.pow(0.82, level - 1));
+function loop(now){
+  if (running && !paused){
+    if (clearing){ if (now - clearing.t > 280) finishClear(); }
+    else if (cur){
+      const onGround = !fits(cur.m, cur.x, cur.y + 1);
+      if (onGround){
+        if (!lockT) lockT = now;
+        if (now - lockT > 480) lock();
+      } else {
+        lockT = 0;
+        if (now - dropT > speed()){ cur.y++; dropT = now; }
+      }
+    }
+  }
+  draw(now);
+  requestAnimationFrame(loop);
+}
+function start(){
+  grid = Array.from({ length: H }, () => Array(W).fill(0));
+  bag = []; score = 0; lines = 0; level = startLevel; hold = null; over = false; clearing = null; paused = false;
+  next = take(); running = true; nextPiece();
+  $('#pausedOv').hidden = true; $('#startOv').hidden = true; $('#endOv').hidden = true;
+}
+function act(a){
+  if (!running || paused || clearing || !cur) return;
+  if (a === 'left') move(-1);
+  else if (a === 'right') move(1);
+  else if (a === 'down') soft();
+  else if (a === 'cw') turn(1);
+  else if (a === 'ccw') turn(-1);
+  else if (a === 'drop') hard();
+  else if (a === 'hold') doHold();
+}
+function togglePause(force){
+  if (!running) return;
+  paused = force !== undefined ? force : !paused;
+  $('#pausedOv').hidden = !paused;
+  $('#pauseBtn').textContent = paused ? '▶ 계속' : '⏸ 멈춤';
+  if (!paused){ dropT = performance.now(); }
+}
+
+/* 키보드 */
+document.addEventListener('keydown', e => {
+  const map = { ArrowLeft:'left', ArrowRight:'right', ArrowDown:'down', ArrowUp:'cw', KeyX:'cw', KeyZ:'ccw', Space:'drop', KeyC:'hold', ShiftLeft:'hold', ShiftRight:'hold' };
+  if (e.code === 'KeyP'){ togglePause(); e.preventDefault(); return; }
+  const a = map[e.code]; if (!a) return;
+  e.preventDefault();
+  if (e.repeat && !['left', 'right', 'down'].includes(a)) return;
+  act(a);
+});
+/* 화면 버튼 (꾹 누르면 계속) */
+$('#pad').querySelectorAll('button').forEach(b => {
+  let t1, t2;
+  const stop = () => { clearTimeout(t1); clearInterval(t2); b.classList.remove('down'); };
+  b.addEventListener('pointerdown', e => {
+    e.preventDefault(); b.classList.add('down'); act(b.dataset.a);
+    if (['left', 'right', 'down'].includes(b.dataset.a)) t1 = setTimeout(() => t2 = setInterval(() => act(b.dataset.a), 60), 220);
+  });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, stop));
+});
+/* 판 위에서 밀기: 톡=돌리기, 좌우로 밀기=이동, 아래로 쭉=바로 내리기 */
+let sx = 0, sy = 0, st = 0, moved = 0;
+cv.addEventListener('pointerdown', e => { sx = e.clientX; sy = e.clientY; st = performance.now(); moved = 0; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove', e => {
+  if (!st) return;
+  const cellPx = cv.getBoundingClientRect().width / W, dx = e.clientX - sx;
+  const steps = Math.trunc(dx / cellPx) - moved;
+  if (steps){ for (let i = 0; i < Math.abs(steps); i++) act(steps > 0 ? 'right' : 'left'); moved += steps; }
+});
+cv.addEventListener('pointerup', e => {
+  const dx = e.clientX - sx, dy = e.clientY - sy, dt = performance.now() - st; st = 0;
+  if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && dt < 300) act('cw');
+  else if (dy > 60 && Math.abs(dy) > Math.abs(dx) * 1.5) act('drop');
+});
+$('#pauseBtn').addEventListener('click', () => togglePause());
+document.addEventListener('visibilitychange', () => { if (document.hidden) togglePause(true); });
+
+/* 시작 화면 */
+function syncStart(){
+  document.querySelectorAll('#lvChips button').forEach(b => b.setAttribute('aria-pressed', Number(b.dataset.lv) === startLevel));
+  const best = Number(store.get('tm-block-best') || 0);
+  $('#bestTxt').textContent = best ? `🏆 최고 기록: ${best.toLocaleString()}점` : '';
+}
+$('#lvChips').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; startLevel = Number(b.dataset.lv); store.set('tm-block-lv', startLevel); syncStart(); });
+$('#go').addEventListener('click', start);
+$('#again').addEventListener('click', start);
+$('#toStart').addEventListener('click', () => { $('#endOv').hidden = true; syncStart(); $('#startOv').hidden = false; });
+window.addEventListener('resize', sizeCanvas);
+
+grid = Array.from({ length: H }, () => Array(W).fill(0));
+sizeCanvas(); syncStart(); requestAnimationFrame(loop);
+window.__block = { act, get state(){ return { score, lines, level, running, over, t: cur && cur.t }; }, fill(rows){ for (let y = H - rows; y < H; y++) for (let x = 0; x < W - 1; x++) grid[y][x] = 'S'; } };
+})();
+</script>
+</body>
+</html>

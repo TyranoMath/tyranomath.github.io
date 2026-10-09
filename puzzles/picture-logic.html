@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>티라노 그림 로직 · TyranoMath</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="puzzle.css">
+<style>
+.board-area{flex:1; min-width:0; height:100%; display:grid; place-items:center}
+.nono{--cs:30px; display:grid; gap:0; background:#fff; border:4px solid var(--line); border-radius:18px; padding:8px; box-shadow:0 6px 0 var(--line); touch-action:none}
+.corner{display:grid; place-items:center}
+.corner svg{width:80%; max-width:70px}
+.ccl{display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:1px; padding-bottom:4px; background:#F6F0FF; border-radius:8px 8px 0 0; margin:0 1px}
+.rcl{display:flex; justify-content:flex-end; align-items:center; gap:clamp(3px,.5vw,6px); padding-right:6px; background:#F6F0FF; border-radius:8px 0 0 8px; margin:1px 0}
+.ccl span, .rcl span{font-family:'Fredoka',sans-serif; font-weight:700; font-size:calc(var(--cs) * .48); line-height:1.15; color:var(--ink)}
+.ccl.done span, .rcl.done span{color:#B9AFCB}
+.ccl.hot, .rcl.hot{background:#E2D2FF}
+.cell{width:var(--cs); height:var(--cs); border:1px solid #D9CFE8; background:#fff; position:relative; cursor:pointer}
+.cell.b-l{border-left:2px solid #6C3FB4} .cell.b-t{border-top:2px solid #6C3FB4}
+.cell.b-r{border-right:2px solid #6C3FB4} .cell.b-b{border-bottom:2px solid #6C3FB4}
+.cell.on{background:#6C3FB4}
+.cell.x::before, .cell.x::after{content:''; position:absolute; left:20%; right:20%; top:50%; height:2px; background:#B9AFCB; transform:rotate(45deg)}
+.cell.x::after{transform:rotate(-45deg)}
+.cell.hot{box-shadow:inset 0 0 0 100px rgba(142,91,214,.08)}
+.cell.on.hot{box-shadow:none}
+.cell.wrong{background:#E5546B !important}
+.cell.hint{animation:pop .6s}
+@keyframes pop{40%{transform:scale(1.3)}}
+.solved .cell.on{background:var(--c, #4CB963); transition:background .4s}
+.mode{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.mode button{border-radius:16px; border:3px solid var(--line); background:#fff; padding:10px 6px; font-family:'Jua',sans-serif; font-size:clamp(16px,1.7vw,22px); box-shadow:0 4px 0 var(--line); display:flex; align-items:center; justify-content:center; gap:8px}
+.mode button[aria-pressed="true"]{background:var(--purple); border-color:var(--purple-d); color:#fff; box-shadow:0 4px 0 var(--purple-d)}
+.mode .sw{width:22px; height:22px; border-radius:5px; background:#6C3FB4; border:2px solid #fff}
+.mode .sx{font-size:20px; line-height:1}
+.pics{display:grid; grid-template-columns:repeat(auto-fill, minmax(110px, 1fr)); gap:10px; width:100%}
+.pics button{border:3px solid var(--line); background:#fff; border-radius:16px; padding:10px 6px; font-family:'Jua',sans-serif; font-size:17px; box-shadow:0 4px 0 var(--line); display:flex; flex-direction:column; align-items:center; gap:6px}
+.pics button canvas{width:56px; height:56px; image-rendering:pixelated; border-radius:6px; background:#F6F0FF}
+.pics button small{font-family:'Gowun Dodum',sans-serif; color:var(--muted); font-size:12px}
+.pics button.cleared{border-color:var(--green)}
+@media (max-aspect-ratio: 1/1){ .board-area{height:auto; width:100%} }
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" id="back" href="../puzzlezone.html" hidden>← 퍼즐존</a>
+  <div class="title"><span class="dino-logo"></span>티라노 그림 로직</div>
+  <span class="pill" id="namePill">퍼즐</span>
+  <span class="pill">⏱ <b id="time">0:00</b></span>
+</div>
+
+<div class="main">
+  <div class="board-area" id="area"><div class="nono" id="nono"></div></div>
+  <div class="side">
+    <div class="mode" id="mode">
+      <button data-m="fill" aria-pressed="true"><span class="sw"></span>칠하기</button>
+      <button data-m="x" aria-pressed="false"><span class="sx">✕</span>X 표시</button>
+    </div>
+    <div class="tools">
+      <button class="tool" id="undo">↶ 되돌리기</button>
+      <button class="tool" id="check">🔍 틀린 칸</button>
+      <button class="tool" id="hint">💡 힌트</button>
+      <button class="tool" id="choose">🖼️ 다른 그림</button>
+    </div>
+    <div class="msg" id="msg">숫자를 보고 칸을 칠해요!</div>
+    <p class="note">숫자는 이어서 칠할 칸의 개수예요. 예) <b>2 1</b> = 두 칸 칠하고, 한 칸 이상 띄우고, 한 칸 칠하기<br>마우스 오른쪽 클릭으로도 X를 표시할 수 있어요.</p>
+  </div>
+</div>
+
+<div class="overlay" id="startOv">
+  <div class="sheet">
+    <span class="dino-logo big"></span>
+    <h1>🖼️ 티라노 그림 로직</h1>
+    <p>줄마다 적힌 숫자를 단서로 칸을 칠하면 숨은 그림이 나타나요!</p>
+    <h3>크기</h3>
+    <div class="chips" id="sizeChips">
+      <button data-n="5">5×5<small>처음 해 봐요</small></button>
+      <button data-n="10">10×10<small>조금 익숙해요</small></button>
+      <button data-n="15">15×15<small>도전!</small></button>
+    </div>
+    <h3>그림 고르기</h3>
+    <div class="pics" id="pics"></div>
+  </div>
+</div>
+
+<div class="overlay" id="winOv" hidden>
+  <div class="sheet">
+    <span class="dino-logo big wobble"></span>
+    <h1 id="winTitle">완성!</h1>
+    <canvas id="winPic" width="150" height="150" style="width:150px;height:150px;image-rendering:pixelated;border-radius:12px"></canvas>
+    <p id="winTxt"></p>
+    <div class="row"><button class="btn" id="nextPic">다음 그림</button><button class="btn alt" id="toList">그림 목록</button></div>
+  </div>
+</div>
+
+<script src="puzzle-common.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const { store, fmt } = TM;
+/* 그림 퍼즐 목록 (# = 칠하는 칸) — 모두 답이 하나뿐인지 확인한 그림이에요 */
+const PUZ = {
+  5: [
+    { name:'하트', color:'#E5546B', p:['.#.#.','#####','#####','.###.','..#..'] },
+    { name:'나무', color:'#4CB963', p:['..#..','.###.','#####','..#..','..#..'] },
+    { name:'공룡 알', color:'#8FD19E', p:['.###.','##.##','#.#.#','#####','.###.'] },
+    { name:'집', color:'#FF9F43', p:['..#..','.###.','#####','##.##','##.##'] },
+    { name:'웃는 얼굴', color:'#FFC93C', p:['.###.','#.#.#','#####','#...#','.###.'] }
+  ],
+  10: [
+    { name:'티라노 얼굴', color:'#4CB963', p:['..######..','.########.','##.#######','##########','######....','#####.#...','######....','##########','.#########','..######..'] },
+    { name:'공룡 발자국', color:'#8A6233', p:['.#...#...#','.#...#...#','.##.###.##','..#######.','...#####..','...#####..','..#######.','..#######.','...#####..','....###...'] },
+    { name:'화산', color:'#E5546B', p:['..##..##..','.####.###.','..######..','....##....','....##....','...####...','..##..##..','..######..','.########.','##########'] },
+    { name:'금 간 공룡 알', color:'#5CB8A0', p:['...####...','..######..','.########.','.###.####.','.##.#.###.','.#.###.##.','.########.','.########.','..######..','...####...'] }
+  ],
+  15: [
+    { name:'티라노', color:'#4CB963', p:['.........#####.','........#######','........#.#####','........#######','........####...','........######.','...#...#####...','..##..######...','.###########...','###########....','#.#########....','...########....','....######.....','....##..##.....','....##..###....'] },
+    { name:'목이 긴 공룡', color:'#3B8FD9', p:['..........###..','.........#####.','.........##.###','.........#####.','.........###...','.........###...','........###....','........###....','...#########...','..###########..','.#############.','##############.','#.############.','...##..##.##...','...##..##.##...'] }
+  ]
+};
+
+let N = Number(store.get('tm-nono-n') || 5); if (!PUZ[N]) N = 5;
+let pIdx = 0, sol = [], cells = [], rowCl = [], colCl = [], mode = 'fill', history = [], solved = false;
+let t0 = 0, timer = null, elapsed = 0, drag = null;
+const cleared = () => { try { return JSON.parse(store.get('tm-nono-cleared') || '{}'); } catch(e){ return {}; } };
+
+const cluesOf = line => { const out = []; let n = 0; line.forEach(v => { if (v) n++; else if (n){ out.push(n); n = 0; } }); if (n) out.push(n); return out.length ? out : [0]; };
+
+/* ---------- 판 만들기 ---------- */
+function build(){
+  const P = PUZ[N][pIdx];
+  sol = P.p.map(r => [...r].map(ch => ch === '#' ? 1 : 0));
+  cells = sol.map(r => r.map(() => 0));          // 0 빈칸, 1 칠함, 2 X
+  rowCl = sol.map(cluesOf);
+  colCl = sol[0].map((_, c) => cluesOf(sol.map(r => r[c])));
+  history = []; solved = false;
+  const box = $('#nono');
+  box.classList.remove('solved'); box.style.setProperty('--c', P.color);
+  const maxR = Math.max(...rowCl.map(c => c.length)), maxC = Math.max(...colCl.map(c => c.length));
+  box.style.gridTemplateColumns = `auto repeat(${N}, var(--cs))`;
+  let h = `<div class="corner">${TM.DINO}</div>`;
+  colCl.forEach((cl, c) => h += `<div class="ccl" data-c="${c}" style="min-height:calc(var(--cs) * ${maxC * .56 + .3})">${cl.map(v => `<span>${v}</span>`).join('')}</div>`);
+  for (let r = 0; r < N; r++){
+    h += `<div class="rcl" data-r="${r}" style="min-width:calc(var(--cs) * ${maxR * .62 + .4})">${rowCl[r].map(v => `<span>${v}</span>`).join('')}</div>`;
+    for (let c = 0; c < N; c++){
+      const cls = ['cell'];
+      if (c % 5 === 0) cls.push('b-l'); if (r % 5 === 0) cls.push('b-t');
+      if (c === N - 1) cls.push('b-r'); if (r === N - 1) cls.push('b-b');
+      h += `<div class="${cls.join(' ')}" data-r="${r}" data-c="${c}"></div>`;
+    }
+  }
+  box.innerHTML = h;
+  $('#namePill').textContent = `${N}×${N} · ${cleared()[key()] ? P.name : '퍼즐 ' + (pIdx + 1)}`;
+  fit(); render();
+  clearInterval(timer); t0 = Date.now(); elapsed = 0; tick(); timer = setInterval(tick, 1000);
+  $('#msg').textContent = '숫자를 보고 칸을 칠해요!';
+}
+const key = () => `${N}-${pIdx}`;
+function fit(){
+  const area = $('#area'), maxR = Math.max(...rowCl.map(c => c.length)), maxC = Math.max(...colCl.map(c => c.length));
+  const portrait = innerHeight > innerWidth;
+  const aw = (portrait ? innerWidth - 28 : area.clientWidth) - 30, ah = (portrait ? innerHeight * .62 : area.clientHeight) - 30;
+  const cs = Math.floor(Math.min(aw / (N + maxR * .62 + .4), ah / (N + maxC * .56 + .3), 56));
+  $('#nono').style.setProperty('--cs', Math.max(16, cs) + 'px');
+}
+function render(){
+  const els = $('#nono').querySelectorAll('.cell');
+  els.forEach(el => {
+    const r = +el.dataset.r, c = +el.dataset.c, v = cells[r][c];
+    el.classList.toggle('on', v === 1); el.classList.toggle('x', v === 2);
+  });
+  for (let r = 0; r < N; r++) $(`.rcl[data-r="${r}"]`).classList.toggle('done', same(cluesOf(cells[r].map(v => v === 1)), rowCl[r]));
+  for (let c = 0; c < N; c++) $(`.ccl[data-c="${c}"]`).classList.toggle('done', same(cluesOf(cells.map(row => row[c] === 1)), colCl[c]));
+}
+const same = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+function tick(){ elapsed = Math.floor((Date.now() - t0) / 1000); $('#time').textContent = fmt(elapsed); }
+
+/* ---------- 칠하기 (끌어서 여러 칸) ---------- */
+function setCell(r, c, v){
+  if (cells[r][c] === v) return;
+  drag.changes.push([r, c, cells[r][c]]);
+  cells[r][c] = v;
+}
+function cellFrom(e){
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  return el && el.classList.contains('cell') && el.closest('#nono') ? el : null;
+}
+function hot(r, c){
+  document.querySelectorAll('.hot').forEach(n => n.classList.remove('hot'));
+  if (r < 0) return;
+  document.querySelectorAll(`.cell[data-r="${r}"], .cell[data-c="${c}"], .rcl[data-r="${r}"], .ccl[data-c="${c}"]`).forEach(n => n.classList.add('hot'));
+}
+const box = $('#nono');
+box.addEventListener('contextmenu', e => e.preventDefault());
+box.addEventListener('pointerdown', e => {
+  const el = cellFrom(e); if (!el || solved) return;
+  e.preventDefault();
+  const r = +el.dataset.r, c = +el.dataset.c, useX = mode === 'x' || e.button === 2;
+  const target = useX ? (cells[r][c] === 2 ? 0 : 2) : (cells[r][c] === 1 ? 0 : 1);
+  drag = { target, changes: [], r0: r, c0: c, axis: null };
+  setCell(r, c, target); render();
+  box.setPointerCapture(e.pointerId);
+});
+box.addEventListener('pointermove', e => {
+  const el = cellFrom(e);
+  if (el) hot(+el.dataset.r, +el.dataset.c);
+  if (!drag || !el) return;
+  let r = +el.dataset.r, c = +el.dataset.c;
+  // 한 줄(가로 또는 세로)로만 끌리게 해요
+  if (!drag.axis && (r !== drag.r0 || c !== drag.c0)) drag.axis = r === drag.r0 ? 'row' : 'col';
+  if (drag.axis === 'row') r = drag.r0; else if (drag.axis === 'col') c = drag.c0;
+  // 빠르게 끌어도 사이에 있는 칸까지 모두 칠해요
+  if (drag.axis === 'row'){ for (let x = Math.min(c, drag.c0); x <= Math.max(c, drag.c0); x++) setCell(r, x, drag.target); }
+  else if (drag.axis === 'col'){ for (let y = Math.min(r, drag.r0); y <= Math.max(r, drag.r0); y++) setCell(y, c, drag.target); }
+  else setCell(r, c, drag.target);
+  render();
+});
+const endDrag = () => {
+  if (!drag) return;
+  if (drag.changes.length) history.push(drag.changes);
+  drag = null; checkWin();
+};
+box.addEventListener('pointerup', endDrag);
+box.addEventListener('pointercancel', endDrag);
+box.addEventListener('pointerleave', () => hot(-1));
+
+function checkWin(){
+  for (let r = 0; r < N; r++) if (!same(cluesOf(cells[r].map(v => v === 1)), rowCl[r])) return;
+  for (let c = 0; c < N; c++) if (!same(cluesOf(cells.map(row => row[c] === 1)), colCl[c])) return;
+  solved = true; clearInterval(timer); tick();
+  const P = PUZ[N][pIdx], cl = cleared(), k = key(), best = cl[k], isBest = !best || elapsed < best;
+  if (isBest){ cl[k] = elapsed; store.set('tm-nono-cleared', JSON.stringify(cl)); }
+  cells = cells.map(r => r.map(v => v === 2 ? 0 : v)); render(); hot(-1);
+  $('#nono').classList.add('solved');
+  $('#namePill').textContent = `${N}×${N} · ${P.name}`;
+  $('#winTitle').textContent = `🎉 "${P.name}" 완성!`;
+  $('#winTxt').textContent = `${fmt(elapsed)} 만에 풀었어요!` + (isBest ? ' 🏆 새 최고 기록!' : ` (최고 기록 ${fmt(best)})`);
+  drawPic($('#winPic'), P, true);
+  setTimeout(() => $('#winOv').hidden = false, 900);
+}
+
+/* ---------- 도구 ---------- */
+$('#mode').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return; mode = b.dataset.m;
+  $('#mode').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+});
+$('#undo').addEventListener('click', () => {
+  if (solved || !history.length) return;
+  history.pop().reverse().forEach(([r, c, v]) => cells[r][c] = v); render();
+});
+$('#check').addEventListener('click', () => {
+  if (solved) return;
+  let n = 0;
+  $('#nono').querySelectorAll('.cell').forEach(el => {
+    const r = +el.dataset.r, c = +el.dataset.c;
+    const bad = (cells[r][c] === 1 && !sol[r][c]) || (cells[r][c] === 2 && sol[r][c]);
+    if (bad){ n++; el.classList.add('wrong'); setTimeout(() => el.classList.remove('wrong'), 1500); }
+  });
+  $('#msg').textContent = n ? `틀린 칸이 ${n}개 있어요! 빨간 칸을 확인해요` : '지금까지 틀린 칸이 없어요! 👍';
+});
+$('#hint').addEventListener('click', () => {
+  if (solved) return;
+  const wrong = [];
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if ((cells[r][c] === 1) !== (sol[r][c] === 1) && !(cells[r][c] === 2 && !sol[r][c])) wrong.push([r, c]);
+  if (!wrong.length) return;
+  const [r, c] = wrong[Math.floor(Math.random() * wrong.length)];
+  history.push([[r, c, cells[r][c]]]);
+  cells[r][c] = sol[r][c] ? 1 : 2; render();
+  const el = $(`.cell[data-r="${r}"][data-c="${c}"]`); el.classList.remove('hint'); void el.offsetWidth; el.classList.add('hint');
+  $('#msg').textContent = '💡 티라노가 한 칸 알려 줬어요!'; checkWin();
+});
+$('#choose').addEventListener('click', showStart);
+$('#nextPic').addEventListener('click', () => {
+  $('#winOv').hidden = true;
+  if (pIdx < PUZ[N].length - 1) pIdx++;
+  else if (N < 15){ N = N === 5 ? 10 : 15; pIdx = 0; store.set('tm-nono-n', N); }
+  else pIdx = 0;
+  build();
+});
+$('#toList').addEventListener('click', () => { $('#winOv').hidden = true; showStart(); });
+
+/* ---------- 그림 목록 ---------- */
+function drawPic(cv, P, reveal){
+  const n = P.p.length, c = cv.getContext('2d'), s = cv.width / n;
+  c.clearRect(0, 0, cv.width, cv.height);
+  P.p.forEach((row, r) => [...row].forEach((ch, x) => {
+    if (ch === '#'){ c.fillStyle = reveal ? P.color : '#CDBEE6'; c.fillRect(x * s, r * s, s, s); }
+  }));
+}
+function showStart(){
+  document.querySelectorAll('#sizeChips button').forEach(b => b.setAttribute('aria-pressed', Number(b.dataset.n) === N));
+  const cl = cleared();
+  $('#pics').innerHTML = PUZ[N].map((P, i) => {
+    const done = cl[`${N}-${i}`];
+    return `<button data-i="${i}" class="${done ? 'cleared' : ''}"><canvas width="${N * 4}" height="${N * 4}" data-i="${i}"></canvas>${done ? P.name : '퍼즐 ' + (i + 1)}<small>${done ? '✅ ' + fmt(done) : '아직 안 풀었어요'}</small></button>`;
+  }).join('');
+  $('#pics').querySelectorAll('canvas').forEach(cv => {
+    const i = +cv.dataset.i, P = PUZ[N][i];
+    if (cl[`${N}-${i}`]) drawPic(cv, P, true);
+    else { const c = cv.getContext('2d'); c.fillStyle = '#E2D2FF'; c.font = `${N * 2.4}px Jua, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('?', cv.width / 2, cv.height / 2 + 1); }
+  });
+  $('#startOv').hidden = false;
+}
+$('#sizeChips').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; N = Number(b.dataset.n); store.set('tm-nono-n', N); showStart(); });
+$('#pics').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; pIdx = Number(b.dataset.i); $('#startOv').hidden = true; build(); });
+window.addEventListener('resize', () => { if (sol.length) fit(); });
+
+showStart();
+window.__nono = { get sol(){ return sol; }, get solved(){ return solved; } };
+})();
+</script>
+</body>
+</html>

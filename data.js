@@ -139,5 +139,9 @@ const GAMES = [
    --------------------------------------------------------- */
 const PUZZLES = [
   { title:'티라노 스도쿠', desc:'가로·세로·상자에 같은 숫자가 겹치지 않게 빈칸을 채워요. 4×4부터 9×9까지!', grade:'1~6학년', area:'수 퍼즐',   icon:'🔢', image:'puzzles/thumbs/sudoku.svg', color:'#EFE6FF', date:'2026-10-09', file:'puzzles/sudoku.html' },
-  { title:'티라노 오목',   desc:'공룡 알 5개를 먼저 한 줄로 이으면 승리! 친구나 컴퓨터 티라노와 겨뤄요.',     grade:'1~6학년', area:'전략 퍼즐', icon:'🥚', image:'puzzles/thumbs/omok.svg',   color:'#F6E3C0', date:'2026-10-09', file:'puzzles/omok.html' }
+  { title:'티라노 오목',   desc:'공룡 알 5개를 먼저 한 줄로 이으면 승리! 친구나 컴퓨터 티라노와 겨뤄요.',     grade:'1~6학년', area:'전략 퍼즐', icon:'🥚', image:'puzzles/thumbs/omok.svg',   color:'#F6E3C0', date:'2026-10-09', file:'puzzles/omok.html' },
+  { title:'티라노 블록 쌓기', desc:'떨어지는 블록을 돌리고 옮겨서 가로줄을 꽉 채워 없애요! 공간 감각이 쑥쑥.', grade:'1~6학년', area:'도형 퍼즐', icon:'🧱', image:'puzzles/thumbs/block-stack.svg',   color:'#E6EEFB', date:'2026-10-10', file:'puzzles/block-stack.html' },
+  { title:'티라노 그림 로직',  desc:'줄마다 적힌 숫자 단서로 칸을 칠하면 숨은 공룡 그림이 나타나요!',          grade:'2~6학년', area:'논리 퍼즐', icon:'🖼️', image:'puzzles/thumbs/picture-logic.svg', color:'#F3ECFF', date:'2026-10-10', file:'puzzles/picture-logic.html' },
+  { title:'티라노 지뢰 찾기',  desc:'숫자 단서로 잔디 밑에 숨은 화산을 피해 안전한 칸을 모두 열어요.',          grade:'3~6학년', area:'논리 퍼즐', icon:'🌋', image:'puzzles/thumbs/minesweeper.svg',  color:'#E4F5D6', date:'2026-10-10', file:'puzzles/minesweeper.html' },
+  { title:'티라노 픽셀 아트',  desc:'네모 칸을 칠해 나만의 픽셀 그림을 만들어요. 대칭 그리기와 그림 저장도 돼요!', grade:'1~6학년', area:'도형 퍼즐', icon:'🎨', image:'puzzles/thumbs/pixel-art.svg',     color:'#FFF3C4', date:'2026-10-10', file:'puzzles/pixel-art.html' }
 ];
