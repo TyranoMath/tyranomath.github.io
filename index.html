@@ -135,6 +135,7 @@ section{padding:48px 0}
 .hero{padding:40px 0 30px}
 .hero .wrap{display:grid; grid-template-columns:1.2fr 1fr; align-items:center; gap:24px}
 .hero h1{font-size:2.9rem; line-height:1.2; margin:0 0 12px}
+.hero p{margin-bottom:0 !important}
 .hero h1 .hl{color:var(--green-d); background:linear-gradient(transparent 62%, var(--orange-l) 62%)}
 .hero p{font-size:1.15rem; color:var(--muted); margin:0 0 22px}
 .btns{display:flex; gap:10px; flex-wrap:wrap}
@@ -148,6 +149,9 @@ section{padding:48px 0}
 .btn:active{transform:translateY(4px); box-shadow:0 1px 0 var(--green-d)}
 .btn.alt{background:#fff; color:var(--green-d)}
 .btn.orange{background:var(--orange); border-color:#d97a1f; box-shadow:0 5px 0 #d97a1f}
+.btn.orange:active{box-shadow:0 1px 0 #d97a1f}
+.btn.blue{background:#3B8FD9; border-color:#2a6fae; box-shadow:0 5px 0 #2a6fae}
+.btn.blue:active{box-shadow:0 1px 0 #2a6fae}
 
 .dino-stage{position:relative; display:flex; justify-content:center}
 .dino-stage .hero-dino{width:var(--hero-dino); height:auto; animation:bob 3s ease-in-out infinite; filter:drop-shadow(0 12px 0 rgba(47,138,71,.12))}
@@ -161,7 +165,21 @@ section{padding:48px 0}
 @keyframes floaty{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-14px) rotate(6deg)}}
 
 .sec-title{display:flex; align-items:end; justify-content:space-between; gap:12px; margin-bottom:20px; flex-wrap:wrap}
-.sec-title h2{font-size:2rem; margin:0}
+.sec-title h2{font-size:2rem; margin:0; display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.step{font-family:'Jua',sans-serif; font-size:.85rem; padding:2px 12px; border-radius:999px; background:var(--green); color:#fff; letter-spacing:.02em}
+.step.s2{background:#3B8FD9}
+.step.s3{background:var(--orange)}
+.checks{background:#EAF5FF; border-top:var(--border) solid #c7e3f7; border-bottom:var(--border) solid #c7e3f7}
+.games{border-top:0}
+.btn small{display:block; font-family:'Gowun Dodum',sans-serif; font-size:.78rem; opacity:.9; line-height:1.2; margin-top:2px}
+.btn .lbl{display:flex; flex-direction:column; align-items:flex-start; text-align:left}
+.stages{grid-column:1 / -1; display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-top:6px}
+.stages .btn{justify-content:flex-start; padding:14px 20px; font-size:1.35rem; gap:12px; min-height:calc(var(--tap) + 30px)}
+.stages .btn > span[aria-hidden]{font-size:1.9rem}
+.stages small{font-size:.8rem}
+.nav a{white-space:nowrap}
+.nav .ico{margin-right:5px}
+.lang-btn{white-space:nowrap}
 .sec-title p{margin:0; color:var(--muted)}
 
 /* 학습 영역 카드 */
@@ -235,6 +253,7 @@ html[data-device="pc"]{--fs:17px; --tap:44px; --maxw:1180px; --cols:4; --gcols:3
 /* 📱 스마트폰 : 한 줄 배치, 좁은 폭 */
 html[data-device="phone"]{--fs:16px; --tap:48px; --maxw:560px; --cols:1; --gcols:1; --hero-dino:200px}
 html[data-device="phone"] .hero .wrap{grid-template-columns:1fr}
+html[data-device="phone"] .stages{grid-template-columns:1fr; gap:12px}
 html[data-device="phone"] .hero{text-align:center}
 html[data-device="phone"] .hero .btns{justify-content:center}
 html[data-device="phone"] .hero h1{font-size:2.1rem}
@@ -251,6 +270,11 @@ html[data-device="phone"] .player-box{width:100%; height:100%; border-radius:0}
 
 /* 📲 패드 : 큰 터치 버튼, 2열 */
 html[data-device="pad"]{--fs:19px; --tap:54px; --maxw:1040px; --cols:2; --gcols:2; --hero-dino:260px}
+html[data-device="pad"] .nav .ico,
+html[data-device="pad"] .nav a.bug-tab .txt,
+html[data-device="pad"] .lang-btn .txt{display:none}
+html[data-device="pad"] .nav a{padding:8px 10px}
+html[data-device="pad"] .stages .btn{padding:12px 14px; font-size:1.15rem}
 
 /* 🧑‍🏫 전자칠판 : 아주 큰 글자, 굵은 선, 게임 화면 크게 */
 html[data-device="board"]{--fs:24px; --tap:72px; --maxw:1700px; --cols:4; --gcols:3; --border:3px; --hero-dino:340px; --line:#D9C7A6}
@@ -261,7 +285,11 @@ html[data-device="board"] .player{padding:10px}
 html[data-device="board"] .player-box{width:100%; height:100%}
 
 /* 자동 모드에서 실제 화면이 아주 좁을 때 안전장치 */
+@media (max-width:1180px){
+  html[data-device="pc"] .nav .ico, html[data-device="pc"] .nav a.bug-tab .txt{display:none}
+}
 @media (max-width:720px){
+  .stages{grid-template-columns:1fr}
   .hero .wrap{grid-template-columns:1fr}
   .cards, .game-grid{grid-template-columns:1fr}
   .nav a:not(.bug-tab){display:none}
@@ -330,8 +358,9 @@ html[data-device="board"] .player-box{width:100%; height:100%}
     </a>
 
     <nav class="nav" aria-label="주요 메뉴">
-      <a href="#learn">학습</a>
-      <a href="#games">게임</a>
+      <a href="#learn" title="차근차근 익히는 수학 개념"><span class="ico">🦖 </span>개념 탐험대</a>
+      <a href="#check" title="나만의 수학 실력 점검하기"><span class="ico">🎯 </span>실력 진단소</a>
+      <a href="#games" title="즐겁게 플레이하며 배우는 수학"><span class="ico">🎮 </span>티라노 게임존</a>
       <!-- 버그 제보방: 아래 CONFIG.bugReportUrl 에 링크를 넣으면 연결돼요 -->
       <a class="bug-tab" id="bugTab" href="#" target="_blank" rel="noopener" aria-label="버그 제보방"><span aria-hidden="true">🐞</span><span class="txt">&nbsp;버그 제보방</span></a>
     </nav>
@@ -379,10 +408,6 @@ html[data-device="board"] .player-box{width:100%; height:100%}
       <div>
         <h1>크앙! 티라노와 함께<br><span class="hl">튼튼한 수학 기초</span>를 쌓아요</h1>
         <p>TyranoMath는 초등학생을 위한 수학 놀이터예요. 개념을 배우고, 문제를 풀고, 게임으로 실력을 키워 봐요!</p>
-        <div class="btns">
-          <a class="btn" href="#games">🎮 게임하러 가기</a>
-          <a class="btn alt" href="#learn">📚 학습 둘러보기</a>
-        </div>
       </div>
       <div class="dino-stage">
         <div class="bubble">1 + 1 = ?</div>
@@ -391,6 +416,11 @@ html[data-device="board"] .player-box{width:100%; height:100%}
         <span class="float-num" style="bottom:4%;right:10%;color:#FF8FA3;font-size:1.8rem;animation-delay:-2s">÷</span>
         <svg class="hero-dino" viewBox="0 0 220 200" role="img" aria-label="연필을 든 귀여운 초록 티라노"><use href="#dino"/></svg>
       </div>
+      <div class="btns stages">
+        <a class="btn" href="#learn" title="차근차근 익히는 수학 개념"><span aria-hidden="true">🦖</span><span class="lbl">개념 탐험대<small>차근차근 익히는 수학 개념</small></span></a>
+        <a class="btn blue" href="#check" title="나만의 수학 실력 점검하기"><span aria-hidden="true">🎯</span><span class="lbl">실력 진단소<small>나만의 수학 실력 점검하기</small></span></a>
+        <a class="btn orange" href="#games" title="즐겁게 플레이하며 배우는 수학"><span aria-hidden="true">🎮</span><span class="lbl">티라노 게임존<small>즐겁게 플레이하며 배우는 수학</small></span></a>
+      </div>
     </div>
   </section>
 
@@ -398,8 +428,8 @@ html[data-device="board"] .player-box{width:100%; height:100%}
   <section id="learn">
     <div class="wrap">
       <div class="sec-title">
-        <h2>📚 무엇을 배워 볼까요?</h2>
-        <p>초등 수학 4개 영역</p>
+        <h2><span class="step">1단계</span>🦖 개념 탐험대</h2>
+        <p>차근차근 익히는 수학 개념</p>
       </div>
       <div class="cards">
         <!-- href 값을 실제 학습 페이지(예: number.html)로 바꿔 주세요 -->
@@ -431,12 +461,23 @@ html[data-device="board"] .player-box{width:100%; height:100%}
     </div>
   </section>
 
-  <!-- 게임 코너 -->
+  <!-- 2단계: 실력 진단소 -->
+  <section id="check" class="checks">
+    <div class="wrap">
+      <div class="sec-title">
+        <h2><span class="step s2">2단계</span>🎯 실력 진단소</h2>
+        <p>나만의 수학 실력 점검하기</p>
+      </div>
+      <div class="game-grid" id="checkGrid"></div>
+    </div>
+  </section>
+
+  <!-- 3단계: 티라노 게임존 -->
   <section id="games" class="games">
     <div class="wrap">
       <div class="sec-title">
-        <h2>🎮 어떤 게임을 해볼까요?</h2>
-        <p>게임을 눌러 바로 시작해요</p>
+        <h2><span class="step s3">3단계</span>🎮 티라노 게임존</h2>
+        <p>즐겁게 플레이하며 배우는 수학</p>
       </div>
       <div class="game-grid" id="gameGrid"></div>
     </div>
@@ -476,6 +517,15 @@ const CONFIG = {
   // 🐞 버그 제보방 링크 (구글 설문, 패들렛, GitHub Issues 등 원하는 주소)
   bugReportUrl: ''                 // 예: 'https://forms.gle/xxxxxxxx'
 };
+
+/* 🎯 실력 진단소 목록 — 한 줄이 진단 카드 1개예요 (작성 방법은 아래 게임 목록과 같아요)
+   file   : checks 폴더 안의 HTML 파일, 또는 구글 설문 등 인터넷 주소
+   newTab : true 로 쓰면 홈페이지 안이 아니라 새 창으로 열려요 (구글 설문처럼 창 안에서 안 열리는 사이트용) */
+const CHECKS = [
+  { title:'덧셈·뺄셈 실력 점검', desc:'10문제로 나의 덧셈·뺄셈 실력을 확인해요.', grade:'1~2학년', icon:'➕', color:'#DDF0FF', file:'' },
+  { title:'구구단 실력 점검',    desc:'2단부터 9단까지 얼마나 빠르게 풀 수 있을까요?', grade:'2~3학년', icon:'✖️', color:'#E4F5D6', file:'' },
+  { title:'도형 실력 점검',      desc:'여러 가지 도형의 이름과 특징을 확인해요.',    grade:'3~4학년', icon:'🔺', color:'#FFE7CC', file:'' }
+];
 
 /* 🎮 게임 목록 — 한 줄이 게임 카드 1개예요
    file  : games 폴더 안의 HTML 파일 경로 (비워 두면 '준비 중' 카드)
@@ -621,10 +671,12 @@ else {
    🎮 게임 코너
    ========================================================= */
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function renderGames(){
-  const grid = $('#gameGrid');
-  grid.innerHTML = GAMES.map((g, i) => `
-    <button type="button" class="game${g.file ? '' : ' soon'}" data-i="${i}" ${g.file ? '' : 'aria-disabled="true"'}>
+const LISTS = { games: GAMES, checks: CHECKS };
+function renderList(gridId, key){
+  const list = LISTS[key];
+  const verb = key === 'checks' ? '▶ 진단 시작' : '▶ 시작하기';
+  $(gridId).innerHTML = list.map((g, i) => `
+    <button type="button" class="game${g.file ? '' : ' soon'}" data-list="${key}" data-i="${i}" ${g.file ? '' : 'aria-disabled="true"'}>
       <div class="thumb" style="background:${esc(g.color || '#E4F5D6')}">
         ${g.image ? `<img src="${esc(g.image)}" alt="" loading="lazy">` : `<span aria-hidden="true">${esc(g.icon || '🎲')}</span>`}
       </div>
@@ -632,14 +684,17 @@ function renderGames(){
         <h3>${esc(g.title)}</h3>
         <p>${esc(g.desc)}</p>
         <div class="chips">${g.grade ? `<span class="chip">${esc(g.grade)}</span>` : ''}</div>
-        <span class="play">${g.file ? '▶ 시작하기' : '준비 중'}</span>
+        <span class="play">${g.file ? verb : '준비 중'}</span>
       </div>
     </button>`).join('');
 }
 let lastFocus = null;
-function openGame(i){
-  const g = GAMES[i];
+let lastSection = '#games';
+function openGame(i, key='games'){
+  const g = LISTS[key][i];
   if (!g || !g.file){ toast('곧 만나요! 열심히 만들고 있어요 🛠️'); return; }
+  if (g.newTab){ window.open(g.file, '_blank', 'noopener'); return; }
+  lastSection = key === 'checks' ? '#check' : '#games';
   lastFocus = document.activeElement;
   $('#playerTitle').innerHTML = `<span aria-hidden="true">${esc(g.icon || '🎮')}</span><span>${esc(g.title)}</span>`;
   $('#playerFrame').src = g.file;
@@ -655,10 +710,12 @@ function closeGame(){
   $('#player').classList.remove('open');
   $('#playerFrame').src = 'about:blank';
   document.body.classList.remove('no-scroll');
-  try { history.replaceState(null, '', '#games'); } catch(e){}
+  try { history.replaceState(null, '', lastSection); } catch(e){}
   lastFocus?.focus();
 }
-$('#gameGrid').addEventListener('click', e => { const b = e.target.closest('.game'); if (b) openGame(Number(b.dataset.i)); });
+['#gameGrid', '#checkGrid'].forEach(id => $(id).addEventListener('click', e => {
+  const b = e.target.closest('.game'); if (b) openGame(Number(b.dataset.i), b.dataset.list);
+}));
 $('#playerClose').addEventListener('click', closeGame);
 // 게임 화면 안에서 Esc 를 눌러도 닫히게 (같은 사이트의 게임일 때)
 $('#playerFrame').addEventListener('load', () => {
@@ -672,13 +729,17 @@ $('#playerFull').addEventListener('click', () => {
   if (!document.fullscreenElement) (box.requestFullscreen || box.webkitRequestFullscreen || (()=>toast('이 기기에서는 크게 보기를 지원하지 않아요'))).call(box);
   else document.exitFullscreen();
 });
-renderGames();
+renderList('#checkGrid', 'checks');
+renderList('#gameGrid', 'games');
 // 주소에 #game=파일 이 있으면 바로 그 게임을 열어요 (수업용 바로가기 링크)
 (function openFromHash(){
   const m = location.hash.match(/^#game=(.+)$/);
   if (!m) return;
-  const i = GAMES.findIndex(g => g.file === decodeURIComponent(m[1]));
-  if (i >= 0) openGame(i);
+  const file = decodeURIComponent(m[1]);
+  for (const key of Object.keys(LISTS)){
+    const i = LISTS[key].findIndex(g => g.file === file);
+    if (i >= 0){ openGame(i, key); break; }
+  }
 })();
 
 applyMode();
