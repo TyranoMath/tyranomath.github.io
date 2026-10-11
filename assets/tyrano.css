@@ -331,6 +331,16 @@ html[data-device="pad"] .filters input{width:160px}
 .unit.soon .go{background:var(--orange-l); color:#b4600f}
 .unit-empty{padding:14px 16px; color:var(--muted); font-size:.92rem}
 
+/* 학기별 보드: 1학기 · 2학기 두 칸 */
+.sem-grid{grid-template-columns:repeat(2, minmax(0, 1fr))}
+.unit .no{flex:none; width:30px; height:30px; border-radius:50%; display:grid; place-items:center; background:#fff; border:2px solid var(--line);
+  font-family:'Fredoka',sans-serif; font-weight:700; font-size:.95rem; color:var(--green-d)}
+.checks .unit .no{color:#2a6fae}
+.unit .t{display:flex; align-items:center; flex-wrap:wrap; gap:4px 8px; font-size:1.05rem}
+.area-tag{font-family:'Gowun Dodum',sans-serif; font-size:.74rem; color:var(--muted); padding:1px 8px; border-radius:999px; white-space:nowrap}
+html[data-device="board"] .unit .t{font-size:1.25rem}
+html[data-device="board"] .unit .no{width:38px; height:38px; font-size:1.15rem}
+html[data-device="phone"] .sem-grid{grid-template-columns:1fr}
 html[data-device="phone"] .grade-tabs{grid-template-columns:repeat(3, minmax(0, 1fr))}
 html[data-device="board"] .grade-tabs button{font-size:1.25rem}
 @media (max-width:720px){ .grade-tabs{grid-template-columns:repeat(3, minmax(0, 1fr))} .area-grid{grid-template-columns:1fr} }

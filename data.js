@@ -30,87 +30,101 @@ const BEST = [];
 
 /* ---------------------------------------------------------
    📚 단원 목록 — 🦖 개념 탐험대 · 🎯 실력 진단소가 함께 사용해요
-   grade : 학년 (1~6)
-   area  : 영역 — '수와 연산' / '변화와 관계' / '도형과 측정' / '자료와 가능성'
-   title : 단원 이름 (2022 개정 교육과정 내용을 바탕으로 넣어 둔 예시예요. 자유롭게 고치세요)
-   learn : 🦖 개념 탐험대에서 열 파일 (예: 'learn/1-number-9.html')
-   check : 🎯 실력 진단소에서 열 파일 (예: 'checks/1-number-9.html' 또는 구글 설문 주소)
+   학년 → 학기 → 단원 순서로 보여요 (2022 개정 교육과정 교과서 기준)
+   grade : 학년 (1~6)          sem : 학기 (1 또는 2)
+   no    : 단원 번호            title : 단원 이름
+   area  : 영역 — '수와 연산' / '변화와 관계' / '도형과 측정' / '자료와 가능성' (단원 옆 작은 표시)
+   learn : 🦖 개념 탐험대에서 열 파일 (예: 'learn/3-1-2.html')
+   check : 🎯 실력 진단소에서 열 파일 (예: 'checks/3-1-2.html' 또는 구글 설문 주소)
            → 비워 두면 '준비 중'으로 보여요
    newTab: true 를 붙이면 새 창으로 열려요 (구글 설문처럼 창 안에서 안 열리는 사이트용)
+   ※ 3~6학년은 검정 교과서라 출판사마다 단원 이름이 조금 다를 수 있어요. 우리 학교 교과서에 맞게 고쳐 쓰세요.
    ※ 줄 끝의 쉼표(,)를 꼭 확인하세요!
    --------------------------------------------------------- */
 const UNITS = [
-  // ── 1학년 ─────────────────────────────
-  { grade:1, area:'수와 연산', title:'9까지의 수', learn:'', check:'' },
-  { grade:1, area:'수와 연산', title:'50까지의 수', learn:'', check:'' },
-  { grade:1, area:'수와 연산', title:'100까지의 수', learn:'', check:'' },
-  { grade:1, area:'수와 연산', title:'덧셈과 뺄셈', learn:'', check:'' },
-  { grade:1, area:'변화와 관계', title:'규칙 찾기', learn:'', check:'' },
-  { grade:1, area:'도형과 측정', title:'여러 가지 모양', learn:'', check:'' },
-  { grade:1, area:'도형과 측정', title:'비교하기', learn:'', check:'' },
-  { grade:1, area:'도형과 측정', title:'시계 보기', learn:'', check:'' },
-  { grade:1, area:'자료와 가능성', title:'분류하기', learn:'', check:'' },
-  // ── 2학년 ─────────────────────────────
-  { grade:2, area:'수와 연산', title:'세 자리 수', learn:'', check:'' },
-  { grade:2, area:'수와 연산', title:'네 자리 수', learn:'', check:'' },
-  { grade:2, area:'수와 연산', title:'두 자리 수의 덧셈과 뺄셈', learn:'', check:'' },
-  { grade:2, area:'수와 연산', title:'곱셈', learn:'', check:'' },
-  { grade:2, area:'수와 연산', title:'곱셈구구', learn:'', check:'' },
-  { grade:2, area:'변화와 관계', title:'규칙 찾기', learn:'', check:'' },
-  { grade:2, area:'도형과 측정', title:'여러 가지 도형', learn:'', check:'' },
-  { grade:2, area:'도형과 측정', title:'길이 재기', learn:'', check:'' },
-  { grade:2, area:'도형과 측정', title:'시각과 시간', learn:'', check:'' },
-  { grade:2, area:'자료와 가능성', title:'분류하기', learn:'', check:'' },
-  { grade:2, area:'자료와 가능성', title:'표와 그래프', learn:'', check:'' },
-  // ── 3학년 ─────────────────────────────
-  { grade:3, area:'수와 연산', title:'세 자리 수의 덧셈과 뺄셈', learn:'', check:'' },
-  { grade:3, area:'수와 연산', title:'나눗셈', learn:'', check:'' },
-  { grade:3, area:'수와 연산', title:'곱셈', learn:'', check:'' },
-  { grade:3, area:'수와 연산', title:'분수와 소수', learn:'', check:'' },
-  { grade:3, area:'변화와 관계', title:'규칙 탐구', learn:'', check:'' },
-  { grade:3, area:'변화와 관계', title:'등호와 식', learn:'', check:'' },
-  { grade:3, area:'도형과 측정', title:'평면도형', learn:'', check:'' },
-  { grade:3, area:'도형과 측정', title:'원', learn:'', check:'' },
-  { grade:3, area:'도형과 측정', title:'길이와 시간', learn:'', check:'' },
-  { grade:3, area:'도형과 측정', title:'들이와 무게', learn:'', check:'' },
-  { grade:3, area:'자료와 가능성', title:'그림그래프', learn:'', check:'' },
-  // ── 4학년 ─────────────────────────────
-  { grade:4, area:'수와 연산', title:'큰 수', learn:'', check:'' },
-  { grade:4, area:'수와 연산', title:'곱셈과 나눗셈', learn:'', check:'' },
-  { grade:4, area:'수와 연산', title:'분수의 덧셈과 뺄셈', learn:'', check:'' },
-  { grade:4, area:'수와 연산', title:'소수의 덧셈과 뺄셈', learn:'', check:'' },
-  { grade:4, area:'변화와 관계', title:'규칙 찾기', learn:'', check:'' },
-  { grade:4, area:'변화와 관계', title:'규칙을 식으로 나타내기', learn:'', check:'' },
-  { grade:4, area:'도형과 측정', title:'각도', learn:'', check:'' },
-  { grade:4, area:'도형과 측정', title:'평면도형의 이동', learn:'', check:'' },
-  { grade:4, area:'도형과 측정', title:'삼각형', learn:'', check:'' },
-  { grade:4, area:'도형과 측정', title:'사각형', learn:'', check:'' },
-  { grade:4, area:'도형과 측정', title:'다각형', learn:'', check:'' },
-  { grade:4, area:'자료와 가능성', title:'막대그래프', learn:'', check:'' },
-  { grade:4, area:'자료와 가능성', title:'꺾은선그래프', learn:'', check:'' },
-  // ── 5학년 ─────────────────────────────
-  { grade:5, area:'수와 연산', title:'자연수의 혼합 계산', learn:'', check:'' },
-  { grade:5, area:'수와 연산', title:'약수와 배수', learn:'', check:'' },
-  { grade:5, area:'수와 연산', title:'약분과 통분', learn:'', check:'' },
-  { grade:5, area:'수와 연산', title:'분수의 덧셈과 뺄셈', learn:'', check:'' },
-  { grade:5, area:'수와 연산', title:'분수의 곱셈', learn:'', check:'' },
-  { grade:5, area:'수와 연산', title:'소수의 곱셈', learn:'', check:'' },
-  { grade:5, area:'변화와 관계', title:'규칙과 대응', learn:'', check:'' },
-  { grade:5, area:'도형과 측정', title:'다각형의 둘레와 넓이', learn:'', check:'' },
-  { grade:5, area:'도형과 측정', title:'합동과 대칭', learn:'', check:'' },
-  { grade:5, area:'도형과 측정', title:'직육면체', learn:'', check:'' },
-  { grade:5, area:'자료와 가능성', title:'평균과 가능성', learn:'', check:'' },
-  // ── 6학년 ─────────────────────────────
-  { grade:6, area:'수와 연산', title:'분수의 나눗셈', learn:'', check:'' },
-  { grade:6, area:'수와 연산', title:'소수의 나눗셈', learn:'', check:'' },
-  { grade:6, area:'변화와 관계', title:'비와 비율', learn:'', check:'' },
-  { grade:6, area:'변화와 관계', title:'비례식과 비례배분', learn:'', check:'' },
-  { grade:6, area:'도형과 측정', title:'각기둥과 각뿔', learn:'', check:'' },
-  { grade:6, area:'도형과 측정', title:'직육면체의 부피와 겉넓이', learn:'', check:'' },
-  { grade:6, area:'도형과 측정', title:'원의 넓이', learn:'', check:'' },
-  { grade:6, area:'도형과 측정', title:'원기둥, 원뿔, 구', learn:'', check:'' },
-  { grade:6, area:'도형과 측정', title:'공간과 입체', learn:'', check:'' },
-  { grade:6, area:'자료와 가능성', title:'여러 가지 그래프', learn:'', check:'' }
+  // ── 1학년 1학기 ─────────────────────
+  { grade:1, sem:1, no:1, area:'수와 연산', title:'9까지의 수', learn:'', check:'' },
+  { grade:1, sem:1, no:2, area:'도형과 측정', title:'여러 가지 모양', learn:'', check:'' },
+  { grade:1, sem:1, no:3, area:'수와 연산', title:'덧셈과 뺄셈', learn:'', check:'' },
+  { grade:1, sem:1, no:4, area:'도형과 측정', title:'비교하기', learn:'', check:'' },
+  { grade:1, sem:1, no:5, area:'수와 연산', title:'50까지의 수', learn:'', check:'' },
+  // ── 1학년 2학기 ─────────────────────
+  { grade:1, sem:2, no:1, area:'수와 연산', title:'100까지의 수', learn:'', check:'' },
+  { grade:1, sem:2, no:2, area:'수와 연산', title:'덧셈과 뺄셈(1)', learn:'', check:'' },
+  { grade:1, sem:2, no:3, area:'도형과 측정', title:'여러 가지 모양', learn:'', check:'' },
+  { grade:1, sem:2, no:4, area:'수와 연산', title:'덧셈과 뺄셈(2)', learn:'', check:'' },
+  { grade:1, sem:2, no:5, area:'도형과 측정', title:'시계 보기와 규칙 찾기', learn:'', check:'' },
+  { grade:1, sem:2, no:6, area:'수와 연산', title:'덧셈과 뺄셈(3)', learn:'', check:'' },
+  // ── 2학년 1학기 ─────────────────────
+  { grade:2, sem:1, no:1, area:'수와 연산', title:'세 자리 수', learn:'', check:'' },
+  { grade:2, sem:1, no:2, area:'도형과 측정', title:'여러 가지 도형', learn:'', check:'' },
+  { grade:2, sem:1, no:3, area:'수와 연산', title:'덧셈과 뺄셈', learn:'', check:'' },
+  { grade:2, sem:1, no:4, area:'도형과 측정', title:'길이 재기', learn:'', check:'' },
+  { grade:2, sem:1, no:5, area:'자료와 가능성', title:'분류하기', learn:'', check:'' },
+  { grade:2, sem:1, no:6, area:'수와 연산', title:'곱셈', learn:'', check:'' },
+  // ── 2학년 2학기 ─────────────────────
+  { grade:2, sem:2, no:1, area:'수와 연산', title:'네 자리 수', learn:'', check:'' },
+  { grade:2, sem:2, no:2, area:'수와 연산', title:'곱셈구구', learn:'', check:'' },
+  { grade:2, sem:2, no:3, area:'도형과 측정', title:'길이 재기', learn:'', check:'' },
+  { grade:2, sem:2, no:4, area:'도형과 측정', title:'시각과 시간', learn:'', check:'' },
+  { grade:2, sem:2, no:5, area:'자료와 가능성', title:'표와 그래프', learn:'', check:'' },
+  { grade:2, sem:2, no:6, area:'변화와 관계', title:'규칙 찾기', learn:'', check:'' },
+  // ── 3학년 1학기 ─────────────────────
+  { grade:3, sem:1, no:1, area:'수와 연산', title:'덧셈과 뺄셈', learn:'', check:'' },
+  { grade:3, sem:1, no:2, area:'도형과 측정', title:'평면도형', learn:'', check:'' },
+  { grade:3, sem:1, no:3, area:'수와 연산', title:'나눗셈', learn:'', check:'' },
+  { grade:3, sem:1, no:4, area:'수와 연산', title:'곱셈', learn:'', check:'' },
+  { grade:3, sem:1, no:5, area:'도형과 측정', title:'길이와 시간', learn:'', check:'' },
+  { grade:3, sem:1, no:6, area:'수와 연산', title:'분수와 소수', learn:'', check:'' },
+  // ── 3학년 2학기 ─────────────────────
+  { grade:3, sem:2, no:1, area:'수와 연산', title:'곱셈', learn:'', check:'' },
+  { grade:3, sem:2, no:2, area:'수와 연산', title:'나눗셈', learn:'', check:'' },
+  { grade:3, sem:2, no:3, area:'도형과 측정', title:'원', learn:'', check:'' },
+  { grade:3, sem:2, no:4, area:'수와 연산', title:'분수', learn:'', check:'' },
+  { grade:3, sem:2, no:5, area:'도형과 측정', title:'들이와 무게', learn:'', check:'' },
+  { grade:3, sem:2, no:6, area:'자료와 가능성', title:'자료의 정리', learn:'', check:'' },
+  // ── 4학년 1학기 ─────────────────────
+  { grade:4, sem:1, no:1, area:'수와 연산', title:'큰 수', learn:'', check:'' },
+  { grade:4, sem:1, no:2, area:'도형과 측정', title:'각도', learn:'', check:'' },
+  { grade:4, sem:1, no:3, area:'수와 연산', title:'곱셈과 나눗셈', learn:'', check:'' },
+  { grade:4, sem:1, no:4, area:'도형과 측정', title:'평면도형의 이동', learn:'', check:'' },
+  { grade:4, sem:1, no:5, area:'자료와 가능성', title:'막대그래프', learn:'', check:'' },
+  { grade:4, sem:1, no:6, area:'변화와 관계', title:'규칙 찾기', learn:'', check:'' },
+  // ── 4학년 2학기 ─────────────────────
+  { grade:4, sem:2, no:1, area:'수와 연산', title:'분수의 덧셈과 뺄셈', learn:'', check:'' },
+  { grade:4, sem:2, no:2, area:'도형과 측정', title:'삼각형', learn:'', check:'' },
+  { grade:4, sem:2, no:3, area:'수와 연산', title:'소수의 덧셈과 뺄셈', learn:'', check:'' },
+  { grade:4, sem:2, no:4, area:'도형과 측정', title:'사각형', learn:'', check:'' },
+  { grade:4, sem:2, no:5, area:'자료와 가능성', title:'꺾은선그래프', learn:'', check:'' },
+  { grade:4, sem:2, no:6, area:'도형과 측정', title:'다각형', learn:'', check:'' },
+  // ── 5학년 1학기 ─────────────────────
+  { grade:5, sem:1, no:1, area:'수와 연산', title:'자연수의 혼합 계산', learn:'', check:'' },
+  { grade:5, sem:1, no:2, area:'수와 연산', title:'약수와 배수', learn:'', check:'' },
+  { grade:5, sem:1, no:3, area:'변화와 관계', title:'대응 관계', learn:'', check:'' },
+  { grade:5, sem:1, no:4, area:'수와 연산', title:'약분과 통분', learn:'', check:'' },
+  { grade:5, sem:1, no:5, area:'수와 연산', title:'분수의 덧셈과 뺄셈', learn:'', check:'' },
+  { grade:5, sem:1, no:6, area:'도형과 측정', title:'다각형의 둘레와 넓이', learn:'', check:'' },
+  // ── 5학년 2학기 ─────────────────────
+  { grade:5, sem:2, no:1, area:'수와 연산', title:'수의 범위와 올림, 버림, 반올림', learn:'', check:'' },
+  { grade:5, sem:2, no:2, area:'수와 연산', title:'분수의 곱셈', learn:'', check:'' },
+  { grade:5, sem:2, no:3, area:'도형과 측정', title:'합동과 대칭', learn:'', check:'' },
+  { grade:5, sem:2, no:4, area:'수와 연산', title:'소수의 곱셈', learn:'', check:'' },
+  { grade:5, sem:2, no:5, area:'도형과 측정', title:'직육면체와 정육면체', learn:'', check:'' },
+  { grade:5, sem:2, no:6, area:'자료와 가능성', title:'평균과 가능성', learn:'', check:'' },
+  // ── 6학년 1학기 ─────────────────────
+  { grade:6, sem:1, no:1, area:'수와 연산', title:'분수의 나눗셈', learn:'', check:'' },
+  { grade:6, sem:1, no:2, area:'도형과 측정', title:'각기둥과 각뿔', learn:'', check:'' },
+  { grade:6, sem:1, no:3, area:'수와 연산', title:'소수의 나눗셈', learn:'', check:'' },
+  { grade:6, sem:1, no:4, area:'변화와 관계', title:'비와 비율', learn:'', check:'' },
+  { grade:6, sem:1, no:5, area:'자료와 가능성', title:'여러 가지 그래프', learn:'', check:'' },
+  { grade:6, sem:1, no:6, area:'도형과 측정', title:'직육면체의 겉넓이와 부피', learn:'', check:'' },
+  // ── 6학년 2학기 ─────────────────────
+  { grade:6, sem:2, no:1, area:'수와 연산', title:'분수의 나눗셈', learn:'', check:'' },
+  { grade:6, sem:2, no:2, area:'도형과 측정', title:'공간과 입체', learn:'', check:'' },
+  { grade:6, sem:2, no:3, area:'수와 연산', title:'소수의 나눗셈', learn:'', check:'' },
+  { grade:6, sem:2, no:4, area:'변화와 관계', title:'비례식과 비례배분', learn:'', check:'' },
+  { grade:6, sem:2, no:5, area:'도형과 측정', title:'원의 둘레와 넓이', learn:'', check:'' },
+  { grade:6, sem:2, no:6, area:'도형과 측정', title:'원기둥, 원뿔, 구', learn:'', check:'' }
 ];
 
 /* ---------------------------------------------------------
@@ -144,5 +158,6 @@ const PUZZLES = [
   { title:'티라노 블록 쌓기', desc:'떨어지는 블록을 돌리고 옮겨서 가로줄을 꽉 채워 없애요! 공간 감각이 쑥쑥.', grade:'1~6학년', area:'도형 퍼즐', icon:'🧱', image:'puzzles/thumbs/block-stack.svg',   color:'#E6EEFB', date:'2026-10-10', file:'puzzles/block-stack.html' },
   { title:'티라노 그림 로직',  desc:'줄마다 적힌 숫자 단서로 칸을 칠하면 숨은 공룡 그림이 나타나요!',          grade:'2~6학년', area:'논리 퍼즐', icon:'🖼️', image:'puzzles/thumbs/picture-logic.svg', color:'#F3ECFF', date:'2026-10-10', file:'puzzles/picture-logic.html' },
   { title:'티라노 지뢰 찾기',  desc:'숫자 단서로 잔디 밑에 숨은 화산을 피해 안전한 칸을 모두 열어요.',          grade:'3~6학년', area:'논리 퍼즐', icon:'🌋', image:'puzzles/thumbs/minesweeper.svg',  color:'#E4F5D6', date:'2026-10-10', file:'puzzles/minesweeper.html' },
-  { title:'티라노 픽셀 아트',  desc:'네모 칸을 칠해 나만의 픽셀 그림을 만들어요. 대칭 그리기와 그림 저장도 돼요!', grade:'1~6학년', area:'도형 퍼즐', icon:'🎨', image:'puzzles/thumbs/pixel-art.svg',     color:'#FFF3C4', date:'2026-10-10', file:'puzzles/pixel-art.html' }
+  { title:'티라노 픽셀 아트',  desc:'네모 칸을 칠해 나만의 픽셀 그림을 만들어요. 대칭 그리기와 그림 저장도 돼요!', grade:'1~6학년', area:'도형 퍼즐', icon:'🎨', image:'puzzles/thumbs/pixel-art.svg',     color:'#FFF3C4', date:'2026-10-10', file:'puzzles/pixel-art.html' },
+  { title:'티라노 사무라이 스도쿠', desc:'9×9 스도쿠 판 5개가 겹쳐 있어요! 겹친 상자는 두 판의 규칙을 모두 지켜야 하는 최강 도전.', grade:'3~6학년', area:'수 퍼즐', icon:'🏯', image:'puzzles/thumbs/samurai-sudoku.svg', color:'#EFE6FF', date:'2026-10-11', file:'puzzles/samurai-sudoku.html' }
 ];

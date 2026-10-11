@@ -268,23 +268,33 @@ const KINDS = {
 };
 function unitEntry(kind, i){
   const u = UNIT_LIST[i], k = KINDS[kind];
-  return { title: `${u.grade}학년 · ${u.title}`, icon: k.icon, file: u[k.field], newTab: u.newTab };
+  const head = `${u.grade}학년${u.sem ? ` ${u.sem}학기` : ''}`;
+  return { title: `${head} · ${u.no ? u.no + '. ' : ''}${u.title}`, icon: k.icon, file: u[k.field], newTab: u.newTab };
 }
+// 학년을 고르면 1학기 · 2학기 두 칸에 단원이 번호 순서대로 나와요
+const SEMS = [
+  { sem:1, icon:'🌸', color:'#E4F5D6', sub:'3월 ~ 7월' },
+  { sem:2, icon:'🍁', color:'#FFE7CC', sub:'8월 ~ 2월' }
+];
 function renderBoard(kind, grade){
   const k = KINDS[kind], board = $(k.board); if (!board) return;
-  board.innerHTML = AREAS.map(a => {
-    const rows = UNIT_LIST.map((u, i) => ({ u, i })).filter(r => Number(r.u.grade) === grade && r.u.area === a.name);
+  const areaOf = name => AREAS.find(a => a.name === name);
+  board.innerHTML = SEMS.map(S => {
+    const rows = UNIT_LIST.map((u, i) => ({ u, i }))
+      .filter(r => Number(r.u.grade) === grade && Number(r.u.sem || 1) === S.sem)
+      .sort((x, y) => (x.u.no || 0) - (y.u.no || 0));
     const ready = rows.filter(r => r.u[k.field]).length;
     const list = rows.length
       ? `<ul class="unit-list">${rows.map(r => {
-          const has = !!r.u[k.field];
+          const has = !!r.u[k.field], a = areaOf(r.u.area);
+          const tag = a ? `<small class="area-tag" style="background:${a.color}" title="${esc(a.name)}"><span aria-hidden="true">${a.icon}</span> ${esc(a.name)}</small>` : '';
           return `<li><button type="button" class="unit${has ? '' : ' soon'}" data-kind="${kind}" data-u="${r.i}" ${has ? '' : 'aria-disabled="true"'}>
-            <span class="t">${esc(r.u.title)}</span><span class="go">${has ? k.go : '준비 중'}</span></button></li>`;
+            <span class="no">${r.u.no || ''}</span><span class="t">${esc(r.u.title)}${tag}</span><span class="go">${has ? k.go : '준비 중'}</span></button></li>`;
         }).join('')}</ul>`
-      : '<p class="unit-empty">이 학년에는 아직 단원이 없어요.</p>';
-    return `<div class="area-box">
-      <div class="area-head" style="background:${a.color}"><span class="ic" aria-hidden="true">${a.icon}</span>
-        <div><h3>${esc(a.name)}</h3><small>${rows.length}개 단원${ready ? ` · ${ready}개 열림` : ''}</small></div></div>
+      : '<p class="unit-empty">이 학기에는 아직 단원이 없어요.</p>';
+    return `<div class="area-box sem-box">
+      <div class="area-head" style="background:${S.color}"><span class="ic" aria-hidden="true">${S.icon}</span>
+        <div><h3>${grade}학년 ${S.sem}학기</h3><small>${rows.length}개 단원${ready ? ` · ${ready}개 열림` : ''}</small></div></div>
       ${list}</div>`;
   }).join('');
 }
