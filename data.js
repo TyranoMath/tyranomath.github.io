@@ -159,5 +159,6 @@ const PUZZLES = [
   { title:'티라노 그림 로직',  desc:'줄마다 적힌 숫자 단서로 칸을 칠하면 숨은 공룡 그림이 나타나요!',          grade:'2~6학년', area:'논리 퍼즐', icon:'🖼️', image:'puzzles/thumbs/picture-logic.svg', color:'#F3ECFF', date:'2026-10-10', file:'puzzles/picture-logic.html' },
   { title:'티라노 지뢰 찾기',  desc:'숫자 단서로 잔디 밑에 숨은 화산을 피해 안전한 칸을 모두 열어요.',          grade:'3~6학년', area:'논리 퍼즐', icon:'🌋', image:'puzzles/thumbs/minesweeper.svg',  color:'#E4F5D6', date:'2026-10-10', file:'puzzles/minesweeper.html' },
   { title:'티라노 픽셀 아트',  desc:'네모 칸을 칠해 나만의 픽셀 그림을 만들어요. 대칭 그리기와 그림 저장도 돼요!', grade:'1~6학년', area:'도형 퍼즐', icon:'🎨', image:'puzzles/thumbs/pixel-art.svg',     color:'#FFF3C4', date:'2026-10-10', file:'puzzles/pixel-art.html' },
-  { title:'티라노 사무라이 스도쿠', desc:'9×9 스도쿠 판 5개가 겹쳐 있어요! 겹친 상자는 두 판의 규칙을 모두 지켜야 하는 최강 도전.', grade:'3~6학년', area:'수 퍼즐', icon:'🏯', image:'puzzles/thumbs/samurai-sudoku.svg', color:'#EFE6FF', date:'2026-10-11', file:'puzzles/samurai-sudoku.html' }
+  { title:'티라노 사무라이 스도쿠', desc:'9×9 스도쿠 판 5개가 겹쳐 있어요! 겹친 상자는 두 판의 규칙을 모두 지켜야 하는 최강 도전.', grade:'3~6학년', area:'수 퍼즐', icon:'🏯', image:'puzzles/thumbs/samurai-sudoku.svg', color:'#EFE6FF', date:'2026-10-11', file:'puzzles/samurai-sudoku.html' },
+  { title:'티라노 슬라이딩 퍼즐', desc:'빈칸으로 조각을 밀어 숫자 순서나 공룡·우주·바다 그림을 완성해요. 내 사진으로도 할 수 있어요!', grade:'1~6학년', area:'논리 퍼즐', icon:'🧩', image:'puzzles/thumbs/sliding.svg', color:'#EFE6FF', date:'2026-10-11', file:'puzzles/sliding.html' }
 ];
