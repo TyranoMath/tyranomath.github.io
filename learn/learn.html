@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>개념 탐험대 · TyranoMath</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFF8EC; --ink:#22314A; --muted:#5D6C83; --line:#ECDFC8;
+  --green:#4CB963; --green-d:#2F8A47; --leaf:#E4F5D6; --leaf2:#F2FAEC;
+  --blue:#3B8FD9; --blue-d:#2a6fae; --blue-l:#DDF0FF; --orange:#FF9F43; --orange-l:#FFE7CC; --red:#E5546B; --red-l:#FFE3EA; --gold:#FFD43B; --purple:#8E5BD6;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:'Gowun Dodum',system-ui,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; word-break:keep-all; line-height:1.6}
+button,input{font:inherit; color:inherit}
+button{cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+.top, .bar, main, footer{zoom:var(--z,1)}
+.top{position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:10px; padding:10px 16px; background:rgba(255,248,236,.94); backdrop-filter:blur(6px); border-bottom:2px solid var(--line); flex-wrap:wrap}
+.title{font-family:'Jua',sans-serif; font-size:clamp(20px,2.4vw,28px); color:var(--green-d); display:flex; align-items:center; gap:8px; margin-right:auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.title .dino-logo svg{width:40px; display:block}
+.back{text-decoration:none; font-family:'Jua',sans-serif; background:var(--green); color:#fff; border-radius:999px; padding:6px 14px; white-space:nowrap}
+.pill{font-family:'Jua',sans-serif; background:#fff; border:3px solid var(--line); border-radius:999px; padding:3px 14px; font-size:clamp(14px,1.4vw,18px); white-space:nowrap}
+.bar{height:8px; background:var(--leaf)}
+.bar i{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--green),#8FD19E); transition:width .3s}
+main{max-width:980px; margin:0 auto; padding:18px 16px 40px}
+.panel{background:#fff; border:3px solid var(--line); border-radius:24px; box-shadow:0 6px 0 var(--line); padding:clamp(16px,3vw,30px); margin-bottom:18px}
+
+/* 단원 첫 화면 */
+.hero{display:flex; align-items:center; gap:16px}
+.hero .dino-logo svg{width:clamp(80px,12vw,120px)}
+.kicker{font-family:'Jua',sans-serif; color:var(--green-d); font-size:16px}
+h1{margin:0; font-family:'Jua',sans-serif; font-weight:400; font-size:clamp(28px,4vw,44px); line-height:1.2}
+.intro{margin:12px 0 0; font-size:clamp(16px,1.8vw,19px)}
+.stds{margin:16px 0 0; display:flex; flex-direction:column; gap:6px}
+.std{display:flex; gap:8px; align-items:flex-start; font-size:14.5px; color:var(--muted)}
+.code{font-family:'Fredoka',sans-serif; font-weight:700; background:var(--ink); color:#fff; border-radius:8px; padding:1px 8px; font-size:13px; white-space:nowrap}
+.prev{margin-top:12px; font-size:14px; color:var(--muted); background:#FBF7EE; border-radius:12px; padding:6px 12px}
+h2.sec{font-family:'Jua',sans-serif; font-weight:400; font-size:clamp(22px,2.6vw,28px); margin:6px 0 12px}
+.map{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:10px}
+.stop{display:flex; align-items:center; gap:12px; text-align:left; border:3px solid var(--line); border-radius:18px; background:#fff; padding:12px 14px; box-shadow:0 4px 0 var(--line); min-height:64px; font-size:clamp(16px,1.8vw,19px)}
+.stop:active{transform:translateY(3px); box-shadow:0 1px 0 var(--line)}
+.stop .n{flex:none; width:38px; height:38px; border-radius:50%; display:grid; place-items:center; background:var(--leaf); color:var(--green-d); font-family:'Fredoka',sans-serif; font-weight:700; font-size:18px}
+.stop.done{border-color:#BFE6C2; background:var(--leaf2)}
+.stop.done .n{background:var(--green); color:#fff}
+.go-row{display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:20px}
+.btn{border:0; border-radius:18px; padding:12px 30px; background:var(--green); color:#fff; font-family:'Jua',sans-serif; font-size:clamp(20px,2.4vw,28px); box-shadow:0 5px 0 var(--green-d); text-decoration:none; display:inline-block}
+.btn:active{transform:translateY(4px); box-shadow:0 1px 0 var(--green-d)}
+.btn.blue{background:var(--blue); box-shadow:0 5px 0 var(--blue-d)}
+.btn.alt{background:#fff; color:var(--green-d); border:3px solid var(--line); box-shadow:0 5px 0 var(--line)}
+.btn.small{font-size:clamp(16px,1.8vw,20px); padding:9px 18px}
+.btn:disabled{opacity:.4}
+
+/* 탐험(차시) */
+.lhead{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.lno{font-family:'Jua',sans-serif; background:var(--green); color:#fff; border-radius:999px; padding:2px 14px; font-size:18px}
+.lhead h2{margin:0; font-family:'Jua',sans-serif; font-weight:400; font-size:clamp(24px,3vw,34px)}
+.key{display:flex; gap:12px; align-items:center; margin:16px 0; background:linear-gradient(135deg,#FFF6CC,#FFEFB0); border:3px solid #F3D97A; border-radius:20px; padding:12px 16px; font-size:clamp(18px,2.1vw,23px)}
+.key .dino-logo svg{width:58px; display:block}
+.key b{color:#B45309}
+.body{font-size:clamp(17px,1.9vw,20px)}
+.body p{margin:8px 0}
+.body ul{margin:8px 0; padding-left:24px}
+.body .note{background:var(--blue-l); border-radius:14px; padding:8px 14px; margin:10px 0; font-size:.95em}
+.body .warn{background:var(--red-l); border-radius:14px; padding:8px 14px; margin:10px 0; font-size:.95em}
+.expr{font-family:'Fredoka','Gowun Dodum',sans-serif; font-weight:500; font-size:clamp(22px,2.8vw,32px); text-align:center; margin:12px 0; line-height:1.9}
+.fr{display:inline-flex; align-items:center; vertical-align:middle; font-family:'Fredoka',sans-serif; font-weight:500; margin:0 2px}
+.fr .w{margin-right:2px}
+.fr .nd{display:inline-flex; flex-direction:column; align-items:center; font-size:.78em; line-height:1.05}
+.fr .n{border-bottom:2px solid currentColor; padding:0 3px}
+.fr .d{padding:0 3px}
+table.qt{border-collapse:collapse; margin:12px auto; font-size:clamp(15px,1.7vw,18px); background:#fff}
+table.qt th, table.qt td{border:2px solid var(--line); padding:6px 12px; text-align:center}
+table.qt th{background:#F7F1E4; font-family:'Jua',sans-serif; font-weight:400}
+svg.fig{max-width:100%; height:auto}
+.figc{display:flex; justify-content:center; margin:10px 0}
+span.card{display:inline-grid; place-items:center; width:1.7em; height:2.1em; border:2.5px solid var(--ink); border-radius:8px; background:#FFFDF6; font-family:'Fredoka',sans-serif; font-weight:700; margin:0 2px}
+
+/* 직접 해 보기 */
+.lab{margin:16px 0; border:3px dashed #BFE6C2; border-radius:20px; padding:14px; background:var(--leaf2)}
+.lab > .lt{font-family:'Jua',sans-serif; color:var(--green-d); font-size:19px; margin-bottom:6px}
+.ctrl{display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:center; margin:8px 0; font-size:17px}
+.ctrl label{font-family:'Jua',sans-serif}
+.ctrl input[type=range]{width:min(240px,60vw); height:34px; accent-color:var(--green)}
+.ctrl .v{font-family:'Fredoka',sans-serif; font-weight:700; font-size:22px; min-width:2ch; text-align:center}
+.tbtn{border:3px solid var(--line); background:#fff; border-radius:14px; padding:8px 14px; font-family:'Jua',sans-serif; font-size:17px; box-shadow:0 3px 0 var(--line); min-height:46px}
+.tbtn:active{transform:translateY(2px); box-shadow:0 1px 0 var(--line)}
+.tbtn[aria-pressed="true"]{background:var(--green); border-color:var(--green-d); color:#fff; box-shadow:0 3px 0 var(--green-d)}
+.step-expr{font-family:'Fredoka',sans-serif; font-weight:500; font-size:clamp(24px,3.2vw,36px); text-align:center; margin:10px 0; line-height:1.6}
+.step-expr .hl{background:#FFE38A; border-radius:8px; padding:0 4px; box-shadow:0 0 0 3px #F3C94A}
+.step-log{font-family:'Fredoka',sans-serif; text-align:center; color:var(--muted); font-size:18px}
+.out{text-align:center; font-size:18px; margin:6px 0}
+.out b{font-family:'Fredoka',sans-serif; font-size:22px; color:var(--green-d)}
+.board{display:grid; grid-template-columns:repeat(10,1fr); gap:4px; max-width:520px; margin:8px auto}
+.board span{aspect-ratio:1; display:grid; place-items:center; border-radius:8px; background:#fff; border:2px solid var(--line); font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(12px,1.6vw,16px)}
+.board span.a{background:#BFE3FF; border-color:var(--blue)}
+.board span.b{background:#FFD7A8; border-color:var(--orange)}
+.board span.ab{background:#9BE0A6; border-color:var(--green-d); box-shadow:0 0 0 2px var(--green-d) inset}
+.board span.first{outline:3px solid var(--red); outline-offset:1px}
+.legend{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; font-size:14px; color:var(--muted)}
+.legend i{display:inline-block; width:14px; height:14px; border-radius:4px; vertical-align:-2px; margin-right:4px}
+.emojis{font-size:30px; text-align:center; letter-spacing:4px; line-height:1.4; min-height:44px}
+
+/* 예시 */
+.ex{margin:16px 0; border-left:6px solid var(--blue); background:#F3F8FF; border-radius:0 16px 16px 0; padding:10px 16px; font-size:clamp(16px,1.8vw,19px)}
+.ex .et{font-family:'Jua',sans-serif; color:var(--blue-d); font-size:18px}
+.ex ol{margin:6px 0; padding-left:24px}
+
+/* 확인 문제 */
+.quiz{margin-top:18px; border:3px solid var(--line); border-radius:20px; padding:14px 16px; background:#fff}
+.quiz .qt-h{display:flex; align-items:center; gap:8px; font-family:'Jua',sans-serif; font-size:20px; color:var(--orange); flex-wrap:wrap}
+.quiz .qt-h .ok{margin-left:auto; color:var(--green-d); font-size:16px}
+.quiz .qq{font-size:clamp(17px,2vw,21px); margin-top:6px}
+.choices{display:grid; gap:8px; margin-top:12px; grid-template-columns:repeat(2,minmax(0,1fr))}
+.choice{display:flex; align-items:center; gap:10px; text-align:left; border:3px solid var(--line); border-radius:16px; background:#fff; padding:8px 12px; font-size:clamp(17px,2vw,21px); box-shadow:0 4px 0 var(--line); min-height:56px}
+.choice .mk{flex:none; width:32px; height:32px; border-radius:50%; display:grid; place-items:center; background:var(--leaf); color:var(--green-d); font-family:'Fredoka',sans-serif; font-weight:700}
+.choice.right{border-color:var(--green); background:#EAF8EC}
+.choice.wrong{border-color:var(--red); background:#FFF0F3}
+.choice:disabled{cursor:default}
+.fb{margin-top:10px; border-radius:14px; padding:10px 14px; font-size:16.5px}
+.fb.ok{background:#EAF8EC} .fb.ng{background:#FFF0F3}
+.qnav{display:flex; justify-content:flex-end; margin-top:10px}
+
+.nav{display:flex; justify-content:space-between; gap:10px; margin-top:18px; flex-wrap:wrap}
+.sum li{margin:8px 0; font-size:clamp(17px,1.9vw,20px)}
+.sum .u{font-family:'Jua',sans-serif; color:var(--green-d)}
+footer{text-align:center; color:var(--muted); font-size:13px; padding:10px 16px 26px}
+html.touch .ctrl input[type=range]{height:44px}
+@media (max-width:480px){ .top{padding:6px 10px; gap:6px} .title{font-size:18px} .title .dino-logo svg{width:28px} .back{padding:4px 10px; font-size:14px} .pill{font-size:13px; padding:2px 10px} }
+@media (max-width:600px){ .choices{grid-template-columns:1fr} .hero{flex-direction:column; text-align:center} .key{flex-direction:column; text-align:center} }
+@media (prefers-reduced-motion:reduce){ *{transition:none!important; animation:none!important} }
+@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
+.pop{animation:pop .35s}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" id="back" href="../index.html#learn" hidden>← 개념 탐험대</a>
+  <div class="title"><span class="dino-logo"></span><span id="ttl">개념 탐험대</span></div>
+  <span class="pill" id="pill" hidden></span>
+</header>
+<div class="bar" id="bar" hidden><i></i></div>
+<main id="app"></main>
+<footer>© 2026 TyranoMath 백태진 All rights reserved. · 티라노와 함께 즐거운 수학 시간!</footer>
+
+<script src="../puzzles/puzzle-common.js"></script>
+<script src="../checks/lib.js"></script>
+<script src="../checks/standards.js"></script>
+<script src="../checks/g5-1.js"></script>
+<script src="c5-1.js"></script>
+<script>
+(() => {
+'use strict';
+const A = window.TM_ASSESS, L = window.TM_LEARN, { store } = window.TM;
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const DINO = window.TM.DINO;
+
+/* 기기 자동 맞춤 (전자칠판·패드·폰·PC·터치스크린) */
+const TOUCH = (navigator.maxTouchPoints || 0) > 0 || matchMedia('(any-pointer: coarse)').matches;
+document.documentElement.classList.toggle('touch', TOUCH);
+function autoFit(){ const w = innerWidth, h = innerHeight; let z = (w >= 1300 && h >= 680) ? Math.min(w / 1180, h / 880) : 1; document.documentElement.style.setProperty('--z', Math.max(1, Math.min(1.8, z)).toFixed(3)); }
+autoFit(); addEventListener('resize', autoFit); addEventListener('orientationchange', () => setTimeout(autoFit, 200));
+
+const key = new URLSearchParams(location.search).get('u') || '5-1-1';
+const U = L.units[key];
+if (!U){ $('#app').innerHTML = '<div class="panel"><h1>준비 중인 단원이에요 🦖</h1></div>'; return; }
+const [g, s, no] = key.split('-');
+$('#ttl').textContent = `개념 탐험대 · ${g}-${s} ${no}단원`;
+const PKEY = 'tm-learn-' + key;
+const done = new Set((() => { try { return JSON.parse(store.get(PKEY) || '[]'); } catch(e){ return []; } })());
+const saveDone = () => store.set(PKEY, JSON.stringify([...done]));
+
+/* ---------- 단원 첫 화면 ---------- */
+function home(){
+  $('#bar').hidden = true; $('#pill').hidden = true;
+  const stds = [...new Set(U.lessons.flatMap(l => l.std || []))];
+  $('#app').innerHTML = `<section class="panel">
+    <div class="hero"><span class="dino-logo">${DINO}</span><div>
+      <div class="kicker">🦖 개념 탐험대 · ${g}학년 ${s}학기 ${no}단원</div>
+      <h1>${U.title}</h1></div></div>
+    <p class="intro">${U.intro}</p>
+    ${U.prev ? `<div class="prev">🔙 먼저 떠올려요: ${U.prev}</div>` : ''}
+    <div class="stds">${stds.map(c => `<div class="std"><span class="code">[${c}]</span><span>${A.STD[c].text}</span></div>`).join('')}</div>
+  </section>
+  <section class="panel">
+    <h2 class="sec">🗺️ 탐험 지도 <small style="font-family:'Gowun Dodum';font-size:14px;color:var(--muted)">${done.size} / ${U.lessons.length} 완료</small></h2>
+    <div class="map">${U.lessons.map((l, i) => `<button class="stop${done.has(i) ? ' done' : ''}" type="button" data-i="${i}"><span class="n">${done.has(i) ? '✓' : i + 1}</span><span>${l.title}</span></button>`).join('')}</div>
+    <div class="go-row"><button class="btn" id="goBtn" type="button">${done.size ? '이어서 탐험하기' : '탐험 출발!'} 🦖</button>${done.size === U.lessons.length ? '<button class="btn alt" id="sumBtn" type="button">📒 핵심 정리 보기</button>' : ''}</div>
+  </section>`;
+  $$('.stop').forEach(b => b.addEventListener('click', () => lesson(+b.dataset.i)));
+  $('#goBtn').addEventListener('click', () => { const i = U.lessons.findIndex((_, k) => !done.has(k)); i < 0 ? summary() : lesson(i); });
+  if ($('#sumBtn')) $('#sumBtn').addEventListener('click', summary);
+  scrollTo(0, 0);
+}
+
+/* ---------- 탐험(차시) ---------- */
+let curL = 0;
+function lesson(i){
+  curL = i; const l = U.lessons[i], n = U.lessons.length;
+  $('#bar').hidden = false; $('#bar i').style.width = `${(i + 1) / n * 100}%`;
+  $('#pill').hidden = false; $('#pill').textContent = `탐험 ${i + 1} / ${n}`;
+  $('#app').innerHTML = `<section class="panel">
+    <div class="lhead"><span class="lno">탐험 ${i + 1}</span><h2>${l.title}</h2></div>
+    <div class="key"><span class="dino-logo">${DINO}</span><div>${l.key}</div></div>
+    <div class="body">${l.body || ''}</div>
+    ${l.lab ? `<div class="lab"><div class="lt">🔬 직접 해 보기 — ${l.lab.title}</div><div id="labBox"></div></div>` : ''}
+    ${l.ex ? `<div class="ex"><div class="et">✏️ 예시</div>${l.ex}</div>` : ''}
+    ${l.quiz ? `<div class="quiz" id="quiz"></div>` : ''}
+    <div class="nav"><button class="btn alt small" id="prevL" type="button">${i ? '◀ 이전 탐험' : '◀ 탐험 지도'}</button><button class="btn small" id="nextL" type="button">${i < n - 1 ? '다음 탐험 ▶' : '📒 핵심 정리 ▶'}</button></div>
+  </section>`;
+  if (l.lab) l.lab.init($('#labBox'), A);
+  if (l.quiz) quiz(l);
+  else { done.add(i); saveDone(); }
+  $('#prevL').addEventListener('click', () => i ? lesson(i - 1) : home());
+  $('#nextL').addEventListener('click', () => i < n - 1 ? lesson(i + 1) : summary());
+  scrollTo(0, 0);
+}
+/* 확인 문제: 실력 진단소의 문제 만들기를 그대로 사용해요 */
+function quiz(l){
+  const box = $('#quiz'), items = A.units[U.key] ? A.units[U.key].items : [];
+  let right = 0;
+  const make = () => {
+    const [id, lv] = A.pick(l.quiz), it = items.find(x => x.id === id);
+    let q = Object.assign({}, it.g(lv)); A.makeChoices(q);
+    box.innerHTML = `<div class="qt-h">🦕 확인 문제 <span class="ok">${right ? `⭐ ${right}개 맞힘` : ''}</span></div>
+      <div class="qq">${q.q}</div>${q.fig ? `<div class="figc">${q.fig}</div>` : ''}
+      <div class="choices">${q.choices.map((c, k) => `<button class="choice" type="button" data-k="${k}"><span class="mk">${k + 1}</span><span>${c}</span></button>`).join('')}</div>
+      <div id="fb"></div>`;
+    box.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => {
+      const k = +b.dataset.k, ok = k === q.correct;
+      box.querySelectorAll('.choice').forEach((x, j) => { x.disabled = true; if (j === q.correct) x.classList.add('right'); else if (j === k) x.classList.add('wrong'); });
+      if (ok){ right++; done.add(curL); saveDone(); }
+      $('#fb').innerHTML = `<div class="fb ${ok ? 'ok' : 'ng'} pop">${ok ? '🎉 크앙! 정답이에요!' : '🤔 아쉬워요. 풀이를 보고 한 번 더 해 봐요.'}<br>🦖 ${q.ex || ''}</div><div class="qnav"><button class="btn small ${ok ? 'alt' : ''}" type="button" id="moreQ">${ok ? '다른 문제 더 풀기' : '비슷한 문제 다시 풀기'} 🔄</button></div>`;
+      $('#moreQ').addEventListener('click', make);
+    }));
+  };
+  make();
+}
+
+/* ---------- 핵심 정리 ---------- */
+function summary(){
+  $('#bar').hidden = false; $('#bar i').style.width = '100%'; $('#pill').hidden = false; $('#pill').textContent = '핵심 정리';
+  $('#app').innerHTML = `<section class="panel">
+    <div class="hero"><span class="dino-logo">${DINO}</span><div><div class="kicker">📒 핵심 정리</div><h1>${U.title}</h1></div></div>
+    <ol class="sum">${U.lessons.map((l, i) => `<li><span class="u">${l.title}</span> — ${l.key}${done.has(i) ? ' ✅' : ''}</li>`).join('')}</ol>
+    <p class="intro">${done.size === U.lessons.length ? '🎉 모든 탐험을 마쳤어요! 이제 실력 진단소에서 내 실력을 확인해 볼까요?' : `아직 확인 문제를 맞히지 않은 탐험이 ${U.lessons.length - done.size}개 있어요.`}</p>
+    <div class="go-row"><a class="btn blue" href="../checks/assess.html?u=${key}">🎯 실력 진단소에서 확인하기</a><button class="btn alt" type="button" id="homeBtn">🗺️ 탐험 지도</button></div>
+  </section>`;
+  $('#homeBtn').addEventListener('click', home);
+  scrollTo(0, 0);
+}
+home();
+window.__learn = { lesson, summary, home, U };
+})();
+</script>
+</body>
+</html>

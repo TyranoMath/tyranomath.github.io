@@ -34,7 +34,7 @@ const BEST = [];
    grade : 학년 (1~6)          sem : 학기 (1 또는 2)
    no    : 단원 번호            title : 단원 이름
    area  : 영역 — '수와 연산' / '변화와 관계' / '도형과 측정' / '자료와 가능성' (단원 옆 작은 표시)
-   learn : 🦖 개념 탐험대에서 열 파일 (예: 'learn/3-1-2.html')
+   learn : 🦖 개념 탐험대에서 열 파일 (예: 'learn/learn.html?u=5-1-2')
    check : 🎯 실력 진단소에서 열 파일 (예: 'checks/3-1-2.html' 또는 구글 설문 주소)
            → 비워 두면 '준비 중'으로 보여요
    newTab: true 를 붙이면 새 창으로 열려요 (구글 설문처럼 창 안에서 안 열리는 사이트용)
@@ -98,19 +98,19 @@ const UNITS = [
   { grade:4, sem:2, no:5, area:'자료와 가능성', title:'꺾은선그래프', learn:'', check:'' },
   { grade:4, sem:2, no:6, area:'도형과 측정', title:'다각형', learn:'', check:'' },
   // ── 5학년 1학기 ─────────────────────
-  { grade:5, sem:1, no:1, area:'수와 연산', title:'자연수의 혼합 계산', learn:'', check:'' },
-  { grade:5, sem:1, no:2, area:'수와 연산', title:'약수와 배수', learn:'', check:'' },
-  { grade:5, sem:1, no:3, area:'변화와 관계', title:'대응 관계', learn:'', check:'' },
-  { grade:5, sem:1, no:4, area:'수와 연산', title:'약분과 통분', learn:'', check:'' },
-  { grade:5, sem:1, no:5, area:'수와 연산', title:'분수의 덧셈과 뺄셈', learn:'', check:'' },
-  { grade:5, sem:1, no:6, area:'도형과 측정', title:'다각형의 둘레와 넓이', learn:'', check:'' },
+  { grade:5, sem:1, no:1, area:'수와 연산', title:'자연수의 혼합 계산', learn:'learn/learn.html?u=5-1-1', check:'checks/assess.html?u=5-1-1' },
+  { grade:5, sem:1, no:2, area:'수와 연산', title:'약수와 배수', learn:'learn/learn.html?u=5-1-2', check:'checks/assess.html?u=5-1-2' },
+  { grade:5, sem:1, no:3, area:'변화와 관계', title:'대응 관계', learn:'learn/learn.html?u=5-1-3', check:'checks/assess.html?u=5-1-3' },
+  { grade:5, sem:1, no:4, area:'수와 연산', title:'약분과 통분', learn:'learn/learn.html?u=5-1-4', check:'checks/assess.html?u=5-1-4' },
+  { grade:5, sem:1, no:5, area:'수와 연산', title:'분수의 덧셈과 뺄셈', learn:'learn/learn.html?u=5-1-5', check:'checks/assess.html?u=5-1-5' },
+  { grade:5, sem:1, no:6, area:'도형과 측정', title:'다각형의 둘레와 넓이', learn:'learn/learn.html?u=5-1-6', check:'checks/assess.html?u=5-1-6' },
   // ── 5학년 2학기 ─────────────────────
-  { grade:5, sem:2, no:1, area:'수와 연산', title:'수의 범위와 올림, 버림, 반올림', learn:'', check:'' },
-  { grade:5, sem:2, no:2, area:'수와 연산', title:'분수의 곱셈', learn:'', check:'' },
-  { grade:5, sem:2, no:3, area:'도형과 측정', title:'합동과 대칭', learn:'', check:'' },
-  { grade:5, sem:2, no:4, area:'수와 연산', title:'소수의 곱셈', learn:'', check:'' },
-  { grade:5, sem:2, no:5, area:'도형과 측정', title:'직육면체와 정육면체', learn:'', check:'' },
-  { grade:5, sem:2, no:6, area:'자료와 가능성', title:'평균과 가능성', learn:'', check:'' },
+  { grade:5, sem:2, no:1, area:'수와 연산', title:'수의 범위와 어림하기', learn:'', check:'checks/assess.html?u=5-2-1' },
+  { grade:5, sem:2, no:2, area:'수와 연산', title:'분수의 곱셈', learn:'', check:'checks/assess.html?u=5-2-2' },
+  { grade:5, sem:2, no:3, area:'도형과 측정', title:'합동과 대칭', learn:'', check:'checks/assess.html?u=5-2-3' },
+  { grade:5, sem:2, no:4, area:'수와 연산', title:'소수의 곱셈', learn:'', check:'checks/assess.html?u=5-2-4' },
+  { grade:5, sem:2, no:5, area:'도형과 측정', title:'직육면체', learn:'', check:'checks/assess.html?u=5-2-5' },
+  { grade:5, sem:2, no:6, area:'자료와 가능성', title:'평균과 가능성', learn:'', check:'checks/assess.html?u=5-2-6' },
   // ── 6학년 1학기 ─────────────────────
   { grade:6, sem:1, no:1, area:'수와 연산', title:'분수의 나눗셈', learn:'', check:'' },
   { grade:6, sem:1, no:2, area:'도형과 측정', title:'각기둥과 각뿔', learn:'', check:'' },
