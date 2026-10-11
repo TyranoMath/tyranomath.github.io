@@ -143,6 +143,16 @@ section[id]{scroll-margin-top:calc(var(--tap) + 30px)}
 
 .dino-stage{position:relative; display:flex; justify-content:center}
 .dino-stage .hero-dino{width:var(--hero-dino); height:auto; animation:bob 3s ease-in-out infinite; filter:drop-shadow(0 12px 0 rgba(47,138,71,.12))}
+/* 티라노 가족 */
+.dino-stage .hero-family{width:calc(var(--hero-dino) * 1.6); max-width:100%; height:auto; overflow:visible; filter:drop-shadow(0 12px 0 rgba(47,138,71,.12))}
+.hero-family .fam{animation:bob 3s ease-in-out infinite}
+.hero-family .f-mom{animation-delay:-.8s}
+.hero-family .f-kid1{animation:hop 1.9s ease-in-out infinite; --kb:#8FDB9E; --kd:#5CB872; --kl:#F0FBD9; --ks:#FFB86B; --ke:#2E6B3A}
+.hero-family .f-kid2{animation:hop 1.9s ease-in-out infinite -.95s; --kb:#8FDB9E; --kd:#5CB872; --kl:#F0FBD9; --ks:#FFB86B; --ke:#2E6B3A}
+.hero-family .fam-heart{animation:heartbeat 2.4s ease-in-out infinite; transform-origin:246px 62px}
+@keyframes hop{0%,100%{transform:translateY(0)}45%{transform:translateY(-12px)}60%{transform:translateY(-12px)}}
+@keyframes heartbeat{0%,100%{transform:scale(1)}15%{transform:scale(1.25)}30%{transform:scale(1)}45%{transform:scale(1.15)}}
+@media (prefers-reduced-motion: reduce){.hero-family *{animation:none !important}}
 .bubble{
   position:absolute; top:6%; left:4%; background:#fff; border:var(--border) solid var(--line);
   border-radius:18px; padding:8px 14px; font-family:'Jua',sans-serif; font-size:1.1rem; box-shadow:var(--shadow);
