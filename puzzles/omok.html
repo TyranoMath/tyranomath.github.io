@@ -162,6 +162,7 @@ button{font:inherit; color:inherit; cursor:pointer; touch-action:manipulation; -
   </div>
 </div>
 
+<script src="../assets/rank.js"></script>
 <script>
 (() => {
 'use strict';
@@ -181,6 +182,7 @@ if (!(lv >= 0 && lv <= 2)) lv = 1;
 const LV_NAME = ['아기 티라노', '청소년 티라노', '대장 티라노'];
 
 let board, turn, history, over, wins = { 1: 0, 2: 0 }, human = 1, thinking = false;
+TMRank.setup({ game:'omok', title:'티라노 오목', note:'컴퓨터 티라노를 가장 적은 수로 이긴 순위예요', kind:'low', unit:'수', levels: LV_NAME.map((n, i) => [String(i), n]), level: () => String(lv), mount:['.top', '.setup-top'] });
 
 /* ---------- 판 그리기 ---------- */
 const svg = $('#board');
@@ -348,7 +350,9 @@ function finish(c, line){
   } else { title = (c === 1 ? '초록 알' : '주황 알') + ' 승리! 🎉'; txt = `${history.length}수 만에 5개를 이었어요!`; }
   $('#msg').textContent = title;
   $('#endTitle').textContent = title; $('#endTxt').textContent = txt;
-  setTimeout(() => $('#endOv').hidden = false, 900);
+  setTimeout(() => { $('#endOv').hidden = false;
+    if (mode === 'cpu' && c === human && line) TMRank.finish({ level: String(lv), name: LV_NAME[lv], value: history.filter(h => h.c === human).length });
+  }, 900);
 }
 function newGame(){
   board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
@@ -363,6 +367,7 @@ function newGame(){
     $('#nm2').innerHTML = '주황 알<small>나중에 둬요</small>';
   }
   redraw();
+  if (mode === 'cpu') TMRank.start(String(lv), LV_NAME[lv]);
   if (mode === 'cpu' && human === 2) cpuTurn();
 }
 

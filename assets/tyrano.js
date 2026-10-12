@@ -7,6 +7,7 @@
 
 // data.js 의 CONFIG · GAMES · CHECKS 를 읽어요 (없어도 오류 없이 동작)
 const CFG = Object.assign({ bugReportUrl:'', latestCount:4, newDays:14, statsUrl:'' }, typeof CONFIG !== 'undefined' ? CONFIG : {});
+window.TM_STATS_URL = CFG.statsUrl || '';   // 게임 창(랭킹)이 이 주소를 함께 써요
 const GAME_LIST  = typeof GAMES  !== 'undefined' && Array.isArray(GAMES)  ? GAMES  : [];
 const UNIT_LIST  = typeof UNITS  !== 'undefined' && Array.isArray(UNITS)  ? UNITS  : [];
 const BEST_LIST  = typeof BEST   !== 'undefined' && Array.isArray(BEST)   ? BEST   : [];

@@ -307,6 +307,7 @@ footer{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap
 </div>
 
 <script src="puzzle-common.js"></script>
+<script src="../assets/rank.js"></script>
 <script>
 (() => {
 "use strict";
@@ -438,6 +439,11 @@ const S = {
   sound: store.get('tm_tile_sound', true), stars: store.get('tm_tile_stars', {}), best: store.get('tm_tile_best', 0)
 };
 const board = $('#board'), wrap = $('#wrap'), trayEl = $('#tray');
+/* 🏆 랭킹: 한 번 도전(테마를 고른 뒤 실패하거나 처음으로 갈 때까지)에서 모은 점수 */
+let runT0 = 0, runFloor = 1, sentScore = 0;
+const floorName = f => f + '층부터';
+TMRank.setup({ game:'tile-match', title:'티라노 타일 매칭', kind:'score', levels: [['1', floorName(1)], ['2', floorName(2)]], level: () => String(runFloor), mount:['.top .icons'] });
+function rankRun(){ if (S.score > sentScore){ sentScore = S.score; TMRank.finish({ level: String(runFloor), name: floorName(runFloor), value: S.score, t: Math.round((Date.now() - runT0) / 1000) }); } }
 
 /* ================= 시작 화면 ================= */
 function stackIcon(n) {
@@ -467,10 +473,12 @@ $('#themeGrid').addEventListener('click', e => {
   const b = e.target.closest('.tcard'); if (!b) return;
   initAudio();
   S.mode = b.dataset.t; S.score = 0;
+  runT0 = Date.now(); runFloor = S.startFloor; sentScore = 0; TMRank.start(String(runFloor), floorName(runFloor));
   $('#start').hidden = true; $('#game').hidden = false; $('#stats').hidden = false; $('#bHome').hidden = false;
   startLevel(S.mode === 'mix' ? pick(PLAYABLE).id : S.mode, S.startFloor);
 });
 function goHome() {
+  if (S.score > 0 && !$('#game').hidden) rankRun();
   stopTimer(); clearInterval(S.auto); S.running = false;
   $('#ovClear').hidden = true; $('#ovFail').hidden = true;
   $('#game').hidden = true; $('#start').hidden = false; $('#stats').hidden = true; $('#bHome').hidden = true;
@@ -682,13 +690,14 @@ function showFail() {
   S.running = false; stopTimer(); beep('bad'); dino('sad');
   $('#bRescue').hidden = S.rescue <= 0;
   $('#ovFail').hidden = false;
+  rankRun();
 }
-$('#bRescue').addEventListener('click', () => {
+$('#bRescue').addEventListener('click', () => { TMRank.start(String(runFloor), floorName(runFloor));
   $('#ovFail').hidden = true; S.rescue--; S.used += 2;
   S.busy = false; for (let k = 0; k < 3; k++) undoOne();
   S.running = true; startTimer(); say('다시 힘내요!');
 });
-$('#bRetry').addEventListener('click', () => { $('#ovFail').hidden = true; startLevel(S.theme.id, S.floor); });
+$('#bRetry').addEventListener('click', () => { TMRank.start(String(runFloor), floorName(runFloor)); $('#ovFail').hidden = true; startLevel(S.theme.id, S.floor); });
 $('#bFailHome').addEventListener('click', goHome);
 
 function levelClear() {

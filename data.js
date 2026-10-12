@@ -161,5 +161,6 @@ const PUZZLES = [
   { title:'티라노 픽셀 아트',  desc:'네모 칸을 칠해 나만의 픽셀 그림을 만들어요. 대칭 그리기와 그림 저장도 돼요!', grade:'1~6학년', area:'도형 퍼즐', icon:'🎨', image:'puzzles/thumbs/pixel-art.svg',     color:'#FFF3C4', date:'2026-10-10', file:'puzzles/pixel-art.html' },
   { title:'티라노 사무라이 스도쿠', desc:'9×9 스도쿠 판 5개가 겹쳐 있어요! 겹친 상자는 두 판의 규칙을 모두 지켜야 하는 최강 도전.', grade:'3~6학년', area:'수 퍼즐', icon:'🏯', image:'puzzles/thumbs/samurai-sudoku.svg', color:'#EFE6FF', date:'2026-10-11', file:'puzzles/samurai-sudoku.html' },
   { title:'티라노 슬라이딩 퍼즐', desc:'빈칸으로 조각을 밀어 숫자 순서나 공룡·우주·바다 그림을 완성해요. 내 사진으로도 할 수 있어요!', grade:'1~6학년', area:'논리 퍼즐', icon:'🧩', image:'puzzles/thumbs/sliding.svg', color:'#EFE6FF', date:'2026-10-11', file:'puzzles/sliding.html' },
-  { title:'티라노 타일 매칭', desc:'1층·2층으로 쌓인 타일에서 같은 짝 3개를 모아 없애요. 과일·동물부터 연산·수 세기·도형까지!', grade:'1~4학년', area:'수 퍼즐', icon:'🀄', image:'puzzles/thumbs/tile-match.svg', color:'#EFE6FF', date:'2026-10-12', file:'puzzles/tile-match.html' }
+  { title:'티라노 타일 매칭', desc:'1층·2층으로 쌓인 타일에서 같은 짝 3개를 모아 없애요. 과일·동물부터 연산·수 세기·도형까지!', grade:'1~4학년', area:'수 퍼즐', icon:'🀄', image:'puzzles/thumbs/tile-match.svg', color:'#EFE6FF', date:'2026-10-12', file:'puzzles/tile-match.html' },
+  { title:'티라노 크로스 매스', desc:'빈칸에 숫자 화석을 놓아 가로식과 세로식을 모두 맞혀요! 덧셈·뺄셈부터 혼합 계산까지 4단계.', grade:'1~6학년', area:'수 퍼즐', icon:'➕', image:'puzzles/thumbs/crossmath.svg', color:'#FFE7CC', date:'2026-10-12', file:'puzzles/crossmath.html' }
 ];

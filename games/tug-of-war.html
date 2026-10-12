@@ -414,6 +414,7 @@ html[data-device="phone"] .copy{font-size:10px;padding:0 10px 4px}
 
 <canvas id="confetti" hidden></canvas>
 
+<script src="../assets/rank.js"></script>
 <script>
 (() => {
 const $ = s => document.querySelector(s);
@@ -595,6 +596,12 @@ function heave(side){
 }
 
 /* ---------------- 게임 상태 ---------------- */
+/* 🏆 랭킹: 1인용에서 컴퓨터 티라노를 이긴 시간 (설정마다 따로) */
+const CPU_LV = { 9000:'느긋한', 6000:'보통', 4000:'날쌘', 2500:'번개' };
+const rankLv = () => [cfg.cpu, cfg.ops.join(''), cfg.digits, cfg.mode + (cfg.mode === 'mixed' && cfg.parens ? 'p' : ''), cfg.penalty ? 1 : 0, cfg.steps].join('|');
+const rankName = () => `${CPU_LV[cfg.cpu] || ''} 티라노 · ${cfg.ops.join(' ')} · ${cfg.digits}자리${cfg.mode === 'mixed' ? ' · 세 수' + (cfg.parens ? '·괄호' : '') : ''}${cfg.penalty ? ' · 밀림' : ''} · ${cfg.steps}칸`;
+TMRank.setup({ game:'tug-of-war', title:'줄다리기 연산 대결', note:'1인용에서 컴퓨터 티라노를 가장 빨리 이긴 순위예요 (설정마다 따로)', kind:'time', levels: [], level: rankLv, mount:['.topbar .tools', '#setup header'],
+  onOpen: () => pause() });
 const S = {gen:0, running:false, paused:false, pos:0, endAt:0, remain:0, cpuAt:0, cpuRemain:0, timer:0, sides:[]};
 const freshSide = () => ({correct:0, wrong:0, input:'', prob:makeProblem(), lock:false});
 
@@ -715,7 +722,8 @@ function startGame(){
     if (i < seq.length) setTimeout(step, 750);
     else setTimeout(() => {
       if (gen !== S.gen) return;
-      ov.hidden = true; S.running = true; S.endAt = performance.now() + cfg.time*1000; S.cpuAt = nextCpu();
+      ov.hidden = true; S.running = true; S.endAt = performance.now() + cfg.time*1000; S.cpuAt = nextCpu(); S.t0 = performance.now();
+      if (solo()) TMRank.start(rankLv(), rankName());
       renderStatus(); S.timer = setInterval(tick, 200); tick();
     }, 600);
   };
@@ -740,14 +748,15 @@ function tick(){
 function pause(){
   if (!S.running || S.paused) return;
   const now = performance.now();
-  S.paused = true; S.remain = S.endAt - now; S.cpuRemain = S.cpuAt - now; $('#pauseOv').hidden = false;
+  S.paused = true; S.remain = S.endAt - now; S.cpuRemain = S.cpuAt - now; S.pauseAt = now; $('#pauseOv').hidden = false;
 }
 function resume(){
   if (!S.paused) return;
   const now = performance.now();
-  S.paused = false; S.endAt = now + S.remain; S.cpuAt = now + S.cpuRemain; $('#pauseOv').hidden = true;
+  S.paused = false; S.endAt = now + S.remain; S.cpuAt = now + S.cpuRemain; S.t0 += now - S.pauseAt; $('#pauseOv').hidden = true;
 }
 function finish(w, why){
+  S.winT = Math.round((performance.now() - S.t0) / 100) / 10;
   S.running = false; clearInterval(S.timer);
   if (cfg.time) renderClock(Math.max(0, S.endAt - performance.now()));
   const title = $('#winTitle'), cpuWon = solo() && w === 1;
@@ -766,6 +775,7 @@ function finish(w, why){
     $('#winOv').hidden = false;
     if (cpuWon){ sfx.lose(); return; }
     sfx.win();
+    if (solo() && w === 0) TMRank.finish({ level: rankLv(), name: rankName(), value: S.winT });
     if (w >= 0) confetti(w ? ['#FF9F43','#FFD43B','#FFFFFF','#4CB963'] : ['#4CB963','#FFD43B','#FFFFFF','#FF9F43']);
   }, 650);
 }

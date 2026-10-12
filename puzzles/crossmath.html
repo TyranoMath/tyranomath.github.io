@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>티라노 크로스 매스 · TyranoMath</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="puzzle.css">
+<style>
+/* 넓은 화면: 판 왼쪽 · 숫자 화석과 도구 오른쪽 / 세로 화면: 판 위 · 도구 아래 */
+.board-area{flex:1; min-width:0; height:100%; display:grid; place-items:center}
+.board{--m:7; --cs:52px; display:grid; grid-template-columns:repeat(var(--m), var(--cs)); grid-auto-rows:var(--cs); gap:calc(var(--cs) * .07);
+  background:#fff; border:4px solid var(--line); border-radius:22px; padding:calc(var(--cs) * .22); box-shadow:0 6px 0 var(--line)}
+.cell{display:grid; place-items:center; border-radius:calc(var(--cs) * .22); font-family:'Fredoka',sans-serif; font-weight:700; font-size:calc(var(--cs) * .5); line-height:1; padding:0; border:0; background:none}
+.cell.num{background:#FAF5EA; border:2px solid var(--line); color:var(--ink)}
+.cell.op{color:var(--purple); font-size:calc(var(--cs) * .48)}
+.cell.eq{color:var(--muted); font-size:calc(var(--cs) * .48)}
+.cell.res{background:var(--sky); border:2px solid #B9DBF5; color:#2F6FA8; font-size:calc(var(--cs) * .44)}
+.cell.res.ok{background:var(--leaf); border-color:var(--green); color:var(--green-d); animation:pop .35s}
+.cell.res.bad{background:#FFE3EA; border-color:var(--red); color:var(--red)}
+.cell.blank{background:#FFF3DA; border:3px dashed var(--orange); color:#7A4300; cursor:pointer}
+.cell.blank.filled{background:var(--orange); border:3px solid var(--orange-d); color:#fff; box-shadow:inset 0 -4px 0 rgba(0,0,0,.14)}
+.cell.blank.sel{box-shadow:0 0 0 4px var(--purple); background:#FFE7A8}
+.cell.blank.filled.sel{background:var(--orange)}
+.cell.blank.wrong{background:var(--red); border-color:#B83A4F}
+.cell.blank.locked{background:var(--green); border:3px solid var(--green-d); color:#fff; cursor:default}
+.cell:focus-visible{outline:3px solid var(--purple); outline-offset:2px}
+@keyframes pop{50%{transform:scale(1.15)}}
+
+.tray{background:#fff; border:3px solid var(--line); border-radius:20px; padding:12px; box-shadow:0 5px 0 var(--line)}
+.tray-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px}
+.tray-head b{font-family:'Jua',sans-serif; font-weight:400; font-size:clamp(17px,1.8vw,21px)}
+.tray-head span{font-size:13px; color:var(--muted)}
+.tiles{display:flex; flex-wrap:wrap; gap:8px; min-height:56px; align-items:center; justify-content:center}
+.tile{width:clamp(44px,4.4vw,54px); height:clamp(48px,4.8vw,58px); border:0; border-radius:50% 50% 44% 44% / 58% 58% 42% 42%;
+  background:radial-gradient(circle at 32% 28%, #FFD08F, var(--orange) 60%); color:#fff; font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(22px,2.2vw,28px);
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.16), 0 3px 0 var(--orange-d); text-shadow:0 1px 0 rgba(0,0,0,.18); transition:transform .12s}
+.tile:active{transform:translateY(3px)}
+.tile[aria-pressed="true"]{transform:translateY(-6px); box-shadow:inset 0 -4px 0 rgba(0,0,0,.16), 0 0 0 4px var(--purple)}
+.tiles .empty{font-family:'Jua',sans-serif; color:var(--green-d)}
+.tools{grid-template-columns:repeat(2,1fr)}
+.rule{font-size:13px; color:var(--muted); text-align:center; margin:0; line-height:1.55}
+.rule b{color:var(--ink)}
+
+@media (max-aspect-ratio: 1/1){
+  .board-area{height:auto; width:100%}
+  .tools{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+<link rel="stylesheet" href="puzzle-setup.css">
+</head>
+<body>
+<div class="top">
+  <a class="back" id="back" href="../puzzlezone.html" hidden>← 퍼즐존</a>
+  <div class="title"><span class="dino-logo"></span>티라노 크로스 매스</div>
+  <span class="pill" id="lvPill">랩터</span>
+  <span class="pill">⏱ <b id="time">0:00</b></span>
+  <span class="pill">💡 <b id="hintUsed">0</b></span>
+</div>
+
+<div class="main">
+  <div class="board-area" id="area"><div class="board" id="board" role="grid" aria-label="크로스 매스 판"></div></div>
+  <div class="side">
+    <section class="tray" aria-label="숫자 화석">
+      <div class="tray-head"><b>🦴 숫자 화석</b><span id="left"></span></div>
+      <div class="tiles" id="tiles"></div>
+    </section>
+    <div class="tools">
+      <button class="tool" id="hint">💡 힌트</button>
+      <button class="tool" id="clear">↻ 다 비우기</button>
+      <button class="tool" id="newBtn">🆕 새 퍼즐</button>
+      <button class="tool" id="levelBtn">⚙️ 단계</button>
+    </div>
+    <div class="msg" id="msg">숫자 화석을 골라 빈칸에 놓아요!</div>
+    <p class="rule" id="rule"></p>
+  </div>
+</div>
+
+<!-- 시작 화면 -->
+<div class="overlay setup" id="startOv">
+  <div class="setup-in">
+    <header class="setup-top">
+      <a class="back setup-back" href="../puzzlezone.html" hidden>← 퍼즐존</a>
+      <div class="title"><span class="dino-logo"></span>티라노 크로스 매스</div>
+    </header>
+    <section class="intro-card">
+      <div>
+        <h1 style="--n:19.2">크앙! <span class="hl">가로식과 세로식</span>을 모두 맞혀요</h1>
+        <p>빈칸에 숫자 화석을 놓아서 가로로 읽은 식과 세로로 읽은 식이 <b>모두</b> 맞도록 만들어요. 한 칸이 두 식에 함께 쓰이니 잘 생각해 봐요!</p>
+        <div class="howto"><span><b>①</b> 숫자 화석을 골라요</span><span><b>②</b> 빈칸을 눌러 놓아요</span><span><b>③</b> 가로·세로 식이 모두 초록색이면 성공</span></div>
+      </div>
+      <div class="intro-art" aria-hidden="true"><img src="thumbs/crossmath.svg" alt=""><span class="spark s1">+</span><span class="spark s2">=</span></div>
+    </section>
+    <section class="opt">
+      <h3>단계 <small>식에 나오는 연산과 빈칸 수가 달라져요</small></h3>
+      <div class="chips" id="lvChips">
+        <button data-lv="0">🐣 아기 공룡<small>＋ − · 빈칸 3개</small></button>
+        <button data-lv="1">🦖 랩터<small>＋ − × · 빈칸 5개</small></button>
+        <button data-lv="2">🦕 티라노<small>＋ − × ÷ · 빈칸 7개</small></button>
+        <button data-lv="3">🦴 화석왕<small>4줄 · 혼합 계산 · 빈칸 10개</small></button>
+      </div>
+    </section>
+    <p class="best" id="bestTxt"></p>
+    <div class="row start-row">
+      <button class="btn" id="go">시작하기 🦖</button>
+    </div>
+  </div>
+</div>
+
+<!-- 완성 화면 -->
+<div class="overlay" id="winOv" hidden>
+  <div class="sheet">
+    <span class="dino-logo big wobble"></span>
+    <h1>크앙! 성공했어요! 🎉</h1>
+    <p id="winTxt"></p>
+    <p id="winBest"></p>
+    <div class="row">
+      <button class="btn" id="again">다음 퍼즐</button>
+      <button class="btn alt" id="toStart">단계 바꾸기</button>
+    </div>
+  </div>
+</div>
+
+<script src="puzzle-common.js"></script>
+<script src="../assets/rank.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const { store, fmt } = TM;
+
+/* 단계: N(줄 수), 쓰는 연산, 빈칸 수, 결과 최댓값
+   lr = 왼쪽부터 차례로 계산해도 결과가 같은 식만 만들어요 (혼합 계산 순서를 아직 배우지 않은 학년용) */
+const LEVELS = [
+  { name:'아기 공룡', N:3, ops:['+','−'],         hide:3,  res:30,  lr:true },
+  { name:'랩터',      N:3, ops:['+','−','×'],     hide:5,  res:60,  lr:true },
+  { name:'티라노',    N:3, ops:['+','−','×','÷'], hide:7,  res:99,  lr:true },
+  { name:'화석왕',    N:4, ops:['+','−','×','÷'], hide:10, res:150, lr:false }
+];
+const RULE = [
+  '왼쪽(위쪽)부터 차례로 계산해요. 채운 칸을 다시 누르면 화석이 돌아가요.',
+  '왼쪽(위쪽)부터 차례로 계산해요. 채운 칸을 다시 누르면 화석이 돌아가요.',
+  '왼쪽(위쪽)부터 차례로 계산해요. ÷는 나누어떨어져야 해요.',
+  '<b>×, ÷를 +, −보다 먼저</b> 계산해요. ÷는 나누어떨어져야 해요.'
+];
+let lv = Number(store.get('tm-cross-lv') ?? 1); if (!LEVELS[lv]) lv = 1;
+let S = null, timer = null, t0 = 0, elapsed = 0;
+TMRank.setup({ game:'crossmath', title:'티라노 크로스 매스', kind:'time', levels: LEVELS.map((L, i) => [String(i), L.name]), level: () => String(lv), mount:['.top', '.setup-top'] });
+
+/* ---------- 계산 ---------- */
+// 곱셈·나눗셈 먼저 (일반 규칙)
+function evalP(nums, ops){
+  if (nums.some(v => v == null)) return null;
+  let sum = 0, sign = 1, cur = nums[0];
+  for (let i = 0; i < ops.length; i++){
+    const op = ops[i], b = nums[i + 1];
+    if (op === '×') cur *= b;
+    else if (op === '÷'){ if (b === 0 || cur % b) return NaN; cur /= b; }
+    else { sum += sign * cur; sign = op === '+' ? 1 : -1; cur = b; }
+  }
+  return sum + sign * cur;
+}
+// 왼쪽부터 차례로 계산: 중간값이 음수이거나 나누어떨어지지 않으면 NaN
+function evalLR(nums, ops){
+  let v = nums[0];
+  for (let i = 0; i < ops.length; i++){
+    const b = nums[i + 1], op = ops[i];
+    if (op === '+') v += b; else if (op === '−') v -= b; else if (op === '×') v *= b;
+    else { if (v % b) return NaN; v /= b; }
+    if (v < 0) return NaN;
+  }
+  return v;
+}
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+function lineOK(cfg, nums, ops){
+  const v = evalP(nums, ops);
+  if (!Number.isInteger(v) || v < 0 || v > cfg.res) return null;
+  if (cfg.lr && evalLR(nums, ops) !== v) return null;
+  if (ops.some((o, i) => o === '÷' && nums[i + 1] === 1)) return null; // ÷1은 재미없어요
+  return v;
+}
+function generate(cfg){
+  const N = cfg.N;
+  for (let t = 0; t < 400000; t++){
+    const ops = t > 300000 ? cfg.ops.filter(o => o !== '÷') : cfg.ops;
+    const sol = [...Array(N)].map(() => [...Array(N)].map(() => 1 + rnd(9)));
+    const rOps = [...Array(N)].map(() => [...Array(N - 1)].map(() => pick(ops)));
+    const cOps = [...Array(N - 1)].map(() => [...Array(N)].map(() => pick(ops)));
+    const rRes = [], cRes = []; let ok = true;
+    for (let i = 0; i < N && ok; i++){ const v = lineOK(cfg, sol[i], rOps[i]); if (v == null) ok = false; rRes.push(v); }
+    for (let j = 0; j < N && ok; j++){ const v = lineOK(cfg, sol.map(r => r[j]), cOps.map(r => r[j])); if (v == null) ok = false; cRes.push(v); }
+    if (!ok) continue;
+    const used = new Set([...rOps.flat(), ...cOps.flat()]);
+    if (t < 200000 && ops.some(o => !used.has(o))) continue;   // 될 수 있으면 모든 연산이 한 번은 나오게
+    return { sol, rOps, cOps, rRes, cRes };
+  }
+  return null;
+}
+
+/* ---------- 새 게임 ---------- */
+function newGame(){
+  const cfg = LEVELS[lv];
+  $('#msg').textContent = '퍼즐을 만드는 중…';
+  setTimeout(() => {
+    let p = null; while (!p) p = generate(cfg);
+    const N = cfg.N, keys = shuffle([...Array(N * N).keys()]).slice(0, cfg.hide);
+    const hidden = new Set(keys);
+    const tiles = keys.map((k, id) => ({ id, v: p.sol[Math.floor(k / N)][k % N], at: null })).sort((a, b) => a.v - b.v);
+    S = { ...p, N, hidden, tiles, locked: new Set(), selTile: null, selCell: null, done: false, hints: 0 };
+    $('#lvPill').textContent = cfg.name;
+    $('#rule').innerHTML = RULE[lv];
+    $('#msg').textContent = '숫자 화석을 골라 빈칸에 놓아요!';
+    $('#hintUsed').textContent = 0;
+    clearInterval(timer); t0 = Date.now(); elapsed = 0; tick(); timer = setInterval(tick, 1000);
+    render(); sizeBoard();
+    TMRank.start(String(lv), cfg.name);
+  }, 30);
+}
+function tick(){ elapsed = Math.floor((Date.now() - t0) / 1000); $('#time').textContent = fmt(elapsed); }
+
+/* ---------- 상태 ---------- */
+const valueAt = k => S.hidden.has(k) ? (S.tiles.find(t => t.at === k)?.v ?? null) : S.sol[Math.floor(k / S.N)][k % S.N];
+function rowState(i){ const N = S.N, nums = [...Array(N)].map((_, j) => valueAt(i * N + j)); if (nums.includes(null)) return null; return evalP(nums, S.rOps[i]) === S.rRes[i]; }
+function colState(j){ const N = S.N, nums = [...Array(N)].map((_, i) => valueAt(i * N + j)); if (nums.includes(null)) return null; return evalP(nums, S.cOps.map(r => r[j])) === S.cRes[j]; }
+
+/* ---------- 화면 ---------- */
+function render(){
+  const N = S.N, M = 2 * N + 1, b = $('#board');
+  b.style.setProperty('--m', M);
+  const rs = [...Array(N)].map((_, i) => rowState(i)), cs = [...Array(N)].map((_, j) => colState(j));
+  let h = '';
+  for (let r = 0; r < M; r++) for (let c = 0; c < M; c++){
+    const rN = r % 2 === 0 && r < 2 * N, cN = c % 2 === 0 && c < 2 * N;
+    if (rN && cN){
+      const i = r / 2, j = c / 2, k = i * N + j;
+      if (S.hidden.has(k)){
+        const v = valueAt(k), lk = S.locked.has(k), bad = v != null && !lk && (rs[i] === false || cs[j] === false);
+        h += `<button class="cell blank${v != null ? ' filled' : ''}${S.selCell === k ? ' sel' : ''}${lk ? ' locked' : ''}${bad ? ' wrong' : ''}" data-k="${k}" aria-label="${i + 1}행 ${j + 1}열 빈칸${v != null ? ', ' + v : ''}">${v ?? ''}</button>`;
+      } else h += `<div class="cell num">${S.sol[i][j]}</div>`;
+    }
+    else if (rN && c % 2 === 1 && c < 2 * N - 1) h += `<div class="cell op">${S.rOps[r / 2][(c - 1) / 2]}</div>`;
+    else if (rN && c === 2 * N - 1) h += `<div class="cell eq">=</div>`;
+    else if (rN && c === 2 * N){ const s = rs[r / 2]; h += `<div class="cell res${s === true ? ' ok' : s === false ? ' bad' : ''}">${S.rRes[r / 2]}</div>`; }
+    else if (r % 2 === 1 && r < 2 * N - 1 && cN) h += `<div class="cell op">${S.cOps[(r - 1) / 2][c / 2]}</div>`;
+    else if (r === 2 * N - 1 && cN) h += `<div class="cell eq">=</div>`;
+    else if (r === 2 * N && cN){ const s = cs[c / 2]; h += `<div class="cell res${s === true ? ' ok' : s === false ? ' bad' : ''}">${S.cRes[c / 2]}</div>`; }
+    else h += '<div></div>';
+  }
+  b.innerHTML = h;
+  const free = S.tiles.filter(t => t.at == null);
+  $('#tiles').innerHTML = free.length ? free.map(t => `<button class="tile" data-id="${t.id}" aria-pressed="${S.selTile === t.id}" aria-label="숫자 ${t.v}">${t.v}</button>`).join('')
+    : '<span class="empty">모든 화석을 놓았어요!</span>';
+  $('#left').textContent = `남은 화석 ${free.length}개`;
+  if (!S.done && rs.every(x => x === true) && cs.every(x => x === true)) win();
+  else if (!free.length && !S.done) $('#msg').textContent = '빨간 칸이 있는 식을 다시 살펴봐요 🔍';
+}
+// 판 크기: 남은 공간에 맞춰 칸 크기를 정해요
+function sizeBoard(){
+  if (!S) return;
+  const M = 2 * S.N + 1, a = $('#area'), portrait = innerWidth <= innerHeight;
+  const w = (portrait ? Math.min(innerWidth - 28, 560) : a.clientWidth) - 20, hgt = portrait ? innerHeight * .56 : a.clientHeight - 20;
+  const cs = Math.max(26, Math.min(66, Math.floor(Math.min(w, hgt) / (M * 1.07 + .5))));
+  $('#board').style.setProperty('--cs', cs + 'px');
+}
+
+/* ---------- 조작 ---------- */
+function nextBlank(from){
+  const ks = [...S.hidden].sort((a, b) => a - b).filter(k => valueAt(k) == null && !S.locked.has(k));
+  return ks.find(k => k > from) ?? ks[0] ?? null;
+}
+function place(id, k){
+  const cur = S.tiles.find(t => t.at === k); if (cur) cur.at = null;
+  S.tiles.find(t => t.id === id).at = k; S.selTile = null;
+}
+function clickTile(id){
+  if (S.done) return;
+  if (S.selCell != null){ const k = S.selCell; place(id, k); S.selCell = nextBlank(k); render(); return; }
+  S.selTile = S.selTile === id ? null : id; render();
+}
+function clickCell(k){
+  if (S.done || S.locked.has(k)) return;
+  if (S.selTile != null){ place(S.selTile, k); S.selCell = null; render(); return; }
+  const cur = S.tiles.find(t => t.at === k);
+  if (cur){ cur.at = null; S.selCell = k; $('#msg').textContent = '화석을 트레이로 돌려보냈어요.'; render(); return; }
+  S.selCell = S.selCell === k ? null : k; render();
+}
+function hint(){
+  if (!S || S.done) return;
+  const cands = [...S.hidden].filter(k => !S.locked.has(k) && valueAt(k) !== S.sol[Math.floor(k / S.N)][k % S.N]);
+  if (!cands.length){ $('#msg').textContent = '이미 다 맞게 놓였어요!'; return; }
+  const k = S.selCell != null && cands.includes(S.selCell) ? S.selCell : pick(cands), need = S.sol[Math.floor(k / S.N)][k % S.N];
+  // 필요한 숫자 화석: 트레이에 있는 것 → 틀린 자리에 놓인 것 → 잠기지 않은 것
+  const t = S.tiles.find(t => t.at == null && t.v === need)
+    || S.tiles.find(t => t.v === need && t.at != null && !S.locked.has(t.at) && valueAt(t.at) !== S.sol[Math.floor(t.at / S.N)][t.at % S.N])
+    || S.tiles.find(t => t.v === need && !S.locked.has(t.at));
+  const old = S.tiles.find(x => x.at === k); if (old) old.at = null;
+  t.at = k; S.locked.add(k); S.hints++; S.selTile = null; S.selCell = null;
+  $('#hintUsed').textContent = S.hints;
+  $('#msg').textContent = `💡 ${Math.floor(k / S.N) + 1}행 ${k % S.N + 1}열은 ${need}예요!`;
+  render();
+}
+function clearAll(){
+  if (!S || S.done) return;
+  S.tiles.forEach(t => { if (t.at != null && !S.locked.has(t.at)) t.at = null; });
+  S.selTile = S.selCell = null; $('#msg').textContent = '처음부터 다시 놓아 봐요!'; render();
+}
+function win(){
+  S.done = true; clearInterval(timer); tick();
+  const key = `tm-cross-best-${lv}`, old = Number(store.get(key) || 0);
+  const isBest = !S.hints && (!old || elapsed < old); if (isBest) store.set(key, elapsed);
+  store.set('tm-cross-solved', Number(store.get('tm-cross-solved') || 0) + 1);
+  $('#msg').textContent = '크앙! 모든 식이 맞았어요! 🎉';
+  $('#winTxt').textContent = `${LEVELS[lv].name} 퍼즐을 ${fmt(elapsed)} 만에 풀었어요! ${S.hints ? `(힌트 ${S.hints}번)` : '(힌트 없이!)'}`;
+  $('#winBest').textContent = isBest ? '🏆 새 최고 기록이에요!' : old ? `🏆 최고 기록: ${fmt(old)}` : '💡 힌트 없이 풀면 최고 기록에 올라가요!';
+  setTimeout(() => { $('#winOv').hidden = false; $('#again').focus(); TMRank.finish({ level: String(lv), name: LEVELS[lv].name, value: elapsed }); }, 600);
+}
+
+$('#board').addEventListener('click', e => { const c = e.target.closest('.blank'); if (c) clickCell(Number(c.dataset.k)); });
+$('#tiles').addEventListener('click', e => { const t = e.target.closest('.tile'); if (t) clickTile(Number(t.dataset.id)); });
+$('#hint').addEventListener('click', hint);
+$('#clear').addEventListener('click', clearAll);
+$('#newBtn').addEventListener('click', newGame);
+$('#levelBtn').addEventListener('click', showStart);
+$('#again').addEventListener('click', () => { $('#winOv').hidden = true; newGame(); });
+$('#toStart').addEventListener('click', () => { $('#winOv').hidden = true; showStart(); });
+document.addEventListener('keydown', e => {
+  if (!S || S.done || !$('#startOv').hidden) return;
+  if (/^[1-9]$/.test(e.key) && S.selCell != null){
+    const t = S.tiles.find(t => t.at == null && t.v === Number(e.key));
+    if (t){ const k = S.selCell; place(t.id, k); S.selCell = nextBlank(k); render(); } else $('#msg').textContent = `${e.key} 화석이 트레이에 없어요.`;
+  } else if ((e.key === 'Backspace' || e.key === 'Delete') && S.selCell != null && !S.locked.has(S.selCell)){
+    const t = S.tiles.find(t => t.at === S.selCell); if (t){ t.at = null; render(); }
+  } else if (e.key === 'Escape'){ S.selTile = S.selCell = null; render(); }
+});
+window.addEventListener('resize', sizeBoard);
+
+/* ---------- 시작 화면 ---------- */
+function syncStart(){
+  document.querySelectorAll('#lvChips button').forEach(b => b.setAttribute('aria-pressed', Number(b.dataset.lv) === lv));
+  const best = Number(store.get(`tm-cross-best-${lv}`) || 0), solved = Number(store.get('tm-cross-solved') || 0);
+  $('#bestTxt').textContent = (best ? `🏆 ${LEVELS[lv].name} 최고 기록: ${fmt(best)}` : '') + (solved ? `${best ? ' · ' : ''}🦴 지금까지 ${solved}개 해결` : '');
+}
+function showStart(){ syncStart(); $('#startOv').hidden = false; }
+$('#lvChips').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; lv = Number(b.dataset.lv); store.set('tm-cross-lv', lv); syncStart(); });
+$('#go').addEventListener('click', () => { $('#startOv').hidden = true; newGame(); });
+syncStart();
+// 테스트용
+window.__cross = { get S(){ return S; }, LEVELS, generate, evalP, evalLR };
+})();
+</script>
+</body>
+</html>

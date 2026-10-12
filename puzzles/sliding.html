@@ -190,6 +190,7 @@ button{font:inherit;color:inherit}
 </div>
 
 <script src="puzzle-common.js"></script>
+<script src="../assets/rank.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
@@ -468,7 +469,7 @@ button{font:inherit;color:inherit}
     else if(c===ec){ const s = r<er ? -1 : 1; for(let y=er; y!==r; y+=s){ cells[y*N+c]=cells[(y+s)*N+c]; count++; } }
     else{ nudge(pos); return false; }
     cells[pos]=0;
-    moves+=count; if(!timer) startTimer();
+    moves+=count; if(moves===count && !timer) TMRank.start(String(N), `${N}×${N}`); if(!timer) startTimer();
     beep(480+Math.random()*80);
     place(); updateStats();
     if(isSolved()) win();
@@ -493,6 +494,7 @@ button{font:inherit;color:inherit}
   function startTimer(){ t0 = performance.now() - elapsed*1000; timer = setInterval(()=>{ elapsed=(performance.now()-t0)/1000; $('sTime').textContent=fmt(elapsed); },250); }
   function stopTimer(){ clearInterval(timer); timer=null; }
   const bestKey = () => `tm-slide-best-${N}-${pic}`;
+  TMRank.setup({ game:'sliding', title:'티라노 슬라이딩 퍼즐', kind:'time', levels: [3, 4, 5].map(n => [String(n), `${n}×${n}`]), level: () => String(N), mount:['.top .stats'] });
   function updateStats(){
     $('sMoves').textContent = moves; $('sTime').textContent = fmt(elapsed);
     const b = store.get(bestKey(), null); $('sBest').textContent = b ? b.moves : '–';
@@ -515,6 +517,7 @@ button{font:inherit;color:inherit}
         <button class="again" id="bAgain">다시 하기 🦖</button></div>`;
       boardEl.appendChild(w); $('bAgain').onclick = newGame; $('bAgain').focus({preventScroll:true});
       confetti();
+      TMRank.finish({ level: String(N), name: `${N}×${N}`, value: Math.round(elapsed * 10) / 10 });
     }, picObj().isNum ? 250 : 700);
   }
 

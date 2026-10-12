@@ -165,6 +165,7 @@ button{font:inherit; color:inherit; cursor:pointer; touch-action:manipulation; -
   </div>
 </div>
 
+<script src="../assets/rank.js"></script>
 <script>
 (() => {
 'use strict';
@@ -185,6 +186,8 @@ let N = Number(store.get('tm-sudoku-n')) || 6, lvIdx = Number(store.get('tm-sudo
 if (!BOX[N]) N = 6; if (!(lvIdx >= 0 && lvIdx <= 2)) lvIdx = 1;
 let solution = [], given = [], cur = [], sel = -1, miss = 0, hintLeft = 0, history = [], showErr = true;
 let t0 = 0, timer = null, elapsed = 0, done = false;
+const lvId = () => `${N}-${lvIdx}`, lvName = () => `${N}×${N} ${LV[lvIdx]}`;
+TMRank.setup({ game:'sudoku', title:'티라노 스도쿠', kind:'time', levels: [4, 6, 9].flatMap(n => LV.map((nm, i) => [`${n}-${i}`, `${n}×${n} ${nm}`])), level: lvId, mount:['.top', '.setup-top'] });
 
 /* ---------- 퍼즐 만들기 (답이 하나뿐인 퍼즐) ---------- */
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -292,7 +295,7 @@ function checkWin(){
     const isBest = !old || elapsed < old; if (isBest) store.set(key, elapsed);
     $('#winTxt').textContent = `${N}×${N} ${LV[lvIdx]} 퍼즐을 ${fmt(elapsed)} 만에 풀었어요! (실수 ${miss}번)`;
     $('#winBest').textContent = isBest ? '🏆 새 최고 기록이에요!' : `🏆 최고 기록: ${fmt(old)}`;
-    setTimeout(() => $('#winOv').hidden = false, 500);
+    setTimeout(() => { $('#winOv').hidden = false; TMRank.finish({ level: lvId(), name: lvName(), value: elapsed }); }, 500);
   }
 }
 function newGame(){
@@ -305,6 +308,7 @@ function newGame(){
     build(); render();
     $('#msg').textContent = '빈칸을 누르고 숫자를 골라요!';
     clearInterval(timer); t0 = Date.now(); elapsed = 0; tick(); timer = setInterval(tick, 1000);
+    TMRank.start(lvId(), lvName());
   }, 30);
 }
 $('#board').addEventListener('click', e => { const c = e.target.closest('.cell'); if (!c) return; sel = Number(c.dataset.i); render(); });

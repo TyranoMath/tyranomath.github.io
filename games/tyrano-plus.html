@@ -102,10 +102,13 @@ body{
   <button class="btn" id="againBtn">다시 하기</button>
 </div>
 
+<script src="../assets/rank.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
 let max = 10, score = 0, time = 60, timer = null, answer = 0, busy = false;
+const LVN = { 10:'10까지', 20:'20까지', 100:'100까지' };
+TMRank.setup({ game:'tyrano-plus', title:'티라노 덧셈 먹이 주기', kind:'score', levels: Object.entries(LVN), level: () => String(max), mount:['.top', '#start'] });
 
 // 홈페이지 안(게임 코너)에서 열리면 뒤로가기 링크를 숨기고, 따로 열리면 보여줘요
 if (window.top === window) $('#back').hidden = false;
@@ -151,6 +154,7 @@ function start(){
   next();
   clearInterval(timer);
   timer = setInterval(() => { time--; $('#time').textContent = time; if (time <= 0) end(); }, 1000);
+  TMRank.start(String(max), LVN[max]);
 }
 function end(){
   clearInterval(timer); timer = null;
@@ -159,6 +163,7 @@ function end(){
   try { best = Number(localStorage.getItem(key) || 0); if (score > best){ localStorage.setItem(key, score); best = score; } } catch(e){ best = score; }
   $('#best').textContent = `최고 기록: ${best}개`;
   $('#end').hidden = false;
+  TMRank.finish({ level: String(max), name: LVN[max], value: score });
 }
 document.querySelectorAll('#lv button').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('#lv button').forEach(x => x.setAttribute('aria-pressed', 'false'));

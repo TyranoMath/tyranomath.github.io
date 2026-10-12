@@ -139,6 +139,7 @@
 </div>
 
 <script src="puzzle-common.js"></script>
+<script src="../assets/rank.js"></script>
 <script>
 (() => {
 'use strict';
@@ -157,7 +158,9 @@ const SHAPES = {
 };
 const cv = $('#cv'), ctx = cv.getContext('2d');
 let grid, cur, next, hold, canHold, bag = [], score, lines, level, startLevel = Number(store.get('tm-block-lv') || 1);
-let dropT = 0, lockT = 0, lockMoves = 0, last = 0, running = false, paused = false, over = false, clearing = null;
+let dropT = 0, lockT = 0, lockMoves = 0, last = 0, running = false, paused = false, over = false, clearing = null, playT0 = 0;
+TMRank.setup({ game:'block-stack', title:'티라노 블록 쌓기', kind:'score', levels: [[ '1', '1단계부터' ], [ '4', '4단계부터' ], [ '8', '8단계부터' ]], level: () => String(startLevel), mount:['.top', '.setup-top'],
+  onOpen: () => { if (running && !paused && !over) togglePause(true); } });
 
 /* ---------- 블록 ---------- */
 function refill(){ const b = Object.keys(SHAPES); for (let i = b.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } bag.push(...b); }
@@ -251,7 +254,7 @@ function gameOver(){
   if (isBest) store.set('tm-block-best', score);
   $('#endTxt').textContent = `점수 ${score.toLocaleString()}점 · ${lines}줄 · ${level}단계까지 갔어요!`;
   $('#endBest').textContent = isBest ? '🏆 새 최고 기록이에요!' : `🏆 최고 기록: ${old.toLocaleString()}점`;
-  setTimeout(() => $('#endOv').hidden = false, 500);
+  setTimeout(() => { $('#endOv').hidden = false; TMRank.finish({ level: String(startLevel), name: startLevel + '단계부터', value: score, t: Math.round((Date.now() - playT0) / 1000) }); }, 500);
 }
 
 /* ---------- 그리기 ---------- */
@@ -320,7 +323,8 @@ function loop(now){
 function start(){
   grid = Array.from({ length: H }, () => Array(W).fill(0));
   bag = []; score = 0; lines = 0; level = startLevel; hold = null; over = false; clearing = null; paused = false;
-  next = take(); running = true; nextPiece();
+  next = take(); running = true; nextPiece(); playT0 = Date.now();
+  TMRank.start(String(startLevel), startLevel + '단계부터');
   $('#pausedOv').hidden = true; $('#startOv').hidden = true; $('#endOv').hidden = true;
 }
 function act(a){

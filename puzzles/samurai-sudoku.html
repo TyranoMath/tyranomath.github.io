@@ -158,6 +158,7 @@
 </div>
 
 <script src="puzzle-common.js"></script>
+<script src="../assets/rank.js"></script>
 <script>
 (() => {
 'use strict';
@@ -241,6 +242,7 @@ async function generatePuzzle(diff,onProgress){
 const $=s=>document.querySelector(s);
 const {store,fmt}=window.TM;
 const LV={easy:'쉬움',medium:'보통',hard:'어려움'};
+TMRank.setup({game:'samurai-sudoku',title:'티라노 사무라이 스도쿠',kind:'time',levels:Object.entries(LV),level:()=>st?st.diff:(typeof diffPick!=='undefined'?diffPick:'easy'),mount:['.top','.setup-top']});
 const KEY='tm-samurai-v1', PER_DIGIT=41; // 5판 × 9 − 겹치는 상자 4개
 const boardEl=$('#board'), padEl=$('#pad');
 let st=null, sel=-1, noteMode=false, hist=[], showWrong=true, generating=false;
@@ -413,7 +415,7 @@ function checkWin(){
   if(isBest)store.set(k,st.elapsed);
   $('#winTxt').textContent=`${LV[st.diff]} 사무라이 스도쿠를 ${fmt(st.elapsed)} 만에 풀었어요! (실수 ${st.mistakes}번 · 힌트 ${st.hints}번)`;
   $('#winBest').textContent=isBest?'🏆 새 최고 기록이에요!':`🏆 최고 기록: ${fmt(old)}`;
-  setTimeout(()=>{$('#winOv').hidden=false;},500);
+  setTimeout(()=>{$('#winOv').hidden=false; TMRank.finish({level:st.diff,name:LV[st.diff],value:st.elapsed});},500);
 }
 async function newGame(diff){
   if(generating)return;
@@ -425,6 +427,7 @@ async function newGame(diff){
   hist=[]; sel=-1; generating=false; noteMode=false;
   $('#genOv').hidden=true; $('#time').textContent=fmt(0);
   render(); save(); layout(); say('빈칸을 누르고 숫자를 골라요!');
+  TMRank.start(diff, LV[diff]);
 }
 function move(dr,dc){
   if(sel<0){sel=idOf[0][0];render();return;}
@@ -455,7 +458,7 @@ $('#resume').addEventListener('click',()=>{
   if(!st||st.won)st=load();
   if(!st)return;
   hist=[]; sel=-1; $('#startOv').hidden=true; $('#time').textContent=fmt(st.elapsed);
-  render(); layout(); say('이어서 풀어요!');
+  render(); layout(); say('이어서 풀어요!'); TMRank.start(st.diff, LV[st.diff]);
 });
 
 /* ---------- 버튼·키보드 ---------- */

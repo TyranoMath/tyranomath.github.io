@@ -350,6 +350,7 @@ html[data-device="phone"] .copy{font-size:10px;padding:0 10px 4px}
   </div>
 </div>
 
+<script src="../assets/rank.js"></script>
 <script>
 (() => {
 const TAU = Math.PI * 2;
@@ -624,6 +625,11 @@ function fitEq() {
   eqEl.style.fontSize = fs + 'px';
   while (eqEl.scrollWidth > eqEl.clientWidth + 1 && fs > 14) { fs -= 2; eqEl.style.fontSize = fs + 'px'; }
 }
+/* 🏆 랭킹: 1인용 점수 (설정마다 따로) */
+const SPEED_NM = { slow:'느리게', mid:'보통', fast:'빠르게' }, FORM_NM = { two:'', three:' · 세 수', paren:' · 괄호' };
+const rankLv = () => bestKey() + '|' + cfg.speed;
+const rankName = () => `${cfg.ops.join(' ')} · ${cfg.d1}자리와 ${cfg.d2}자리${FORM_NM[cfg.form] || ''} · ${cfg.time >= 60 ? Math.floor(cfg.time / 60) + '분' + (cfg.time % 60 ? ' ' + cfg.time % 60 + '초' : '') : cfg.time + '초'} · 풍선 ${SPEED_NM[cfg.speed] || ''}`;
+TMRank.setup({ game:'balloon-archery', title:'풍선 활쏘기 연산 대결', note:'1인용 점수 순위예요 (설정마다 따로)', kind:'score', levels: [], level: rankLv, mount:['.topbar .tools', '#setup header'], onOpen: () => pause() });
 function bestKey() { return [cfg.ops.slice().sort().join(''), cfg.d1, cfg.d2, cfg.form, cfg.time].join('|'); }
 function getBest() { try { return (JSON.parse(localStorage.getItem('tyrano-balloon-best') || '{}') || {})[bestKey()] || 0; } catch (e) { return 0; } }
 function setBest(v) { try { const o = JSON.parse(localStorage.getItem('tyrano-balloon-best') || '{}') || {}; o[bestKey()] = v; localStorage.setItem('tyrano-balloon-best', JSON.stringify(o)); } catch (e) {} }
@@ -1013,7 +1019,7 @@ function startGame() {
   ov.hidden = false;
   [3, 2, 1].forEach((n, k) => later(() => { show(n); sfx.beep(); }, k * 750));
   later(() => { show('시작!', true); sfx.go(); }, 2250);
-  later(() => { ov.hidden = true; G.phase = 'play'; $('#btnPause').disabled = false; last = performance.now(); }, 2850);
+  later(() => { ov.hidden = true; G.phase = 'play'; $('#btnPause').disabled = false; last = performance.now(); if (solo()) TMRank.start(rankLv(), rankName()); }, 2850);
 }
 function endGame() {
   G.phase = 'over'; $('#btnPause').disabled = true;
@@ -1044,6 +1050,7 @@ function showResult() {
   }
   renderBoard();
   $('#winOv').hidden = false;
+  if (solo()) TMRank.finish({ level: rankLv(), name: rankName(), value: G.players[0].score });
 }
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 function pause() { if (G.phase !== 'play') return; G.phase = 'paused'; G.players.forEach(p => { p.aim = null; p.kL = p.kR = p.kCharging = false; }); $('#pauseOv').hidden = false; }

@@ -22,6 +22,17 @@ const DINO = `<svg viewBox="0 0 220 200" aria-hidden="true">
 <path d="M140 84 Q166 104 194 82" stroke="#2E6B3A" stroke-width="3.5" fill="none" stroke-linecap="round"/>
 <path d="M136 118 q16 -4 20 8 q-3 5 -9 2 q-4 -4 -11 -1 Z" fill="#3A9D51"/></svg>`;
 
+/* 🏆 랭킹 (assets/rank.js 를 불러와서 써요) */
+function withRank(fn){
+  if (window.TMRank) return fn(window.TMRank);
+  const q = (withRank.q = withRank.q || []); q.push(fn);
+  if (q.length > 1) return;
+  const sc = document.createElement('script');
+  sc.src = new URL('../../assets/rank.js', ENGINE_SRC || location.href).href;
+  sc.onload = () => { q.splice(0).forEach(f => f(window.TMRank)); };
+  document.head.appendChild(sc);
+}
+const ENGINE_SRC = document.currentScript ? document.currentScript.src : '';
 const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
 const shuffle = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
@@ -71,6 +82,8 @@ function start(cfg){
   if (window.top === window) $('#tqBack').hidden = false;   // 따로 열렸을 때만 '게임존' 링크 표시
 
   let levelIdx = 0, score = 0, time = C.time, timer = null, cur = null, busy = false, tries = 0;
+  const gameId = C.rankId || location.pathname.split('/').pop().replace(/\.html?$/, '');
+  withRank(R => R.setup({ game: gameId, title: C.title, kind: 'score', levels: C.levels.map((l, i) => [String(i), l.label]), level: () => String(levelIdx), mount: ['.tq-top', '#tqStart'] }));
 
   function next(){
     cur = C.make(C.levels[levelIdx].value);
@@ -111,6 +124,7 @@ function start(cfg){
     clearInterval(timer);
     timer = setInterval(() => { time--; $('#tqTime').textContent = time; if (time <= 0) end(false); }, 1000);
     next();
+    withRank(R => R.start(String(levelIdx), C.levels[levelIdx].label));
   }
   function end(win){
     clearInterval(timer); timer = null;
@@ -128,6 +142,8 @@ function start(cfg){
     }
     $('#tqBest').textContent = `🏆 최고 기록: ${best}문제`;
     $('#tqEnd').hidden = false;
+    const lv = levelIdx, sc = score, used = C.time - time;
+    withRank(R => R.finish({ level: String(lv), name: C.levels[lv].label, value: sc, t: C.goal ? used : 0 }));
   }
   $('#tqLevels').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
