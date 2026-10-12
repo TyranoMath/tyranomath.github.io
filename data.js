@@ -105,12 +105,12 @@ const UNITS = [
   { grade:5, sem:1, no:5, area:'수와 연산', title:'분수의 덧셈과 뺄셈', learn:'learn/learn.html?u=5-1-5', check:'checks/assess.html?u=5-1-5' },
   { grade:5, sem:1, no:6, area:'도형과 측정', title:'다각형의 둘레와 넓이', learn:'learn/learn.html?u=5-1-6', check:'checks/assess.html?u=5-1-6' },
   // ── 5학년 2학기 ─────────────────────
-  { grade:5, sem:2, no:1, area:'수와 연산', title:'수의 범위와 어림하기', learn:'', check:'checks/assess.html?u=5-2-1' },
-  { grade:5, sem:2, no:2, area:'수와 연산', title:'분수의 곱셈', learn:'', check:'checks/assess.html?u=5-2-2' },
-  { grade:5, sem:2, no:3, area:'도형과 측정', title:'합동과 대칭', learn:'', check:'checks/assess.html?u=5-2-3' },
-  { grade:5, sem:2, no:4, area:'수와 연산', title:'소수의 곱셈', learn:'', check:'checks/assess.html?u=5-2-4' },
-  { grade:5, sem:2, no:5, area:'도형과 측정', title:'직육면체', learn:'', check:'checks/assess.html?u=5-2-5' },
-  { grade:5, sem:2, no:6, area:'자료와 가능성', title:'평균과 가능성', learn:'', check:'checks/assess.html?u=5-2-6' },
+  { grade:5, sem:2, no:1, area:'수와 연산', title:'수의 범위와 어림하기', learn:'learn/learn.html?u=5-2-1', check:'checks/assess.html?u=5-2-1' },
+  { grade:5, sem:2, no:2, area:'수와 연산', title:'분수의 곱셈', learn:'learn/learn.html?u=5-2-2', check:'checks/assess.html?u=5-2-2' },
+  { grade:5, sem:2, no:3, area:'도형과 측정', title:'합동과 대칭', learn:'learn/learn.html?u=5-2-3', check:'checks/assess.html?u=5-2-3' },
+  { grade:5, sem:2, no:4, area:'수와 연산', title:'소수의 곱셈', learn:'learn/learn.html?u=5-2-4', check:'checks/assess.html?u=5-2-4' },
+  { grade:5, sem:2, no:5, area:'도형과 측정', title:'직육면체', learn:'learn/learn.html?u=5-2-5', check:'checks/assess.html?u=5-2-5' },
+  { grade:5, sem:2, no:6, area:'자료와 가능성', title:'평균과 가능성', learn:'learn/learn.html?u=5-2-6', check:'checks/assess.html?u=5-2-6' },
   // ── 6학년 1학기 ─────────────────────
   { grade:6, sem:1, no:1, area:'수와 연산', title:'분수의 나눗셈', learn:'', check:'' },
   { grade:6, sem:1, no:2, area:'도형과 측정', title:'각기둥과 각뿔', learn:'', check:'' },
@@ -160,5 +160,6 @@ const PUZZLES = [
   { title:'티라노 지뢰 찾기',  desc:'숫자 단서로 잔디 밑에 숨은 화산을 피해 안전한 칸을 모두 열어요.',          grade:'3~6학년', area:'논리 퍼즐', icon:'🌋', image:'puzzles/thumbs/minesweeper.svg',  color:'#E4F5D6', date:'2026-10-10', file:'puzzles/minesweeper.html' },
   { title:'티라노 픽셀 아트',  desc:'네모 칸을 칠해 나만의 픽셀 그림을 만들어요. 대칭 그리기와 그림 저장도 돼요!', grade:'1~6학년', area:'도형 퍼즐', icon:'🎨', image:'puzzles/thumbs/pixel-art.svg',     color:'#FFF3C4', date:'2026-10-10', file:'puzzles/pixel-art.html' },
   { title:'티라노 사무라이 스도쿠', desc:'9×9 스도쿠 판 5개가 겹쳐 있어요! 겹친 상자는 두 판의 규칙을 모두 지켜야 하는 최강 도전.', grade:'3~6학년', area:'수 퍼즐', icon:'🏯', image:'puzzles/thumbs/samurai-sudoku.svg', color:'#EFE6FF', date:'2026-10-11', file:'puzzles/samurai-sudoku.html' },
-  { title:'티라노 슬라이딩 퍼즐', desc:'빈칸으로 조각을 밀어 숫자 순서나 공룡·우주·바다 그림을 완성해요. 내 사진으로도 할 수 있어요!', grade:'1~6학년', area:'논리 퍼즐', icon:'🧩', image:'puzzles/thumbs/sliding.svg', color:'#EFE6FF', date:'2026-10-11', file:'puzzles/sliding.html' }
+  { title:'티라노 슬라이딩 퍼즐', desc:'빈칸으로 조각을 밀어 숫자 순서나 공룡·우주·바다 그림을 완성해요. 내 사진으로도 할 수 있어요!', grade:'1~6학년', area:'논리 퍼즐', icon:'🧩', image:'puzzles/thumbs/sliding.svg', color:'#EFE6FF', date:'2026-10-11', file:'puzzles/sliding.html' },
+  { title:'티라노 타일 매칭', desc:'1층·2층으로 쌓인 타일에서 같은 짝 3개를 모아 없애요. 과일·동물부터 연산·수 세기·도형까지!', grade:'1~4학년', area:'수 퍼즐', icon:'🀄', image:'puzzles/thumbs/tile-match.svg', color:'#EFE6FF', date:'2026-10-12', file:'puzzles/tile-match.html' }
 ];

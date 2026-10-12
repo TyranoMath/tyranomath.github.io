@@ -64,6 +64,7 @@
   .box canvas{aspect-ratio:2/1}
 }
 </style>
+<link rel="stylesheet" href="puzzle-setup.css">
 </head>
 <body>
 <div class="top">
@@ -99,22 +100,34 @@
   </div>
 </div>
 
-<div class="overlay" id="startOv">
-  <div class="sheet">
-    <span class="dino-logo big"></span>
-    <h1>🧱 티라노 블록 쌓기</h1>
-    <p>떨어지는 블록을 돌리고 옮겨서 가로 한 줄을 꽉 채우면 줄이 사라져요! 여러 줄을 한 번에 없애면 점수가 쑥쑥!</p>
-    <h3>시작 단계</h3>
-    <div class="chips" id="lvChips">
+<div class="overlay setup" id="startOv">
+  <div class="setup-in">
+    <header class="setup-top">
+      <a class="back setup-back" href="../puzzlezone.html" hidden>← 퍼즐존</a>
+      <div class="title"><span class="dino-logo"></span>티라노 블록 쌓기</div>
+    </header>
+    <section class="intro-card">
+      <div>
+        <h1 style="--n:19.9">크앙! 티라노와 함께 <span class="hl">블록을 차곡차곡</span> 쌓아요</h1>
+        <p>떨어지는 블록을 돌리고 옮겨서 가로 한 줄을 꽉 채우면 줄이 사라져요! 여러 줄을 한 번에 없애면 점수가 쑥쑥 올라가요.</p>
+        <div class="howto"><span><b>①</b> 블록을 돌리고 옮겨요</span><span><b>②</b> 가로 한 줄을 채우면 사라져요</span><span><b>③</b> 꼭대기까지 쌓이면 끝나요</span></div>
+      </div>
+      <div class="intro-art" aria-hidden="true"><img src="thumbs/block-stack.svg" alt=""><span class="spark s1">+</span><span class="spark s2">×</span></div>
+    </section>
+    <section class="opt">
+      <h3>시작 단계</h3>
+      <div class="chips" id="lvChips">
       <button data-lv="1">1단계<small>천천히</small></button>
       <button data-lv="4">4단계<small>조금 빠르게</small></button>
       <button data-lv="8">8단계<small>빠르게</small></button>
     </div>
-    <p id="bestTxt"></p>
-    <button class="btn" id="go">시작하기 🦖</button>
+    </section>
+    <p class="best" id="bestTxt"></p>
+    <div class="row start-row">
+      <button class="btn" id="go">시작하기 🦖</button>
+    </div>
   </div>
 </div>
-
 <div class="overlay" id="endOv" hidden>
   <div class="sheet">
     <span class="dino-logo big wobble"></span>

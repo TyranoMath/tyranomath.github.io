@@ -64,6 +64,7 @@
 @media (hover:none){ .note{display:none} }
 @media (max-height:620px) and (min-aspect-ratio:1/1){ .num{aspect-ratio:1.7} .side{gap:8px} .note{display:none} }
 </style>
+<link rel="stylesheet" href="puzzle-setup.css">
 </head>
 <body>
 <div class="top">
@@ -94,37 +95,35 @@
 </div>
 
 <!-- 시작 화면 -->
-<div class="overlay" id="startOv">
-  <div class="sheet">
-    <span class="dino-logo big"></span>
-    <h1>🏯 티라노 사무라이 스도쿠</h1>
-    <div class="intro">
-      <svg class="mini" viewBox="0 0 210 210" aria-hidden="true">
-        <g stroke="#22314A" stroke-width="5" stroke-linejoin="round">
-          <rect x="3" y="3" width="87" height="87" rx="6" fill="#EFE6FF"/><rect x="120" y="3" width="87" height="87" rx="6" fill="#EFE6FF"/>
-          <rect x="3" y="120" width="87" height="87" rx="6" fill="#EFE6FF"/><rect x="120" y="120" width="87" height="87" rx="6" fill="#EFE6FF"/>
-          <rect x="61" y="61" width="88" height="88" rx="6" fill="#FFE7A8"/>
-        </g>
-        <g fill="#B9E39A"><rect x="61" y="61" width="29" height="29"/><rect x="120" y="61" width="29" height="29"/><rect x="61" y="120" width="29" height="29"/><rect x="120" y="120" width="29" height="29"/></g>
-        <g fill="none" stroke="#22314A" stroke-width="3"><rect x="61" y="61" width="88" height="88" rx="6"/></g>
-      </svg>
-      <p>9×9 스도쿠 판 <b>5개</b>가 겹쳐 있어요. 판마다 가로줄, 세로줄, 굵은 선 상자에 1~9가 한 번씩만 들어가요.<br>
-        <b style="color:var(--green-d)">초록 상자</b>는 가운데 판과 모서리 판이 함께 써요. 두 판의 규칙을 모두 지켜야 해요!</p>
-    </div>
-    <h3>난이도</h3>
-    <div class="chips" id="lvChips">
+<div class="overlay setup" id="startOv">
+  <div class="setup-in">
+    <header class="setup-top">
+      <a class="back setup-back" href="../puzzlezone.html" hidden>← 퍼즐존</a>
+      <div class="title"><span class="dino-logo"></span>티라노 사무라이 스도쿠</div>
+    </header>
+    <section class="intro-card">
+      <div>
+        <h1 style="--n:22.8">크앙! 티라노와 함께 <span class="hl">스도쿠 5판</span>을 한꺼번에 풀어요</h1>
+        <p>9×9 스도쿠 판 <b>5개</b>가 겹쳐 있어요. 판마다 가로줄, 세로줄, 굵은 선 상자에 1~9가 한 번씩만 들어가요. <b style="color:#2F8A47">초록 상자</b>는 가운데 판과 모서리 판이 함께 써서 두 판의 규칙을 모두 지켜야 해요!</p>
+        <div class="howto"><span><b>①</b> 빈칸을 누르고 숫자를 골라요</span><span><b>②</b> 줄·상자마다 1~9를 한 번씩</span><span><b>③</b> 초록 상자는 두 판 규칙 모두</span></div>
+      </div>
+      <div class="intro-art" aria-hidden="true"><img src="thumbs/samurai-sudoku.svg" alt=""><span class="spark s1">9</span><span class="spark s2">5</span></div>
+    </section>
+    <section class="opt">
+      <h3>난이도</h3>
+      <div class="chips" id="lvChips">
       <button data-d="easy">쉬움<small>숫자 많이</small></button>
       <button data-d="medium">보통<small>도전해 봐요</small></button>
       <button data-d="hard">어려움<small>스도쿠 고수</small></button>
     </div>
-    <p id="bestTxt"></p>
-    <div class="row">
+    </section>
+    <p class="best" id="bestTxt"></p>
+    <div class="row start-row">
       <button class="btn" id="go">새 퍼즐 시작 🦖</button>
       <button class="btn alt" id="resume" hidden>이어 하기</button>
     </div>
   </div>
 </div>
-
 <!-- 퍼즐 만드는 중 -->
 <div class="overlay" id="genOv" hidden>
   <div class="sheet">

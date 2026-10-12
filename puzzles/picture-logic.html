@@ -40,6 +40,7 @@
 .pics button.cleared{border-color:var(--green)}
 @media (max-aspect-ratio: 1/1){ .board-area{height:auto; width:100%} }
 </style>
+<link rel="stylesheet" href="puzzle-setup.css">
 </head>
 <body>
 <div class="top">
@@ -67,22 +68,34 @@
   </div>
 </div>
 
-<div class="overlay" id="startOv">
-  <div class="sheet">
-    <span class="dino-logo big"></span>
-    <h1>🖼️ 티라노 그림 로직</h1>
-    <p>줄마다 적힌 숫자를 단서로 칸을 칠하면 숨은 그림이 나타나요!</p>
-    <h3>크기</h3>
-    <div class="chips" id="sizeChips">
+<div class="overlay setup" id="startOv">
+  <div class="setup-in">
+    <header class="setup-top">
+      <a class="back setup-back" href="../puzzlezone.html" hidden>← 퍼즐존</a>
+      <div class="title"><span class="dino-logo"></span>티라노 그림 로직</div>
+    </header>
+    <section class="intro-card">
+      <div>
+        <h1 style="--n:21.2">크앙! 티라노와 함께 <span class="hl">숫자 단서</span>로 그림을 찾아요</h1>
+        <p>줄마다 적힌 숫자를 단서로 칸을 칠하면 숨은 그림이 나타나요! 숫자는 이어서 칠할 칸의 개수예요.</p>
+        <div class="howto"><span><b>①</b> 숫자만큼 이어서 칠해요</span><span><b>②</b> 아닌 칸엔 ✕를 표시해요</span><span><b>③</b> 다 칠하면 그림이 나타나요</span></div>
+      </div>
+      <div class="intro-art" aria-hidden="true"><img src="thumbs/picture-logic.svg" alt=""><span class="spark s1">2</span><span class="spark s2">1</span></div>
+    </section>
+    <section class="opt">
+      <h3>크기</h3>
+      <div class="chips" id="sizeChips">
       <button data-n="5">5×5<small>처음 해 봐요</small></button>
       <button data-n="10">10×10<small>조금 익숙해요</small></button>
       <button data-n="15">15×15<small>도전!</small></button>
     </div>
-    <h3>그림 고르기</h3>
-    <div class="pics" id="pics"></div>
+    </section>
+    <section class="opt">
+      <h3>그림 고르기 <small>누르면 바로 시작해요</small></h3>
+      <div class="pics" id="pics"></div>
+    </section>
   </div>
 </div>
-
 <div class="overlay" id="winOv" hidden>
   <div class="sheet">
     <span class="dino-logo big wobble"></span>

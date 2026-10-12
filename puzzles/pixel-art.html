@@ -34,6 +34,7 @@
   .toolgrid{grid-template-columns:repeat(6,1fr)}
 }
 </style>
+<link rel="stylesheet" href="puzzle-setup.css">
 </head>
 <body>
 <div class="top">
@@ -72,30 +73,42 @@
   </div>
 </div>
 
-<div class="overlay" id="startOv">
-  <div class="sheet">
-    <span class="dino-logo big"></span>
-    <h1>🎨 티라노 픽셀 아트</h1>
-    <p>작은 네모 칸을 하나씩 칠해서 나만의 픽셀 그림을 만들어요! 대칭 기능으로 멋진 무늬도 그릴 수 있어요.</p>
-    <h3>판 크기</h3>
-    <div class="chips" id="sizeChips">
+<div class="overlay setup" id="startOv">
+  <div class="setup-in">
+    <header class="setup-top">
+      <a class="back setup-back" href="../puzzlezone.html" hidden>← 퍼즐존</a>
+      <div class="title"><span class="dino-logo"></span>티라노 픽셀 아트</div>
+    </header>
+    <section class="intro-card">
+      <div>
+        <h1 style="--n:21.2">크앙! 티라노와 함께 <span class="hl">네모 칸</span>으로 그림을 그려요</h1>
+        <p>작은 네모 칸을 하나씩 칠해서 나만의 픽셀 그림을 만들어요! 좌우 대칭 기능으로 멋진 무늬도 그릴 수 있어요.</p>
+        <div class="howto"><span><b>①</b> 색깔을 골라요</span><span><b>②</b> 칸을 눌러 칠해요</span><span><b>③</b> 💾 그림 파일로 저장해요</span></div>
+      </div>
+      <div class="intro-art" aria-hidden="true"><img src="thumbs/pixel-art.svg" alt=""><span class="spark s1">■</span><span class="spark s2">✎</span></div>
+    </section>
+    <section class="opt">
+      <h3>판 크기</h3>
+      <div class="chips" id="sizeChips">
       <button data-n="16">16×16<small>쉽고 빠르게</small></button>
       <button data-n="24">24×24<small>조금 더 자세히</small></button>
       <button data-n="32">32×32<small>정성껏 크게</small></button>
     </div>
-    <h3>어떻게 시작할까요?</h3>
-    <div class="chips" id="tplChips">
+    </section>
+    <section class="opt">
+      <h3>어떻게 시작할까요?</h3>
+      <div class="chips" id="tplChips">
       <button data-tpl="blank">⬜ 빈 판<small>처음부터 그리기</small></button>
       <button data-tpl="outline">🖍️ 티라노 색칠하기<small>테두리만 있어요 (16×16)</small></button>
       <button data-tpl="dino">🦖 티라노 따라 그리기<small>완성 그림 보고 고치기 (16×16)</small></button>
     </div>
-    <div class="row">
+    </section>
+    <div class="row start-row">
       <button class="btn" id="go">시작하기 🖌️</button>
       <button class="btn alt" id="resume" hidden>이어서 그리기</button>
     </div>
   </div>
 </div>
-
 <script src="puzzle-common.js"></script>
 <script>
 (() => {

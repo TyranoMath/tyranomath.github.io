@@ -6,7 +6,7 @@
   });
   // TyranoMath 퍼즐존 창 안에서 열리면 숨기고, 따로 열렸을 때만 보여요
   const back = document.getElementById('back');
-  if (back && window.top === window) back.hidden = false;
+  if (window.top === window) document.querySelectorAll('#back,.setup-back').forEach(a => a.hidden = false);
   window.TM = {
     DINO,
     store: {
