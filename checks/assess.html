@@ -330,6 +330,10 @@ html.touch .choice{min-height:64px}
 <script src="g3-2.js"></script>
 <script src="g4-1.js"></script>
 <script src="g4-2.js"></script>
+<script src="g1-1.js"></script>
+<script src="g1-2.js"></script>
+<script src="g2-1.js"></script>
+<script src="g2-2.js"></script>
 <script>
 (() => {
 'use strict';
@@ -560,7 +564,7 @@ function finish(){
   }).join('');
 
   // 성취기준별
-  $('#stdBand').textContent = `초등학교 ${grade <= 4 ? '3~4' : '5~6'}학년군 성취기준 · 성취 정도와 도움말`;
+  $('#stdBand').textContent = `초등학교 ${grade <= 2 ? '1~2' : grade <= 4 ? '3~4' : '5~6'}학년군 성취기준 · 성취 정도와 도움말`;
   const byStd = {}; test.forEach(t => (byStd[t.it.std] = byStd[t.it.std] || []).push(t));
   $('#stdBox').innerHTML = Object.keys(byStd).sort().map(code => {
     const S = A.STD[code], list = byStd[code], c = list.filter(t => t.ok).length, p = Math.round(c / list.length * 100), lv = A.levelOf(p);
