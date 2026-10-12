@@ -294,7 +294,7 @@ html.touch .choice{min-height:64px}
     <h2 class="sec">📐 영역별 성취 <small>2022 개정 교육과정 수학과 4개 영역</small></h2>
     <div class="areas" id="areaBox"></div>
 
-    <h2 class="sec">🎯 성취기준별 분석 <small>초등학교 5~6학년군 성취기준 · 성취 정도와 도움말</small></h2>
+    <h2 class="sec">🎯 성취기준별 분석 <small id="stdBand">초등학교 5~6학년군 성취기준 · 성취 정도와 도움말</small></h2>
     <div id="stdBox"></div>
 
     <h2 class="sec">📖 단원별 정답률</h2>
@@ -324,6 +324,12 @@ html.touch .choice{min-height:64px}
 <script src="standards.js"></script>
 <script src="g5-1.js"></script>
 <script src="g5-2.js"></script>
+<script src="g6-1.js"></script>
+<script src="g6-2.js"></script>
+<script src="g3-1.js"></script>
+<script src="g3-2.js"></script>
+<script src="g4-1.js"></script>
+<script src="g4-2.js"></script>
 <script>
 (() => {
 'use strict';
@@ -554,6 +560,7 @@ function finish(){
   }).join('');
 
   // 성취기준별
+  $('#stdBand').textContent = `초등학교 ${grade <= 4 ? '3~4' : '5~6'}학년군 성취기준 · 성취 정도와 도움말`;
   const byStd = {}; test.forEach(t => (byStd[t.it.std] = byStd[t.it.std] || []).push(t));
   $('#stdBox').innerHTML = Object.keys(byStd).sort().map(code => {
     const S = A.STD[code], list = byStd[code], c = list.filter(t => t.ok).length, p = Math.round(c / list.length * 100), lv = A.levelOf(p);

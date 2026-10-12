@@ -74,6 +74,8 @@ h2.sec{font-family:'Jua',sans-serif; font-weight:400; font-size:clamp(22px,2.6vw
 table.qt{border-collapse:collapse; margin:12px auto; font-size:clamp(15px,1.7vw,18px); background:#fff}
 table.qt th, table.qt td{border:2px solid var(--line); padding:6px 12px; text-align:center}
 table.qt th{background:#F7F1E4; font-family:'Jua',sans-serif; font-weight:400}
+.tscroll{overflow-x:auto; max-width:100%}
+@media (max-width:480px){ table.qt{font-size:13px} table.qt th, table.qt td{padding:4px 6px} }
 svg.fig{max-width:100%; height:auto}
 .figc{display:flex; justify-content:center; margin:10px 0}
 span.card{display:inline-grid; place-items:center; width:1.7em; height:2.1em; border:2.5px solid var(--ink); border-radius:8px; background:#FFFDF6; font-family:'Fredoka',sans-serif; font-weight:700; margin:0 2px}
@@ -150,8 +152,20 @@ html.touch .ctrl input[type=range]{height:44px}
 <script src="../checks/standards.js"></script>
 <script src="../checks/g5-1.js"></script>
 <script src="../checks/g5-2.js"></script>
+<script src="../checks/g6-1.js"></script>
+<script src="../checks/g6-2.js"></script>
+<script src="../checks/g3-1.js"></script>
+<script src="../checks/g3-2.js"></script>
+<script src="../checks/g4-1.js"></script>
+<script src="../checks/g4-2.js"></script>
 <script src="c5-1.js"></script>
 <script src="c5-2.js"></script>
+<script src="c6-1.js"></script>
+<script src="c6-2.js"></script>
+<script src="c3-1.js"></script>
+<script src="c3-2.js"></script>
+<script src="c4-1.js"></script>
+<script src="c4-2.js"></script>
 <script>
 (() => {
 'use strict';
@@ -171,6 +185,7 @@ if (!U){ $('#app').innerHTML = '<div class="panel"><h1>준비 중인 단원이�
 const [g, s, no] = key.split('-');
 $('#ttl').textContent = `개념 탐험대 · ${g}-${s} ${no}단원`;
 const PKEY = 'tm-learn-' + key;
+const HAS_CHECK = !!A.units[key];   // 실력 진단소 문제가 있는 단원
 const done = new Set((() => { try { return JSON.parse(store.get(PKEY) || '[]'); } catch(e){ return []; } })());
 const saveDone = () => store.set(PKEY, JSON.stringify([...done]));
 
@@ -247,8 +262,8 @@ function summary(){
   $('#app').innerHTML = `<section class="panel">
     <div class="hero"><span class="dino-logo">${DINO}</span><div><div class="kicker">📒 핵심 정리</div><h1>${U.title}</h1></div></div>
     <ol class="sum">${U.lessons.map((l, i) => `<li><span class="u">${l.title}</span> — ${l.key}${done.has(i) ? ' ✅' : ''}</li>`).join('')}</ol>
-    <p class="intro">${done.size === U.lessons.length ? '🎉 모든 탐험을 마쳤어요! 이제 실력 진단소에서 내 실력을 확인해 볼까요?' : `아직 확인 문제를 맞히지 않은 탐험이 ${U.lessons.length - done.size}개 있어요.`}</p>
-    <div class="go-row"><a class="btn blue" href="../checks/assess.html?u=${key}">🎯 실력 진단소에서 확인하기</a><button class="btn alt" type="button" id="homeBtn">🗺️ 탐험 지도</button></div>
+    <p class="intro">${done.size === U.lessons.length ? (HAS_CHECK ? '🎉 모든 탐험을 마쳤어요! 이제 실력 진단소에서 내 실력을 확인해 볼까요?' : '🎉 모든 탐험을 마쳤어요! 탐험 지도에서 확인 문제를 더 풀며 실력을 다져 봐요.') : `아직 확인 문제를 맞히지 않은 탐험이 ${U.lessons.length - done.size}개 있어요.`}</p>
+    <div class="go-row">${HAS_CHECK ? `<a class="btn blue" href="../checks/assess.html?u=${key}">🎯 실력 진단소에서 확인하기</a>` : ''}<button class="btn alt" type="button" id="homeBtn">🗺️ 탐험 지도</button></div>
   </section>`;
   $('#homeBtn').addEventListener('click', home);
   scrollTo(0, 0);

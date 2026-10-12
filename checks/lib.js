@@ -15,7 +15,7 @@ const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b){ [a, b] = [b
 const lcm = (a, b) => a / gcd(a, b) * b;
 const range = (a, b) => { const r = []; for (let i = a; i <= b; i++) r.push(i); return r; };
 const divisors = n => range(1, n).filter(d => n % d === 0);
-const dz = x => Math.round(x * 1e9) / 1e9;                       // 소수 오차 없애기
+const dz = x => Number.isInteger(x) ? x : Math.round(x * 1e9) / 1e9;                       // 소수 오차 없애기
 const nf = x => { x = dz(x); if (Number.isInteger(x) && Math.abs(x) >= 10000) return x.toLocaleString('ko-KR'); return String(x); };
 const won = x => x.toLocaleString('ko-KR');
 const sum = arr => arr.reduce((s, x) => s + x, 0);
