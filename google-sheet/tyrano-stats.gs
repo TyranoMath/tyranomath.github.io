@@ -23,7 +23,7 @@ const KEEP_DAYS = 15;          // 일별 기록을 남겨 두는 날 수
 const TOP_N = 10;              // 랭킹에 보여 줄 수
 
 // 게임 파일 주소처럼 생긴 것만 받아요 (엉뚱한 값이 쌓이지 않게)
-const FILE_RULE = /^(games|puzzles)\/[A-Za-z0-9_\-\/]+\.html$/;
+const FILE_RULE = /^(games|puzzles|tools)\/[A-Za-z0-9_\-\/]+\.html$/;
 
 /* ---------------------------------------------------------
    게임별 랭킹 규칙

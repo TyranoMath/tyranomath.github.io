@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>그래프 만들기 · TyranoMath 수학 도구존</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tool.css">
+<style>
+#gr{width:100%; flex:1; min-height:0}
+.types{display:grid; grid-template-columns:repeat(3,1fr); gap:6px}
+.types .tool{padding:4px; font-size:15px}
+.rows{display:flex; flex-direction:column; gap:6px}
+.rows .r{display:grid; grid-template-columns:1fr 84px 34px; gap:6px; align-items:center}
+.rows input{font-size:16px; padding:5px 8px}
+.rows .x{border:0; background:#FFF0F2; color:#B83A4F; border-radius:10px; height:36px; font-size:18px}
+.tbl{width:100%; border-collapse:collapse; font-family:'Jua',sans-serif; font-size:clamp(14px,1.5vw,18px); margin-top:6px}
+.tbl th,.tbl td{border:2px solid var(--line); padding:4px 6px; text-align:center}
+.tbl th{background:var(--teal-l); font-weight:400}
+.tscroll{width:100%; overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" href="../toolzone.html" hidden>← 도구존</a>
+  <div class="title"><span class="dino-logo"></span>그래프 만들기</div>
+  <button class="tool" id="fullBtn">⛶ 전체 화면</button>
+</div>
+<div class="main">
+  <div class="stage">
+    <svg id="gr" viewBox="0 0 760 460" role="img" aria-label="그래프"></svg>
+    <div class="tscroll"><table class="tbl" id="tbl"></table></div>
+  </div>
+  <div class="side">
+    <div class="box">
+      <h3>그래프 종류</h3>
+      <div class="types" id="types">
+        <button class="tool" data-t="pic">그림그래프<small>3·4학년</small></button>
+        <button class="tool" data-t="bar">막대그래프<small>세로</small></button>
+        <button class="tool" data-t="hbar">막대그래프<small>가로</small></button>
+        <button class="tool" data-t="line">꺾은선그래프<small>4학년</small></button>
+        <button class="tool" data-t="band">띠그래프<small>6학년</small></button>
+        <button class="tool" data-t="pie">원그래프<small>6학년</small></button>
+      </div>
+      <label class="fld" id="scaleFld">눈금 한 칸 <select id="scale"><option value="0">알맞게</option><option value="1">1</option><option value="2">2</option><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option></select></label>
+      <div class="row" id="picFld"><label class="fld" style="flex:1">그림<select id="icon"><option>🍎</option><option>😀</option><option>🥚</option><option>⭐</option><option>🦖</option><option>📚</option><option>🚗</option></select></label><label class="fld" style="flex:1">큰 그림 하나 =<select id="bigU"><option value="10">10</option><option value="100">100</option><option value="5">5</option></select></label></div>
+    </div>
+    <div class="box">
+      <h3>자료 넣기</h3>
+      <label class="fld">제목<input type="text" id="ttl" maxlength="30"></label>
+      <div class="grid2"><label class="fld">항목 이름<input type="text" id="xName" maxlength="10"></label><label class="fld">단위<input type="text" id="unit" maxlength="6"></label></div>
+      <div class="rows" id="rows"></div>
+      <div class="grid2"><button class="tool" id="addRow">＋ 항목 더하기</button><button class="tool" id="sample">🎲 예시 자료</button></div>
+    </div>
+  </div>
+</div>
+<script src="tool-common.js"></script>
+<script>
+(() => {
+'use strict';
+const { $, store, esc } = TT;
+const PAL = ['#FF8A8A', '#6FB1F0', '#FFD45E', '#7FD08E', '#C7A3F2', '#FFB46B', '#5CCFC2', '#F7A6C4'];
+const SAMPLES = [
+  { ttl:'좋아하는 과일별 학생 수', x:'과일', unit:'명', t:'bar', rows:[['사과', 7], ['바나나', 4], ['포도', 9], ['딸기', 5]] },
+  { ttl:'마을별 기르는 닭의 수', x:'마을', unit:'마리', t:'pic', rows:[['가', 230], ['나', 140], ['다', 320], ['라', 180]] },
+  { ttl:'요일별 최고 기온', x:'요일', unit:'°C', t:'line', rows:[['월', 18], ['화', 21], ['수', 24], ['목', 23], ['금', 19]] },
+  { ttl:'좋아하는 운동별 학생 수', x:'운동', unit:'명', t:'pie', rows:[['축구', 8], ['줄넘기', 6], ['수영', 4], ['피구', 2]] }
+];
+let D = store.get('tm-gm', null) || JSON.parse(JSON.stringify(SAMPLES[0]));
+function niceStep(max){ const c = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000]; return c.find(s => max / s <= 10) || 1000; }
+function render(){
+  const rows = D.rows.filter(r => r[0] !== '' || r[1]), vals = rows.map(r => Math.max(0, +r[1] || 0)), n = rows.length, max = Math.max(1, ...vals), sum = vals.reduce((a, b) => a + b, 0);
+  const T = D.t, W = 760, H = 460, ttl = esc(D.ttl || '');
+  let g = `<text x="${W / 2}" y="30" text-anchor="middle" font-size="24" font-weight="700" fill="#22314A" font-family="Jua">${ttl}</text>`;
+  const step = +$('#scale').value || niceStep(max), top = Math.ceil(max / step) * step || step;
+  if (T === 'bar' || T === 'line'){
+    const L = 90, R = 730, B = 390, Tt = 60, ch = (B - Tt) / (top / step), cw = (R - L) / Math.max(1, n);
+    for (let k = 0; k <= top / step; k++){ const y = B - k * ch; g += `<line x1="${L}" x2="${R}" y1="${y}" y2="${y}" stroke="${k ? '#D7E4E1' : '#22314A'}" stroke-width="${k ? 1.2 : 2.5}"/><text x="${L - 8}" y="${y + 6}" text-anchor="end" font-size="16" fill="#22314A">${k * step}</text>`; }
+    g += `<line x1="${L}" x2="${L}" y1="${Tt - 10}" y2="${B}" stroke="#22314A" stroke-width="2.5"/>`;
+    g += `<text x="${L - 10}" y="${Tt - 20}" text-anchor="end" font-size="15" fill="#5D6C83" font-family="Jua">(${esc(D.unit || '')})</text><text x="${R}" y="${B + 58}" text-anchor="end" font-size="15" fill="#5D6C83" font-family="Jua">${esc(D.x || '')}</text>`;
+    const pts = [];
+    rows.forEach((r, i) => {
+      const cx = L + cw * (i + .5), h = vals[i] / top * (B - Tt);
+      if (T === 'bar') g += `<rect x="${cx - cw * .3}" y="${B - h}" width="${cw * .6}" height="${h}" fill="${PAL[i % 8]}" stroke="#22314A" stroke-width="1.5"/><text x="${cx}" y="${B - h - 8}" text-anchor="middle" font-size="16" font-weight="700" fill="#22314A">${vals[i]}</text>`;
+      pts.push([cx, B - h]);
+      g += `<text x="${cx}" y="${B + 26}" text-anchor="middle" font-size="18" fill="#22314A" font-family="Jua">${esc(r[0])}</text>`;
+    });
+    if (T === 'line'){ g += `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="#E5546B" stroke-width="4" stroke-linejoin="round"/>`; pts.forEach((p, i) => g += `<circle cx="${p[0]}" cy="${p[1]}" r="7" fill="#fff" stroke="#E5546B" stroke-width="4"/><text x="${p[0]}" y="${p[1] - 14}" text-anchor="middle" font-size="16" font-weight="700" fill="#22314A">${vals[i]}</text>`); }
+  } else if (T === 'hbar'){
+    const L = 130, R = 720, Tt = 60, B = 400, rh = (B - Tt) / Math.max(1, n), cwid = (R - L) / (top / step);
+    for (let k = 0; k <= top / step; k++){ const x = L + k * cwid; g += `<line x1="${x}" x2="${x}" y1="${Tt}" y2="${B}" stroke="${k ? '#D7E4E1' : '#22314A'}" stroke-width="${k ? 1.2 : 2.5}"/><text x="${x}" y="${B + 24}" text-anchor="middle" font-size="16" fill="#22314A">${k * step}</text>`; }
+    g += `<line x1="${L}" x2="${R + 10}" y1="${B}" y2="${B}" stroke="#22314A" stroke-width="2.5"/><text x="${R + 20}" y="${B + 24}" font-size="15" fill="#5D6C83" font-family="Jua" text-anchor="end">(${esc(D.unit || '')})</text>`;
+    rows.forEach((r, i) => { const cy = Tt + rh * (i + .5), w = vals[i] / top * (R - L);
+      g += `<text x="${L - 10}" y="${cy + 6}" text-anchor="end" font-size="18" fill="#22314A" font-family="Jua">${esc(r[0])}</text><rect x="${L}" y="${cy - rh * .3}" width="${w}" height="${rh * .6}" fill="${PAL[i % 8]}" stroke="#22314A" stroke-width="1.5"/><text x="${L + w + 8}" y="${cy + 6}" font-size="16" font-weight="700" fill="#22314A">${vals[i]}</text>`; });
+  } else if (T === 'pic'){
+    const big = +$('#bigU').value, small = big === 100 ? 10 : 1, ic = $('#icon').value, L = 150, Tt = 60, rh = Math.min(70, 330 / Math.max(1, n));
+    g += `<rect x="20" y="${Tt}" width="720" height="${rh * n}" fill="none" stroke="#22314A" stroke-width="2"/><line x1="${L}" x2="${L}" y1="${Tt}" y2="${Tt + rh * n}" stroke="#22314A" stroke-width="2"/>`;
+    rows.forEach((r, i) => {
+      const y = Tt + rh * i, nb = Math.floor(vals[i] / big), ns = Math.floor((vals[i] % big) / small);
+      if (i) g += `<line x1="20" x2="740" y1="${y}" y2="${y}" stroke="#22314A" stroke-width="1.2"/>`;
+      g += `<text x="${(20 + L) / 2}" y="${y + rh / 2 + 7}" text-anchor="middle" font-size="19" fill="#22314A" font-family="Jua">${esc(r[0])}</text>`;
+      let x = L + 14; const bs = Math.min(rh * .8, 46), ss = bs * .55;
+      for (let k = 0; k < nb; k++){ g += `<text x="${x + bs / 2}" y="${y + rh / 2 + bs * .35}" text-anchor="middle" font-size="${bs}">${ic}</text>`; x += bs + 4; }
+      for (let k = 0; k < ns; k++){ g += `<text x="${x + ss / 2}" y="${y + rh / 2 + ss * .35}" text-anchor="middle" font-size="${ss}">${ic}</text>`; x += ss + 3; }
+    });
+    const ly = Tt + rh * n + 34;
+    g += `<text x="740" y="${ly}" text-anchor="end" font-size="18" fill="#22314A" font-family="Jua"><tspan font-size="30">${ic}</tspan> ${big}${esc(D.unit || '')}   <tspan font-size="17">${ic}</tspan> ${small}${esc(D.unit || '')}</text>`;
+    if (vals.some(v => v % small)) g += `<text x="20" y="${ly}" font-size="14" fill="#E5546B">※ ${small}보다 작은 수는 나타낼 수 없어요</text>`;
+  } else if (T === 'band'){
+    const L = 40, R = 720, y = 170, h = 70; let x = L;
+    g += `<text x="${L}" y="${y - 30}" font-size="15" fill="#5D6C83">0</text><text x="${R}" y="${y - 30}" text-anchor="end" font-size="15" fill="#5D6C83">100 (%)</text>`;
+    for (let k = 0; k <= 10; k++) g += `<line x1="${L + (R - L) * k / 10}" x2="${L + (R - L) * k / 10}" y1="${y - 22}" y2="${y - 8}" stroke="#22314A" stroke-width="${k % 5 ? 1 : 2}"/>`;
+    rows.forEach((r, i) => { const w = sum ? vals[i] / sum * (R - L) : 0, pc = sum ? Math.round(vals[i] / sum * 100) : 0;
+      g += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${PAL[i % 8]}" stroke="#22314A" stroke-width="2"/>`;
+      if (w > 34) g += `<text x="${x + w / 2}" y="${y + 30}" text-anchor="middle" font-size="17" fill="#22314A" font-family="Jua">${esc(r[0])}</text><text x="${x + w / 2}" y="${y + 54}" text-anchor="middle" font-size="16" font-weight="700" fill="#22314A">${pc}%</text>`;
+      x += w; });
+    g += `<text x="${W / 2}" y="${y + h + 50}" text-anchor="middle" font-size="16" fill="#5D6C83" font-family="Jua">전체 ${sum}${esc(D.unit || '')}를 100%로 보고 나타냈어요</text>`;
+  } else if (T === 'pie'){
+    const cx = 300, cy = 250, R = 170; let a = -90;
+    if (sum) rows.forEach((r, i) => { const d = vals[i] / sum * 360; if (!d) return;
+      const a1 = a + d, l = d > 180 ? 1 : 0, p = q => [cx + R * Math.cos(q * Math.PI / 180), cy + R * Math.sin(q * Math.PI / 180)];
+      g += d >= 359.99 ? `<circle cx="${cx}" cy="${cy}" r="${R}" fill="${PAL[i % 8]}" stroke="#22314A" stroke-width="2"/>` : `<path d="M${cx} ${cy} L${p(a).join(' ')} A${R} ${R} 0 ${l} 1 ${p(a1).join(' ')} Z" fill="${PAL[i % 8]}" stroke="#22314A" stroke-width="2"/>`;
+      const m = a + d / 2, tx = cx + R * .62 * Math.cos(m * Math.PI / 180), ty = cy + R * .62 * Math.sin(m * Math.PI / 180);
+      if (d > 18) g += `<text x="${tx}" y="${ty}" text-anchor="middle" font-size="17" fill="#22314A" font-family="Jua">${esc(r[0])}</text><text x="${tx}" y="${ty + 22}" text-anchor="middle" font-size="16" font-weight="700" fill="#22314A">${Math.round(vals[i] / sum * 100)}%</text>`;
+      a = a1; });
+    rows.forEach((r, i) => g += `<rect x="520" y="${110 + i * 34}" width="22" height="22" rx="4" fill="${PAL[i % 8]}" stroke="#22314A"/><text x="552" y="${128 + i * 34}" font-size="18" fill="#22314A" font-family="Jua">${esc(r[0])} ${vals[i]}${esc(D.unit || '')} (${sum ? Math.round(vals[i] / sum * 100) : 0}%)</text>`);
+  }
+  $('#gr').innerHTML = g;
+  // 표
+  $('#tbl').innerHTML = `<tr><th>${esc(D.x || '항목')}</th>${rows.map(r => `<th>${esc(r[0])}</th>`).join('')}<th>합계</th></tr><tr><td>${esc(D.unit ? `수 (${D.unit})` : '수')}</td>${vals.map(v => `<td>${v}</td>`).join('')}<td><b>${sum}</b></td></tr>` +
+    (T === 'band' || T === 'pie' ? `<tr><td>백분율 (%)</td>${vals.map(v => `<td>${sum ? Math.round(v / sum * 100) : 0}</td>`).join('')}<td>100</td></tr>` : '');
+  TT.press($('#types'), $(`#types [data-t="${T}"]`));
+  $('#scaleFld').hidden = !['bar', 'hbar', 'line'].includes(T); $('#picFld').hidden = T !== 'pic';
+  store.set('tm-gm', D);
+}
+function renderRows(){
+  $('#rows').innerHTML = D.rows.map((r, i) => `<div class="r"><input type="text" value="${esc(r[0])}" data-i="${i}" data-k="0" maxlength="8" aria-label="항목 ${i + 1} 이름"><input type="number" value="${r[1]}" data-i="${i}" data-k="1" min="0" aria-label="항목 ${i + 1} 수"><button class="x" data-del="${i}" aria-label="항목 빼기">✕</button></div>`).join('');
+  $('#ttl').value = D.ttl; $('#xName').value = D.x; $('#unit').value = D.unit;
+}
+$('#rows').addEventListener('input', e => { const i = e.target.dataset.i; if (i == null) return; D.rows[i][e.target.dataset.k] = e.target.dataset.k === '1' ? Math.max(0, Math.min(100000, +e.target.value || 0)) : e.target.value; render(); });
+$('#rows').addEventListener('click', e => { const b = e.target.closest('[data-del]'); if (b && D.rows.length > 1){ D.rows.splice(+b.dataset.del, 1); renderRows(); render(); } });
+$('#addRow').addEventListener('click', () => { if (D.rows.length < 8){ D.rows.push([String.fromCharCode(44032 + D.rows.length * 588).slice(0, 1) || '새 항목', 3]); renderRows(); render(); } });
+let si = 0;
+$('#sample').addEventListener('click', () => { si = (si + 1) % SAMPLES.length; D = JSON.parse(JSON.stringify(SAMPLES[si])); if (D.t === 'pic') $('#bigU').value = 100; renderRows(); render(); });
+[['ttl', 'ttl'], ['xName', 'x'], ['unit', 'unit']].forEach(([id, k]) => $('#' + id).addEventListener('input', e => { D[k] = e.target.value; render(); }));
+$('#types').addEventListener('click', e => { const b = e.target.closest('button'); if (b){ D.t = b.dataset.t; render(); } });
+['scale', 'icon', 'bigU'].forEach(id => $('#' + id).addEventListener('change', render));
+if (D.t === 'pic' && Math.max(...D.rows.map(r => +r[1])) >= 100) $('#bigU').value = 100;
+renderRows(); render();
+})();
+</script>
+</body>
+</html>

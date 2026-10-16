@@ -166,7 +166,8 @@ section[id]{scroll-margin-top:calc(var(--tap) + 30px)}
 .sec-title h2{font-size:2rem; margin:0; display:flex; align-items:center; gap:10px; flex-wrap:wrap}
 .step{font-family:'Jua',sans-serif; font-size:.85rem; padding:2px 12px; border-radius:999px; background:var(--green); color:#fff; letter-spacing:.02em}
 .step.s2{background:#3B8FD9}
-.step.s3{background:var(--orange)}
+.step.s3{background:#159A8C}
+.step.s4{background:var(--orange)}
 .checks{background:#EAF5FF; border-top:var(--border) solid #c7e3f7; border-bottom:var(--border) solid #c7e3f7}
 .games{border-top:0}
 .btn small{display:block; font-family:'Gowun Dodum',sans-serif; font-size:.78rem; opacity:.9; line-height:1.2; margin-top:2px}
@@ -444,7 +445,7 @@ html[data-device="phone"] .compact .game p{display:none}
 /* =========================================================
    4단계 · 티라노 퍼즐존 (보라)
    ========================================================= */
-.step.s4{background:#8E5BD6}
+.step.s5{background:#8E5BD6}
 .btn.purple{background:#8E5BD6; border-color:#6C3FB4; box-shadow:0 5px 0 #6C3FB4}
 .btn.purple:active{box-shadow:0 1px 0 #6C3FB4}
 .all-tab.purple{background:#8E5BD6; border-color:#6C3FB4; box-shadow:0 4px 0 #6C3FB4}
@@ -456,11 +457,15 @@ html[data-device="phone"] .compact .game p{display:none}
 .zone-hero.puzzle .zone-stats b{color:#8E5BD6}
 main[data-list="puzzles"] .area-chips button[aria-pressed="true"]{background:#8E5BD6; border-color:#8E5BD6}
 main[data-list="puzzles"] .game .play{background:#8E5BD6}
-.stages{grid-template-columns:repeat(4, minmax(0, 1fr))}
-.stages .btn{padding:14px 14px; gap:10px}
-.stages small{font-size:.74rem; white-space:nowrap}
+.stages{grid-template-columns:repeat(5, minmax(0, 1fr))}
+.stages .lbl{min-width:0}
+.stages .btn{padding:12px 10px; gap:8px; font-size:1.2rem}
+.stages .btn > span[aria-hidden]{font-size:1.6rem}
+.stages small{font-size:.68rem; white-space:normal; word-break:keep-all; line-height:1.3}
 html[data-device="phone"] .stages small{white-space:normal}
-html[data-device="pad"] .stages{grid-template-columns:repeat(2, minmax(0, 1fr))}
+html[data-device="pad"] .stages{grid-template-columns:repeat(6, minmax(0, 1fr))}
+html[data-device="pad"] .stages .btn{grid-column:span 2}
+html[data-device="pad"] .stages .btn:nth-child(n+4){grid-column:span 3}
 
 /* =========================================================
    기기별 화면 모드
@@ -491,7 +496,7 @@ html[data-device="pad"]{--fs:19px; --tap:54px; --maxw:1040px; --cols:2; --gcols:
 html[data-device="pad"] .nav .ico,
 html[data-device="pad"] .nav a.bug-tab .txt,
 html[data-device="pad"] .lang-btn .txt{display:none}
-html[data-device="pad"] .nav a{padding:8px 10px}
+html[data-device="pad"] .nav a{padding:8px 7px; font-size:.95em}
 html[data-device="pad"] .stages .btn{padding:12px 14px; font-size:1.15rem}
 
 /* 🧑‍🏫 전자칠판 : 아주 큰 글자, 굵은 선, 게임 화면 크게 */
@@ -520,3 +525,18 @@ html[data-device="board"] .player-box{width:100%; height:100%}
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important; transition:none !important}
 }
+
+/* =========================================================
+   3단계 · 수학 도구존 (청록)
+   ========================================================= */
+.btn.teal{background:#159A8C; border-color:#0E7368; box-shadow:0 5px 0 #0E7368; color:#fff}
+.btn.teal:active{box-shadow:0 1px 0 #0E7368}
+.all-tab.teal{background:#159A8C; border-color:#0E7368; box-shadow:0 4px 0 #0E7368}
+.all-tab.teal:active{box-shadow:0 1px 0 #0E7368}
+.tools-sec{background:#E0F5F1; border-bottom:var(--border) solid #B8E3DA}
+.nav a[href="toolzone.html"][aria-current="page"]{background:#159A8C}
+.zone-hero.tool{background:linear-gradient(135deg, #DDF5EF 0%, #DDF0FF 100%); border-bottom-color:#B8E3DA}
+.zone-hero.tool .back{color:#0E7368}
+.zone-hero.tool .zone-stats b{color:#159A8C}
+main[data-list="tools"] .area-chips button[aria-pressed="true"]{background:#159A8C; border-color:#159A8C}
+main[data-list="tools"] .game .play{background:#159A8C}

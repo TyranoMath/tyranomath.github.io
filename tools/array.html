@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>곱셈 배열판 · TyranoMath 수학 도구존</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tool.css">
+<style>
+#ar{width:100%; flex:1; min-height:0; touch-action:none}
+.eqs{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:6px 18px; width:100%; padding-top:8px}
+.eqs div{font-family:'Fredoka','Jua',sans-serif; font-size:clamp(17px,2vw,26px); text-align:center; background:var(--teal-l); border-radius:12px; padding:4px 8px}
+.eqs div small{display:block; font-family:'Gowun Dodum',sans-serif; font-size:.55em; color:var(--muted)}
+.eqs .main-eq{grid-column:1/-1; background:#FFF3C4; font-size:clamp(24px,3vw,38px)}
+.eqs.hide .ans{filter:blur(9px)}
+.icons{display:grid; grid-template-columns:repeat(4,1fr); gap:6px}
+.icons .tool{font-size:22px; padding:2px}
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" href="../toolzone.html" hidden>← 도구존</a>
+  <div class="title"><span class="dino-logo"></span>곱셈 배열판</div>
+  <button class="tool" id="fullBtn">⛶ 전체 화면</button>
+</div>
+<div class="main">
+  <div class="stage">
+    <svg id="ar" viewBox="0 0 640 520" role="img" aria-label="곱셈 배열판"></svg>
+    <div class="eqs" id="eqs"></div>
+  </div>
+  <div class="side">
+    <div class="box">
+      <h3>크기 정하기 <small>판의 칸을 눌러도 돼요</small></h3>
+      <label class="fld">한 줄에 몇 개? <b id="cv"></b><input type="range" id="cols" min="1" max="12" value="6"></label>
+      <label class="fld">몇 줄? <b id="rv"></b><input type="range" id="rows" min="1" max="10" value="4"></label>
+      <div class="grid2"><button class="tool" id="swap">↻ 돌려 보기</button><button class="tool" id="rand">🎲 아무 곱셈</button></div>
+    </div>
+    <div class="box">
+      <h3>나누어 보기 <small>곱셈을 두 번으로 나눠요</small></h3>
+      <label class="fld">세로선 위치 <b id="sv"></b><input type="range" id="split" min="0" max="11" value="0"></label>
+      <p class="note">예) 7 × 6 = 5 × 6 + 2 × 6 처럼 어려운 곱셈을 아는 곱셈 두 개로 나눠요.</p>
+    </div>
+    <div class="box">
+      <h3>보기 설정</h3>
+      <div class="icons" id="icons"><button class="tool" data-ic="dot">●</button><button class="tool" data-ic="🍎">🍎</button><button class="tool" data-ic="🥚">🥚</button><button class="tool" data-ic="⭐">⭐</button></div>
+      <label class="sw"><input type="checkbox" id="group" checked> 한 줄씩 묶음 표시</label>
+      <label class="sw"><input type="checkbox" id="hide"> 답 가리기 (누르면 보여요)</label>
+    </div>
+  </div>
+</div>
+<script src="tool-common.js"></script>
+<script>
+(() => {
+'use strict';
+const { $, NS, store } = TT;
+const MAXC = 12, MAXR = 10;
+let st = store.get('tm-ar', { r: 4, c: 6, split: 0, ic: 'dot' });
+function render(){
+  const { r, c } = st, sp = Math.min(st.split, c - 1);
+  $('#cols').value = c; $('#rows').value = r; $('#split').max = Math.max(0, c - 1); $('#split').value = sp;
+  $('#cv').textContent = c + '개'; $('#rv').textContent = r + '줄'; $('#sv').textContent = sp ? `${sp}개 | ${c - sp}개` : '나누지 않기';
+  const cell = Math.min(600 / MAXC, 470 / MAXR), W = MAXC * cell, H = MAXR * cell, ox = (640 - W) / 2, oy = 34;
+  let g = `<rect x="${ox - 6}" y="${oy - 6}" width="${W + 12}" height="${H + 12}" rx="14" fill="#F7FBFA" stroke="#CFE6E0" stroke-width="2"/>`;
+  g += `<rect x="${ox}" y="${oy}" width="${c * cell}" height="${r * cell}" rx="10" fill="#FFF3C4" stroke="#E8B500" stroke-width="2.5"/>`;
+  if (sp) g += `<rect x="${ox + sp * cell}" y="${oy}" width="${(c - sp) * cell}" height="${r * cell}" rx="10" fill="#DDF0FF" stroke="#3B8FD9" stroke-width="2.5"/>`;
+  if ($('#group').checked) for (let y = 0; y < r; y++) g += `<rect x="${ox + 3}" y="${oy + y * cell + 3}" width="${c * cell - 6}" height="${cell - 6}" rx="${cell / 2 - 3}" fill="none" stroke="#159A8C" stroke-width="2" stroke-dasharray="6 4" opacity=".75"/>`;
+  for (let y = 0; y < MAXR; y++) for (let x = 0; x < MAXC; x++){
+    const on = x < c && y < r, cx = ox + x * cell + cell / 2, cy = oy + y * cell + cell / 2;
+    g += `<rect x="${ox + x * cell}" y="${oy + y * cell}" width="${cell}" height="${cell}" fill="transparent" data-x="${x}" data-y="${y}" style="cursor:pointer"/>`;
+    if (!on) g += `<circle cx="${cx}" cy="${cy}" r="3" fill="#CFE6E0" pointer-events="none"/>`;
+    else if (st.ic === 'dot') g += `<circle cx="${cx}" cy="${cy}" r="${cell * .32}" fill="${sp && x >= sp ? '#3B8FD9' : '#FF9F43'}" pointer-events="none"/>`;
+    else g += `<text x="${cx}" y="${cy + cell * .13}" text-anchor="middle" font-size="${cell * .62}" pointer-events="none">${st.ic}</text>`;
+  }
+  if (sp) g += `<line x1="${ox + sp * cell}" x2="${ox + sp * cell}" y1="${oy - 14}" y2="${oy + r * cell + 14}" stroke="#E5546B" stroke-width="4" stroke-dasharray="8 5" pointer-events="none"/>`;
+  // 위·옆 숫자
+  g += `<text x="${ox + c * cell / 2}" y="${oy - 12}" text-anchor="middle" font-size="22" font-weight="700" fill="#22314A">${c}개씩</text>`;
+  g += `<text x="${ox + c * cell + 14}" y="${oy + r * cell / 2 + 8}" font-size="22" font-weight="700" fill="#22314A">${r}줄</text>`;
+  $('#ar').innerHTML = g;
+  const n = r * c, A = s => `<span class="ans">${s}</span>`;
+  let h = `<div class="main-eq">${c} × ${r} = ${A(n)}<small>${c}개씩 ${r}줄 · ${c}의 ${r}배</small></div>`;
+  h += `<div>${r <= 6 ? Array(r).fill(c).join(' + ') : `${c} + ${c} + … + ${c}`} = ${A(n)}<small>덧셈식 (${c}을 ${r}번 더하기)</small></div>`;
+  h += `<div>${r} × ${c} = ${A(n)}<small>곱하는 순서를 바꾸어도 같아요</small></div>`;
+  if (sp) h += `<div style="grid-column:1/-1;background:#DDF0FF">${c} × ${r} = <span style="color:#D97A1F">${sp} × ${r}</span> + <span style="color:#2A6FAE">${c - sp} × ${r}</span> = ${A(`${sp * r} + ${(c - sp) * r} = ${n}`)}<small>나누어 곱한 뒤 더해요</small></div>`;
+  else h += `<div>${n} ÷ ${r} = ${A(c)}<small>${n}개를 ${r}줄로 똑같이</small></div><div>${n} ÷ ${c} = ${A(r)}<small>${n}개를 ${c}개씩 묶으면</small></div>`;
+  $('#eqs').innerHTML = h;
+  $('#icons').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.ic === st.ic));
+  store.set('tm-ar', st);
+}
+let dragging = false;
+function pick(e){ const t = document.elementFromPoint((e.touches ? e.touches[0] : e).clientX, (e.touches ? e.touches[0] : e).clientY); if (t && t.dataset && t.dataset.x != null){ st.c = +t.dataset.x + 1; st.r = +t.dataset.y + 1; render(); } }
+$('#ar').addEventListener('pointerdown', e => { dragging = true; pick(e); });
+addEventListener('pointermove', e => { if (dragging) pick(e); });
+addEventListener('pointerup', () => dragging = false);
+$('#cols').addEventListener('input', e => { st.c = +e.target.value; render(); });
+$('#rows').addEventListener('input', e => { st.r = +e.target.value; render(); });
+$('#split').addEventListener('input', e => { st.split = +e.target.value; render(); });
+$('#swap').addEventListener('click', () => { if (st.r <= MAXC && st.c <= MAXR){ [st.r, st.c] = [st.c, st.r]; st.split = 0; render(); } });
+$('#rand').addEventListener('click', () => { st.r = TT.rnd(2, 9); st.c = TT.rnd(2, 9); st.split = 0; render(); });
+$('#icons').addEventListener('click', e => { const b = e.target.closest('button'); if (b){ st.ic = b.dataset.ic; render(); } });
+$('#group').addEventListener('change', render);
+$('#hide').addEventListener('change', e => $('#eqs').classList.toggle('hide', e.target.checked));
+$('#eqs').addEventListener('click', e => { const a = e.target.closest('.ans'); if (a) a.style.filter = 'none'; });
+render();
+})();
+</script>
+</body>
+</html>

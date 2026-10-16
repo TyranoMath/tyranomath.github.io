@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기하판 · TyranoMath 수학 도구존</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tool.css">
+<style>
+.boardwrap{flex:1; min-height:0; width:100%; display:flex; align-items:center; justify-content:center}
+#gb{height:100%; width:auto; max-width:100%; aspect-ratio:1; touch-action:none}
+.peg{cursor:pointer}
+.info{font-family:'Jua',sans-serif; font-size:clamp(18px,2.2vw,28px); text-align:center; min-height:1.4em; line-height:1.35}
+.info b{font-family:'Fredoka','Jua',sans-serif; color:var(--teal-d)}
+.info small{display:block; font-size:.6em; color:var(--muted)}
+.info.hide b{filter:blur(10px); cursor:pointer}
+.colors{display:grid; grid-template-columns:repeat(6,1fr); gap:6px}
+.colors button{height:38px; border-radius:12px; border:3px solid #fff; box-shadow:0 0 0 2px var(--line)}
+.colors button[aria-pressed="true"]{box-shadow:0 0 0 4px var(--ink)}
+.sizes{display:grid; grid-template-columns:repeat(4,1fr); gap:6px}
+.sizes .tool{font-family:'Fredoka',sans-serif; padding:4px}
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" href="../toolzone.html" hidden>← 도구존</a>
+  <div class="title"><span class="dino-logo"></span>기하판</div>
+  <button class="tool" id="fullBtn">⛶ 전체 화면</button>
+</div>
+<div class="main">
+  <div class="stage">
+    <div class="boardwrap"><svg id="gb" viewBox="0 0 500 500" role="img" aria-label="기하판"></svg></div>
+    <div class="info" id="info"></div>
+  </div>
+  <div class="side">
+    <div class="box">
+      <h3>고무줄 걸기</h3>
+      <p class="note">못을 차례로 누르고 <b>처음 못을 다시 누르면</b> 도형이 완성돼요. 완성한 도형의 꼭짓점은 끌어서 옮길 수 있어요.</p>
+      <div class="colors" id="colors"></div>
+      <div class="grid2"><button class="tool" id="undo">↶ 되돌리기</button><button class="tool" id="close">✔ 도형 닫기</button></div>
+      <div class="grid2"><button class="tool" id="delLast">마지막 도형 빼기</button><button class="tool warn" id="clear">모두 지우기</button></div>
+    </div>
+    <div class="box">
+      <h3>못판 크기</h3>
+      <div class="sizes" id="sizes"><button class="tool" data-n="5">5×5</button><button class="tool" data-n="7">7×7</button><button class="tool" data-n="9">9×9</button><button class="tool" data-n="11">11×11</button></div>
+      <label class="sw"><input type="checkbox" id="grid" checked> 모눈 선 보이기</label>
+      <label class="sw"><input type="checkbox" id="hide"> 넓이 가리기 (세어 보기)</label>
+    </div>
+    <div class="box">
+      <h3>도전!</h3>
+      <div class="grid2"><button class="tool" data-ch="0">넓이 6칸 직사각형</button><button class="tool" data-ch="1">넓이 4칸 삼각형</button><button class="tool" data-ch="2">평행사변형</button><button class="tool" data-ch="3">사다리꼴</button></div>
+      <p class="note" id="chTxt"></p>
+    </div>
+  </div>
+</div>
+<script src="tool-common.js"></script>
+<script>
+(() => {
+'use strict';
+const { $, store, pt } = TT;
+const COLORS = ['#E5546B', '#3B8FD9', '#4CB963', '#FF9F43', '#8E5BD6', '#159A8C'];
+let N = store.get('tm-gb-n', 7), bands = [], col = 0, challenge = null;
+const P = 50, step = () => 400 / (N - 1), xy = ([i, j]) => [P + i * step(), P + j * step()];
+const area2 = pts => { let s = 0; for (let k = 0; k < pts.length; k++){ const [a, b] = pts[k], [c, d] = pts[(k + 1) % pts.length]; s += a * d - b * c; } return Math.abs(s); };
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], dot = (a, b) => a[0] * b[0] + a[1] * b[1], cross = (a, b) => a[0] * b[1] - a[1] * b[0], len2 = a => dot(a, a);
+function name(pts){
+  const n = pts.length;
+  if (n < 3) return '';
+  if (area2(pts) === 0) return '도형이 되지 않아요 (한 줄)';
+  const e = pts.map((p, k) => sub(pts[(k + 1) % n], p));
+  const right = k => dot(e[k], e[(k + 1) % n]) === 0;
+  if (n === 3){
+    const L = e.map(len2).sort((a, b) => a - b), isR = [0, 1, 2].some(right);
+    const iso = L[0] === L[1] || L[1] === L[2];
+    return (isR && iso ? '직각이등변삼각형' : isR ? '직각삼각형' : iso ? '이등변삼각형' : '삼각형') + (([0, 1, 2].some(k => dot(e[k], e[(k + 1) % 3]) > 0)) ? ' · 둔각삼각형' : isR ? '' : ' · 예각삼각형');
+  }
+  if (n === 4){
+    const par = (a, b) => cross(a, b) === 0;
+    const p1 = par(e[0], e[2]), p2 = par(e[1], e[3]);
+    const allR = [0, 1, 2, 3].every(right), eqL = e.every(v => len2(v) === len2(e[0]));
+    if (p1 && p2) return allR && eqL ? '정사각형' : allR ? '직사각형' : eqL ? '마름모' : '평행사변형';
+    if (p1 || p2) return '사다리꼴';
+    return '사각형';
+  }
+  return ['', '', '', '', '', '오각형', '육각형', '칠각형', '팔각형'][n] || `${n}각형`;
+}
+function perim(pts){
+  const n = pts.length; let s = 0;
+  for (let k = 0; k < n; k++){ const d = sub(pts[(k + 1) % n], pts[k]); if (d[0] && d[1]) return null; s += Math.abs(d[0] + d[1]); }
+  return s;
+}
+function render(){
+  const s = step(); let g = `<rect x="10" y="10" width="480" height="480" rx="26" fill="#E9C99A" stroke="#B9864C" stroke-width="5"/>`;
+  if ($('#grid').checked) for (let k = 0; k < N; k++){ g += `<line x1="${P}" y1="${P + k * s}" x2="${450}" y2="${P + k * s}" stroke="#C9A06B" stroke-width="1.4"/><line x1="${P + k * s}" y1="${P}" x2="${P + k * s}" y2="450" stroke="#C9A06B" stroke-width="1.4"/>`; }
+  bands.forEach((b, bi) => {
+    const pts = b.pts.map(xy).map(p => p.join(',')).join(' ');
+    if (b.closed) g += `<polygon points="${pts}" fill="${b.c}" fill-opacity=".25" stroke="${b.c}" stroke-width="6" stroke-linejoin="round"/>`;
+    else g += `<polyline points="${pts}" fill="none" stroke="${b.c}" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>`;
+  });
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){
+    const [x, y] = xy([i, j]);
+    g += `<circle cx="${x}" cy="${y + 2}" r="8" fill="rgba(0,0,0,.18)"/><circle class="peg" data-i="${i}" data-j="${j}" cx="${x}" cy="${y}" r="8" fill="#8A97A8" stroke="#fff" stroke-width="2"/>`;
+    g += `<circle class="peg" data-i="${i}" data-j="${j}" cx="${x}" cy="${y}" r="${Math.min(22, s / 2)}" fill="transparent"/>`;
+  }
+  const act = bands.find(b => !b.closed);
+  if (act && act.pts.length){ const [x, y] = xy(act.pts[0]); g += `<circle cx="${x}" cy="${y}" r="14" fill="none" stroke="${act.c}" stroke-width="3" stroke-dasharray="5 4"/>`; }
+  $('#gb').innerHTML = g;
+  // 정보
+  const last = [...bands].reverse().find(b => b.closed);
+  let h = '';
+  if (act && act.pts.length) h = `<span>못 ${act.pts.length}개를 이었어요</span><small>처음 못(점선 동그라미)을 누르면 닫혀요</small>`;
+  else if (last){
+    const a = area2(last.pts) / 2, p = perim(last.pts);
+    h = `${name(last.pts)} · 넓이 <b>${a}</b>칸<small>변 ${last.pts.length}개 · 꼭짓점 ${last.pts.length}개${p != null ? ` · 둘레 ${p}칸` : ' · 비스듬한 변이 있어요'}</small>`;
+    if (challenge) h += checkChallenge(last);
+  } else h = '<span style="color:var(--muted);font-size:.8em">못을 눌러 고무줄을 걸어 보세요</span>';
+  $('#info').innerHTML = h;
+  $('#colors').querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', i === col));
+  $('#sizes').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.n === N));
+  store.set('tm-gb-n', N);
+}
+const CH = [['넓이가 6칸인 직사각형을 만들어 보세요', b => /사각형/.test(name(b.pts)) && ['직사각형', '정사각형'].includes(name(b.pts)) && area2(b.pts) === 12],
+  ['넓이가 4칸인 삼각형을 만들어 보세요', b => b.pts.length === 3 && area2(b.pts) === 8],
+  ['직사각형이 아닌 평행사변형을 만들어 보세요', b => name(b.pts) === '평행사변형'],
+  ['사다리꼴을 만들어 보세요', b => name(b.pts) === '사다리꼴']];
+function checkChallenge(b){ return CH[challenge][1](b) ? '<small style="color:var(--green-d)">🎉 도전 성공! 크앙!</small>' : '<small style="color:var(--orange-d)">조금 더 바꿔 볼까요?</small>'; }
+let drag = null;
+$('#gb').addEventListener('pointerdown', e => {
+  const pg = e.target.closest('.peg'); if (!pg) return;
+  const p = [+pg.dataset.i, +pg.dataset.j];
+  let act = bands.find(b => !b.closed);
+  if (!act){
+    // 완성한 도형의 꼭짓점이면 끌어서 옮기기
+    for (let bi = bands.length - 1; bi >= 0; bi--){ const k = bands[bi].pts.findIndex(q => q[0] === p[0] && q[1] === p[1]); if (k >= 0){ drag = { bi, k }; $('#gb').setPointerCapture(e.pointerId); return; } }
+    act = { pts: [], c: COLORS[col], closed: false }; bands.push(act);
+  }
+  const f = act.pts[0];
+  if (f && f[0] === p[0] && f[1] === p[1] && act.pts.length >= 3) act.closed = true;
+  else if (!act.pts.some(q => q[0] === p[0] && q[1] === p[1])) act.pts.push(p);
+  render();
+});
+$('#gb').addEventListener('pointermove', e => {
+  if (!drag) return;
+  const q = pt($('#gb'), e), s = step(), i = Math.round((q.x - P) / s), j = Math.round((q.y - P) / s);
+  if (i < 0 || j < 0 || i >= N || j >= N) return;
+  const b = bands[drag.bi]; if (b.pts.some((v, k) => k !== drag.k && v[0] === i && v[1] === j)) return;
+  b.pts[drag.k] = [i, j]; render();
+});
+addEventListener('pointerup', () => drag = null);
+$('#colors').innerHTML = COLORS.map((c, i) => `<button style="background:${c}" data-c="${i}" aria-label="색 ${i + 1}"></button>`).join('');
+$('#colors').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; col = +b.dataset.c; const act = bands.find(x => !x.closed); if (act) act.c = COLORS[col]; render(); });
+$('#undo').addEventListener('click', () => { const act = bands.find(b => !b.closed); if (act){ act.pts.pop(); if (!act.pts.length) bands = bands.filter(b => b !== act); } else if (bands.length) bands[bands.length - 1].closed = false; render(); });
+$('#close').addEventListener('click', () => { const act = bands.find(b => !b.closed); if (act && act.pts.length >= 3) act.closed = true; render(); });
+$('#delLast').addEventListener('click', () => { bands.pop(); render(); });
+$('#clear').addEventListener('click', () => { bands = []; render(); });
+$('#sizes').addEventListener('click', e => { const b = e.target.closest('button'); if (b){ N = +b.dataset.n; bands = []; render(); } });
+$('#grid').addEventListener('change', render);
+$('#hide').addEventListener('change', e => $('#info').classList.toggle('hide', e.target.checked));
+document.querySelectorAll('[data-ch]').forEach(b => b.addEventListener('click', () => { challenge = +b.dataset.ch; $('#chTxt').textContent = '🦖 ' + CH[challenge][0]; bands = []; render(); }));
+render();
+})();
+</script>
+</body>
+</html>

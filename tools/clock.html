@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>모형 시계 · TyranoMath 수학 도구존</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tool.css">
+<style>
+.clockwrap{flex:1; min-height:0; width:100%; display:flex; align-items:center; justify-content:center}
+#ck{height:100%; max-height:560px; width:auto; max-width:100%; aspect-ratio:1; touch-action:none}
+.hand{cursor:grab}
+.reading{font-family:'Jua',sans-serif; font-size:clamp(24px,3.4vw,42px); text-align:center; line-height:1.3}
+.reading small{display:block; font-size:.5em; color:var(--muted)}
+.reading.hide .rt{filter:blur(14px); cursor:pointer}
+.digital{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(28px,4vw,48px); background:#22314A; color:#7CF5C8; border-radius:14px; padding:2px 18px; letter-spacing:.06em}
+.lowrow{display:flex; gap:14px; align-items:center; justify-content:center; flex-wrap:wrap; padding-top:6px}
+.elapsed{font-family:'Jua',sans-serif; font-size:clamp(17px,2vw,24px); color:var(--orange-d); text-align:center}
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" href="../toolzone.html" hidden>← 도구존</a>
+  <div class="title"><span class="dino-logo"></span>모형 시계</div>
+  <button class="tool" id="fullBtn">⛶ 전체 화면</button>
+</div>
+<div class="main">
+  <div class="stage">
+    <div class="clockwrap"><svg id="ck" viewBox="0 0 400 400" role="img" aria-label="모형 시계"></svg></div>
+    <div class="lowrow"><div class="reading" id="reading"></div><div class="digital" id="digital"></div></div>
+    <div class="elapsed" id="elapsed"></div>
+  </div>
+  <div class="side">
+    <div class="box">
+      <h3>시곗바늘 돌리기 <small>바늘을 끌어도 돼요</small></h3>
+      <div class="grid3">
+        <button class="tool" data-d="-60">−1시간</button><button class="tool" data-d="-5">−5분</button><button class="tool" data-d="-1">−1분</button>
+        <button class="tool" data-d="60">+1시간</button><button class="tool" data-d="5">+5분</button><button class="tool" data-d="1">+1분</button>
+      </div>
+      <div class="grid2"><button class="tool" id="rand">🎲 아무 시각</button><button class="tool" id="now">⌚ 지금 시각</button></div>
+      <label class="fld">바늘 끌 때 <select id="snap"><option value="1">1분씩</option><option value="5" selected>5분씩</option><option value="30">30분씩</option><option value="60">1시간씩</option></select></label>
+    </div>
+    <div class="box">
+      <h3>걸린 시간</h3>
+      <button class="tool main-btn" id="mark">📍 지금을 시작 시각으로</button>
+      <button class="tool" id="unmark" disabled>시작 시각 지우기</button>
+      <p class="note">시작 시각을 정하고 바늘을 돌리면, 지나간 시간을 시계에 색칠하고 걸린 시간을 알려 줘요.</p>
+    </div>
+    <div class="box">
+      <h3>보기 설정</h3>
+      <label class="sw"><input type="checkbox" id="minNum" checked> 바깥에 분 쓰기 (5, 10, 15…)</label>
+      <label class="sw"><input type="checkbox" id="digi"> 디지털 시계</label>
+      <label class="sw"><input type="checkbox" id="ampm" checked> 오전·오후</label>
+      <label class="sw"><input type="checkbox" id="hideRead"> 시각 가리기 (맞혀 보기)</label>
+    </div>
+  </div>
+</div>
+<script src="tool-common.js"></script>
+<script>
+(() => {
+'use strict';
+const { $, store, pt } = TT;
+const C = 200;
+let t = store.get('tm-ck-t', 9 * 60 + 25), start = null;
+const norm = v => ((v % 1440) + 1440) % 1440;
+const hm = v => { v = norm(v); return [Math.floor(v / 60), v % 60]; };
+const pol = (deg, r) => [C + r * Math.sin(deg * Math.PI / 180), C - r * Math.cos(deg * Math.PI / 180)];
+function dur(m){ const h = Math.floor(m / 60), r = m % 60; return h ? `${h}시간${r ? ` ${r}분` : ''}` : `${r}분`; }
+function render(){
+  const [H, M] = hm(t), h12 = H % 12 || 12, minNum = $('#minNum').checked;
+  let g = `<circle cx="${C}" cy="${C}" r="192" fill="#FF9F43"/><circle cx="${C}" cy="${C}" r="180" fill="#fff" stroke="#22314A" stroke-width="4"/>`;
+  if (start != null){ // 지나간 시간 색칠 (긴바늘이 돈 만큼)
+    const d = norm(t - start), sm = hm(start)[1];
+    if (d > 0 && d < 60){
+      const a0 = sm * 6, a1 = (sm + d) * 6, [x0, y0] = pol(a0, 160), [x1, y1] = pol(a1, 160);
+      g += `<path d="M${C} ${C} L${x0} ${y0} A160 160 0 ${d > 30 ? 1 : 0} 1 ${x1} ${y1} Z" fill="#FFD27A" opacity=".55"/>`;
+    } else if (d >= 60) g += `<circle cx="${C}" cy="${C}" r="160" fill="#FFD27A" opacity=".35"/>`;
+    const [sx, sy] = pol(sm * 6, 172);
+    g += `<circle cx="${sx}" cy="${sy}" r="7" fill="#E5546B"/>`;
+  }
+  for (let k = 0; k < 60; k++){
+    const big = k % 5 === 0, [x1, y1] = pol(k * 6, big ? 160 : 168), [x2, y2] = pol(k * 6, 177);
+    g += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#22314A" stroke-width="${big ? 4 : 1.6}" stroke-linecap="round"/>`;
+  }
+  for (let n = 1; n <= 12; n++){ const [x, y] = pol(n * 30, 135); g += `<text x="${x}" y="${y + 11}" text-anchor="middle" font-size="32" font-weight="700" fill="#22314A">${n}</text>`; }
+  if (minNum) for (let n = 1; n <= 12; n++){ const [x, y] = pol(n * 30, 187); g += `<circle cx="${x}" cy="${y}" r="11" fill="#159A8C"/><text x="${x}" y="${y + 4.5}" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">${n === 12 ? 0 : n * 5}</text>`; }
+  const ah = (H % 12) * 30 + M * .5, am = M * 6, [hx, hy] = pol(ah, 92), [mx, my] = pol(am, 150);
+  g += `<line class="hand" data-h="h" x1="${C}" y1="${C}" x2="${hx}" y2="${hy}" stroke="#22314A" stroke-width="14" stroke-linecap="round"/>`;
+  g += `<line class="hand" data-h="m" x1="${C}" y1="${C}" x2="${mx}" y2="${my}" stroke="#3B8FD9" stroke-width="8" stroke-linecap="round"/>`;
+  g += `<line class="hand" data-h="h" x1="${C}" y1="${C}" x2="${hx}" y2="${hy}" stroke="transparent" stroke-width="40"/><line class="hand" data-h="m" x1="${C}" y1="${C}" x2="${mx}" y2="${my}" stroke="transparent" stroke-width="34"/>`;
+  g += `<circle cx="${C}" cy="${C}" r="11" fill="#E5546B" stroke="#fff" stroke-width="3"/>`;
+  $('#ck').innerHTML = g;
+  const ap = $('#ampm').checked ? (H < 12 ? '오전 ' : '오후 ') : '';
+  const alt = M >= 40 ? `${(h12 % 12) + 1}시 ${60 - M}분 전` : M === 30 ? `${h12}시 반` : '';
+  $('#reading').innerHTML = `<span class="rt">${ap}${h12}시${M ? ` ${M}분` : ''}<small>${alt ? '= ' + alt : '&nbsp;'}</small></span>`;
+  $('#digital').hidden = !$('#digi').checked;
+  $('#digital').textContent = $('#ampm').checked ? `${String(H).padStart(2, '0')}:${String(M).padStart(2, '0')}` : `${h12}:${String(M).padStart(2, '0')}`;
+  if (start != null){
+    const [sH, sM] = hm(start), d = norm(t - start);
+    $('#elapsed').textContent = `시작 ${$('#ampm').checked ? (sH < 12 ? '오전 ' : '오후 ') : ''}${sH % 12 || 12}시 ${sM}분 → 걸린 시간 ${dur(d)}${d >= 60 ? ` (${d}분)` : ''}`;
+  } else $('#elapsed').textContent = '';
+  store.set('tm-ck-t', t);
+}
+// 바늘 끌기 (톱니처럼 함께 움직여요)
+let drag = null;
+$('#ck').addEventListener('pointerdown', e => { const h = e.target.closest('.hand'); if (h){ drag = h.dataset.h; e.preventDefault(); $('#ck').setPointerCapture(e.pointerId); } });
+$('#ck').addEventListener('pointermove', e => {
+  if (!drag) return;
+  const p = pt($('#ck'), e), ang = (Math.atan2(p.x - C, C - p.y) * 180 / Math.PI + 360) % 360, snap = +$('#snap').value;
+  if (drag === 'm'){
+    const step = Math.max(1, Math.min(snap, 30));
+    let m = Math.round(ang / 6 / step) * step % 60, cur = hm(t)[1], d = m - cur;
+    if (d > 30) d -= 60; if (d < -30) d += 60; t = norm(t + d);
+  } else {
+    let tot = Math.round(ang * 2 / snap) * snap % 720, cur = norm(t) % 720, d = tot - cur;
+    if (d > 360) d -= 720; if (d < -360) d += 720; t = norm(t + d);
+  }
+  render();
+});
+addEventListener('pointerup', () => drag = null);
+document.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => { t = norm(t + +b.dataset.d); render(); }));
+$('#rand').addEventListener('click', () => { const s = +$('#snap').value; t = Math.round(TT.rnd(0, 1439) / s) * s; render(); });
+$('#now').addEventListener('click', () => { const d = new Date(); t = d.getHours() * 60 + d.getMinutes(); render(); });
+$('#mark').addEventListener('click', () => { start = t; $('#unmark').disabled = false; render(); });
+$('#unmark').addEventListener('click', () => { start = null; $('#unmark').disabled = true; render(); });
+['minNum', 'digi', 'ampm'].forEach(id => $('#' + id).addEventListener('change', render));
+$('#hideRead').addEventListener('change', e => { $('#reading').classList.toggle('hide', e.target.checked); $('#digital').style.filter = e.target.checked ? 'blur(14px)' : ''; });
+$('#reading').addEventListener('click', () => { if ($('#hideRead').checked){ $('#hideRead').checked = false; $('#reading').classList.remove('hide'); $('#digital').style.filter = ''; } });
+render();
+})();
+</script>
+</body>
+</html>

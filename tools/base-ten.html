@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수 모형 · TyranoMath 수학 도구존</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tool.css">
+<style>
+.mat{flex:1; width:100%; min-height:0; display:grid; grid-template-columns:1.25fr 1.25fr 1fr 1fr; gap:8px}
+.mat.hide-th{grid-template-columns:1.25fr 1fr 1fr} .mat.hide-th .col.c0{display:none}
+.col{border:3px dashed var(--line); border-radius:18px; display:flex; flex-direction:column; min-height:0; overflow:hidden; background:#FBFEFD}
+.col.full{border-color:var(--orange); background:#FFF8EE}
+.col h4{margin:0; padding:6px; text-align:center; font-family:'Jua',sans-serif; font-weight:400; font-size:clamp(16px,1.8vw,22px); background:var(--teal-l); color:var(--teal-d)}
+.col .cnt{font-family:'Fredoka',sans-serif; font-weight:700; font-size:clamp(26px,3.4vw,44px); text-align:center; color:var(--ink); line-height:1.1}
+.col.full .cnt{color:var(--orange-d)}
+.pile{flex:1; min-height:0; display:flex; flex-wrap:wrap; align-content:flex-start; justify-content:center; gap:6px; padding:8px; overflow:auto}
+.ctl{display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:6px}
+.ctl .tool{min-height:40px; padding:4px}
+.ctl .tool.wide{grid-column:1/-1}
+.pc{border:0; padding:0; background:none; cursor:pointer; transition:transform .12s}
+.pc:hover{transform:translateY(-2px)}
+.pc.new{animation:pop .35s}
+@keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.15)}}
+.one{width:var(--u); height:var(--u); background:#FFD27A; border:1.5px solid #B9862A; border-radius:3px}
+.ten{width:var(--u); height:calc(var(--u) * 10); background:repeating-linear-gradient(#7FD08E 0 calc(var(--u) - 1.5px), #3E8F4F calc(var(--u) - 1.5px) var(--u)); border:1.5px solid #3E8F4F; border-radius:3px}
+.hun{width:calc(var(--u) * 10); height:calc(var(--u) * 10); border:1.5px solid #2A6FAE; border-radius:3px;
+  background:linear-gradient(90deg, #2A6FAE 1.5px, transparent 1.5px) 0 0 / var(--u) var(--u), linear-gradient(#2A6FAE 1.5px, transparent 1.5px) 0 0 / var(--u) var(--u), #9CC7EE}
+.hun-pile{position:relative}
+.tho{width:calc(var(--u) * 11); height:calc(var(--u) * 11)}
+.sum{width:100%; display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap; padding:8px 4px 0}
+.sum .big-num{min-width:2ch; text-align:center}
+.read{font-family:'Jua',sans-serif; font-size:clamp(17px,2vw,24px)}
+.read small{display:block; color:var(--muted); font-family:'Fredoka','Jua',sans-serif; font-size:.8em}
+.hidden-num .big-num, .hidden-num .read{filter:blur(12px)}
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" href="../toolzone.html" hidden>← 도구존</a>
+  <div class="title"><span class="dino-logo"></span>수 모형</div>
+  <button class="tool" id="fullBtn">⛶ 전체 화면</button>
+</div>
+<div class="main">
+  <div class="stage">
+    <div class="mat" id="mat"></div>
+    <div class="sum" id="sum">
+      <span class="big-num" id="total">0</span>
+      <span class="read" id="read"></span>
+    </div>
+  </div>
+  <div class="side">
+    <div class="box">
+      <h3>수 만들기</h3>
+      <div class="row"><input type="number" id="numIn" min="0" max="9999" placeholder="예) 346" style="flex:1"><button class="tool main-btn" id="make">놓기</button></div>
+      <p class="note">수를 넣으면 알맞은 수 모형을 놓아 줘요.</p>
+    </div>
+    <div class="box">
+      <h3>보기 설정</h3>
+      <label class="sw"><input type="checkbox" id="showTh" checked> 천 모형 쓰기</label>
+      <label class="sw"><input type="checkbox" id="hideNum"> 수 가리기 (맞혀 보기)</label>
+      <div class="grid2"><button class="tool" id="rand">🎲 아무 수</button><button class="tool warn" id="clear">모두 치우기</button></div>
+    </div>
+    <div class="box">
+      <h3>이렇게 써요</h3>
+      <p class="note"><b>+ / −</b>로 모형을 놓고 빼요.<br>모형을 <b>누르면 풀어요</b> → 아래 자리 모형 10개로 바뀌어요.<br>한 자리에 <b>10개</b>가 모이면 칸이 주황색이 되고 <b>묶기</b>를 할 수 있어요. 받아올림·받아내림을 보여 줄 때 좋아요.</p>
+    </div>
+  </div>
+</div>
+<script src="tool-common.js"></script>
+<script>
+(() => {
+'use strict';
+const { $, store } = TT;
+const NAME = ['천', '백', '십', '일'], VAL = [1000, 100, 10, 1], MAX = 20;
+let c = store.get('tm-bt', [0, 3, 4, 6]), useTh = store.get('tm-bt-th', true), justAdded = -1;
+const DIG = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+function sino(n){
+  if (!n) return '영';
+  let s = '', u = ['', '십', '백', '천'];
+  const man = Math.floor(n / 10000), r = n % 10000;
+  if (man) s += (man === 1 ? '' : sino(man)) + '만 ';
+  String(r).padStart(4, '0').split('').forEach((d, i) => { d = +d; if (d) s += (d === 1 && i < 3 ? '' : DIG[d]) + u[3 - i]; });
+  return s.trim();
+}
+const thoSVG = `<svg class="tho" viewBox="0 0 110 110"><path d="M10 30 L40 10 L100 10 L70 30 Z" fill="#E0B0FF" stroke="#6C3FB4" stroke-width="2"/><path d="M70 30 L100 10 L100 70 L70 90 Z" fill="#B38BE8" stroke="#6C3FB4" stroke-width="2"/><rect x="10" y="30" width="60" height="60" fill="#CFA6F5" stroke="#6C3FB4" stroke-width="2"/><g stroke="#6C3FB4" stroke-width=".7" opacity=".7">${[1,2,3,4,5,6,7,8,9].map(k => `<line x1="${10 + k * 6}" y1="30" x2="${10 + k * 6}" y2="90"/><line x1="10" y1="${30 + k * 6}" x2="70" y2="${30 + k * 6}"/>`).join('')}</g></svg>`;
+function pieceHTML(k, i){
+  const cls = 'pc' + (k === justAdded && i === c[k] - 1 ? ' new' : '');
+  const tip = k < 3 ? `${NAME[k]} 모형 — 누르면 ${NAME[k + 1]} 모형 10개로 풀어요` : '일 모형';
+  if (k === 0) return `<button class="${cls}" data-k="0" title="${tip}" aria-label="${tip}">${thoSVG}</button>`;
+  if (k === 1) return `<button class="${cls}" data-k="1" title="${tip}" aria-label="${tip}"><div class="hun"></div></button>`;
+  if (k === 2) return `<button class="${cls}" data-k="2" title="${tip}" aria-label="${tip}"><div class="ten"></div></button>`;
+  return `<span class="${cls}" style="cursor:default"><div class="one"></div></span>`;
+}
+function unitSize(){
+  const st = $('.stage'), h = st.clientHeight, w = st.clientWidth;
+  return Math.max(6, Math.min(16, Math.floor(Math.min(h / 34, w / 70))));
+}
+function render(){
+  const mat = $('#mat'); mat.classList.toggle('hide-th', !useTh);
+  mat.style.setProperty('--u', unitSize() + 'px');
+  mat.innerHTML = NAME.map((nm, k) => {
+    const n = c[k];
+    let pile = '';
+    if (k === 1){ // 백 모형은 겹쳐 쌓아요
+      const off = Math.max(4, Math.min(14, 120 / Math.max(1, n)));
+      pile = `<div class="hun-pile" style="width:calc(var(--u) * 10 + ${off * Math.max(0, n - 1)}px); height:calc(var(--u) * 10 + ${off * Math.max(0, n - 1)}px)">${Array.from({ length: n }, (_, i) => `<div style="position:absolute; left:${i * off}px; top:${i * off}px">${pieceHTML(1, i)}</div>`).join('')}</div>`;
+    } else if (k === 3){ // 일 모형은 5개씩 줄 맞춰요
+      pile = `<div style="display:grid; grid-template-columns:repeat(5, var(--u)); gap:5px">${Array.from({ length: n }, (_, i) => pieceHTML(3, i)).join('')}</div>`;
+    } else pile = Array.from({ length: n }, (_, i) => pieceHTML(k, i)).join('');
+    return `<div class="col c${k}${n >= 10 ? ' full' : ''}"><h4>${nm} 모형</h4><div class="cnt">${n}</div><div class="pile">${pile}</div>
+      <div class="ctl"><button class="tool" data-add="${k}" aria-label="${nm} 모형 하나 더">＋</button><button class="tool" data-sub="${k}" aria-label="${nm} 모형 하나 빼기">−</button>
+      ${k > 0 && (k > 1 || useTh) ? `<button class="tool wide" data-group="${k}" ${n >= 10 ? '' : 'disabled'}>10개 묶기 → ${NAME[k - 1]}</button>` : `<button class="tool wide" disabled>${k === 0 ? '가장 큰 모형' : '천 모형을 켜요'}</button>`}</div></div>`;
+  }).join('');
+  const total = c.reduce((s, n, k) => s + n * VAL[k], 0);
+  $('#total').textContent = total.toLocaleString();
+  const parts = c.map((n, k) => n ? `${NAME[k]} ${n}` : '').filter(Boolean).join(', ') || '모형이 없어요';
+  const exp = c.map((n, k) => n * VAL[k]).filter(Boolean).join(' + ');
+  $('#read').innerHTML = `${sino(total)}<small>${parts}${exp && exp.includes('+') ? ` → ${exp}` : ''}</small>`;
+  justAdded = -1; store.set('tm-bt', c);
+}
+$('#mat').addEventListener('click', e => {
+  const a = e.target.closest('[data-add]'), s = e.target.closest('[data-sub]'), g = e.target.closest('[data-group]'), p = e.target.closest('.pc[data-k]');
+  if (a){ const k = +a.dataset.add; if (c[k] < MAX){ c[k]++; justAdded = k; } }
+  else if (s){ const k = +s.dataset.sub; if (c[k] > 0) c[k]--; }
+  else if (g){ const k = +g.dataset.group; if (c[k] >= 10){ c[k] -= 10; c[k - 1]++; justAdded = k - 1; } }
+  else if (p){ const k = +p.dataset.k; if (k < 3 && c[k] > 0 && c[k + 1] < MAX){ c[k]--; c[k + 1] += 10; justAdded = k + 1; } }
+  else return;
+  render();
+});
+function setNum(n){
+  n = Math.max(0, Math.min(9999, Math.floor(n) || 0));
+  c = useTh ? [Math.floor(n / 1000), Math.floor(n / 100) % 10, Math.floor(n / 10) % 10, n % 10] : [0, Math.min(MAX, Math.floor(n / 100)), Math.floor(n / 10) % 10, n % 10];
+  render();
+}
+$('#make').addEventListener('click', () => setNum(+$('#numIn').value));
+$('#numIn').addEventListener('keydown', e => { if (e.key === 'Enter') setNum(+e.target.value); });
+$('#rand').addEventListener('click', () => setNum(useTh ? TT.rnd(1000, 9999) : TT.rnd(100, 999)));
+$('#clear').addEventListener('click', () => { c = [0, 0, 0, 0]; render(); });
+$('#showTh').checked = useTh;
+$('#showTh').addEventListener('change', e => { useTh = e.target.checked; store.set('tm-bt-th', useTh); if (!useTh && c[0]){ c[1] = Math.min(MAX, c[1] + c[0] * 10); c[0] = 0; } render(); });
+$('#hideNum').addEventListener('change', e => $('#sum').classList.toggle('hidden-num', e.target.checked));
+$('#sum').addEventListener('click', () => { if ($('#hideNum').checked){ $('#hideNum').checked = false; $('#sum').classList.remove('hidden-num'); } });
+addEventListener('resize', render);
+render();
+})();
+</script>
+</body>
+</html>

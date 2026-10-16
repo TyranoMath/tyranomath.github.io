@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수직선 · TyranoMath 수학 도구존</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tool.css">
+<style>
+#nl{width:100%; height:100%; max-height:420px; touch-action:none; cursor:pointer}
+.tick-hit{fill:transparent}
+.mk circle{fill:var(--orange); stroke:#fff; stroke-width:3}
+.mk text{font-weight:700; fill:var(--orange-d)}
+.arc{fill:none; stroke:var(--teal); stroke-width:4; stroke-linecap:round}
+.arc.back{stroke:var(--red)}
+.arc-lab{font-weight:700; fill:var(--teal-d)}
+.arc-lab.back{fill:var(--red)}
+.modes{display:grid; grid-template-columns:repeat(2,1fr); gap:6px}
+.custom[hidden]{display:none}
+.stage .out{min-height:1.5em}
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" href="../toolzone.html" hidden>← 도구존</a>
+  <div class="title"><span class="dino-logo"></span>수직선</div>
+  <button class="tool" id="fullBtn">⛶ 전체 화면</button>
+</div>
+<div class="main">
+  <div class="stage">
+    <svg id="nl" viewBox="0 0 1000 340" role="img" aria-label="수직선"></svg>
+    <div class="out" id="out">눈금을 누르면 점을 찍어요.</div>
+  </div>
+  <div class="side">
+    <div class="box">
+      <h3>수직선 고르기</h3>
+      <div class="modes" id="modes">
+        <button class="tool" data-m="10">0 ~ 10</button>
+        <button class="tool" data-m="20">0 ~ 20</button>
+        <button class="tool" data-m="100">0 ~ 100</button>
+        <button class="tool" data-m="1000">0 ~ 1000</button>
+        <button class="tool" data-m="frac">분수<small>0 ~ 2</small></button>
+        <button class="tool" data-m="dec1">소수 한 자리<small>0 ~ 3</small></button>
+        <button class="tool" data-m="dec2">소수 두 자리<small>0 ~ 1</small></button>
+        <button class="tool" data-m="custom">직접 정하기</button>
+      </div>
+      <div class="row" id="fracRow" hidden><label class="fld" style="flex:1">분모 (똑같이 나눈 수)<select id="den"></select></label><label class="sw" style="margin-top:20px"><input type="checkbox" id="mixed"> 대분수</label></div>
+      <div class="grid3 custom" id="customRow" hidden>
+        <label class="fld">시작<input type="number" id="cStart" value="0"></label>
+        <label class="fld">눈금 한 칸<input type="number" id="cStep" value="5" step="any"></label>
+        <label class="fld">칸 수<input type="number" id="cCount" value="10" min="2" max="40"></label>
+      </div>
+    </div>
+    <div class="box">
+      <h3>뛰어 세기 <small>점에서 출발해요</small></h3>
+      <div class="row"><label class="fld" style="flex:1">한 번에 몇 칸?<input type="number" id="jump" value="2" min="1" max="40"></label></div>
+      <div class="grid2"><button class="tool" id="jb">◀ 뒤로 뛰기</button><button class="tool main-btn" id="jf">앞으로 뛰기 ▶</button></div>
+    </div>
+    <div class="box">
+      <label class="sw"><input type="checkbox" id="hideLab"> 눈금의 수 가리기 (처음과 끝만)</label>
+      <label class="sw"><input type="checkbox" id="hideMk"> 점의 수 가리기</label>
+      <button class="tool warn" id="clear">점과 화살표 지우기</button>
+    </div>
+  </div>
+</div>
+<script src="tool-common.js"></script>
+<script>
+(() => {
+'use strict';
+const { $, NS, store } = TT;
+const X0 = 60, X1 = 940, Y = 210;
+let mode = store.get('tm-nl-mode', '10'), den = store.get('tm-nl-den', 4), marks = [], jumps = [], hideLab = false, hideMk = false, mixed = false;
+let custom = { start: 0, step: 5, count: 10 };
+const gcd = (a, b) => b ? gcd(b, a % b) : Math.abs(a);
+const fix = v => Math.round(v * 1e6) / 1e6;
+function spec(){
+  switch (mode){
+    case '10': return { n: 10, lab: i => i, show: () => true, big: () => true, val: i => i };
+    case '20': return { n: 20, lab: i => i, show: () => true, big: i => i % 5 === 0, val: i => i };
+    case '100': return { n: 100, lab: i => i, show: i => i % 10 === 0, big: i => i % 10 === 0, mid: i => i % 5 === 0, val: i => i };
+    case '1000': return { n: 100, lab: i => i * 10, show: i => i % 10 === 0, big: i => i % 10 === 0, mid: i => i % 5 === 0, val: i => i * 10 };
+    case 'frac': return { n: den * 2, frac: true, show: () => den <= 12, big: i => i % den === 0, val: i => i / den };
+    case 'dec1': return { n: 30, lab: i => fix(i / 10), show: () => true, big: i => i % 10 === 0, mid: i => i % 5 === 0, val: i => fix(i / 10) };
+    case 'dec2': return { n: 100, lab: i => fix(i / 100), show: i => i % 10 === 0, big: i => i % 10 === 0, mid: i => i % 5 === 0, val: i => fix(i / 100) };
+    default: { const { start, step, count } = custom; return { n: count, lab: i => fix(start + i * step), show: () => count <= 20 || true, big: () => true, val: i => fix(start + i * step) }; }
+  }
+}
+const xOf = i => X0 + (X1 - X0) * i / spec().n;
+function el(tag, attrs, txt){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (txt != null) e.textContent = txt; return e; }
+function fracParts(i){ // 분수 이름 [자연수, 분자, 분모]
+  if (i % den === 0) return [i / den, 0, 1];
+  if (mixed && i > den) return [Math.floor(i / den), i % den, den];
+  return [0, i, den];
+}
+function fracLabel(g, x, y, i, color, size = 22){
+  const [w, nu, de] = fracParts(i);
+  if (!nu){ g.appendChild(el('text', { x, y: y + 8, 'text-anchor': 'middle', 'font-size': (size + 4) * F, fill: color, 'font-weight': 700 }, w)); return; }
+  const dx = w ? 10 : 0;
+  if (w) g.appendChild(el('text', { x: x - 10, y: y + 8, 'text-anchor': 'middle', 'font-size': (size + 4) * F, fill: color, 'font-weight': 700 }, w));
+  g.appendChild(el('text', { x: x + dx, y: y - 4 * F, 'text-anchor': 'middle', 'font-size': size * F, fill: color, 'font-weight': 700 }, nu));
+  g.appendChild(el('line', { x1: x + dx - 11 * F, x2: x + dx + 11 * F, y1: y + 2, y2: y + 2, stroke: color, 'stroke-width': 2 }));
+  g.appendChild(el('text', { x: x + dx, y: y + 22 * F, 'text-anchor': 'middle', 'font-size': size * F, fill: color, 'font-weight': 700 }, de));
+}
+function valText(i){
+  const s = spec();
+  if (s.frac){ const [w, nu, de] = fracParts(i); return nu ? (w ? `${w}과 ${nu}/${de}` : `${nu}/${de}`) : String(w); }
+  return String(s.lab(i));
+}
+let F = 1;
+function render(){
+  const s = spec(), svg = $('#nl'); svg.innerHTML = '';
+  F = Math.min(2.2, Math.max(1, 760 / (svg.clientWidth || 760)));
+  // 화살표 줄
+  svg.appendChild(el('line', { x1: X0 - 40, x2: X1 + 40, y1: Y, y2: Y, stroke: '#22314A', 'stroke-width': 4, 'stroke-linecap': 'round' }));
+  svg.appendChild(el('path', { d: `M${X1 + 46} ${Y} l-16 -10 v20 Z`, fill: '#22314A' }));
+  const dense = s.n > 40;
+  for (let i = 0; i <= s.n; i++){
+    const x = xOf(i), big = s.big(i), mid = s.mid && s.mid(i);
+    const h = big ? 22 : mid ? 15 : dense ? 8 : 12;
+    svg.appendChild(el('line', { x1: x, x2: x, y1: Y - h, y2: Y + h, stroke: '#22314A', 'stroke-width': big ? 3 : 1.6 }));
+    const edge = i === 0 || i === s.n;
+    if ((s.show(i) || big) && (!hideLab || edge)){
+      if (s.frac){ if (big || !dense) fracLabel(svg, x, Y + 52, i, '#22314A', den > 8 ? 15 : 20); }
+      else if ((!dense || big) && (F < 1.5 || s.n <= 10 || big || i % 2 === 0)) svg.appendChild(el('text', { x, y: Y + 40 + 16 * F, 'text-anchor': 'middle', 'font-size': (s.n > 20 ? 20 : 24) * F, 'font-weight': 700, fill: '#22314A' }, s.lab(i)));
+    }
+    svg.appendChild(el('rect', { class: 'tick-hit', x: x - (X1 - X0) / s.n / 2, y: Y - 60, width: (X1 - X0) / s.n, height: 130, 'data-i': i }));
+  }
+  // 뛰어 세기 화살표
+  jumps.forEach((j, k) => {
+    const a = xOf(j.from), b = xOf(j.to), back = j.to < j.from, mx = (a + b) / 2, hgt = Math.min(110, 30 + Math.abs(b - a) * .35);
+    svg.appendChild(el('path', { class: 'arc' + (back ? ' back' : ''), d: `M${a} ${Y - 8} Q${mx} ${Y - 8 - hgt * 2} ${b} ${Y - 8}` }));
+    const ang = back ? 1 : -1;
+    svg.appendChild(el('path', { d: `M${b} ${Y - 6} l${ang * 12} -14 l${-ang * 2} 16 Z`, fill: back ? '#E5546B' : '#159A8C' }));
+    svg.appendChild(el('text', { class: 'arc-lab' + (back ? ' back' : ''), x: mx, y: Y - 14 - hgt, 'text-anchor': 'middle', 'font-size': 20 * F }, (back ? '−' : '+') + jumpText(Math.abs(j.to - j.from))));
+  });
+  // 점
+  marks.forEach(i => {
+    const g = el('g', { class: 'mk' }), x = xOf(i);
+    g.appendChild(el('circle', { cx: x, cy: Y, r: 11 }));
+    if (!hideMk){
+      if (spec().frac) fracLabel(g, x, Y - 44, i, '#D97A1F', 20);
+      else g.appendChild(el('text', { x, y: Y - 22 - 8 * F, 'text-anchor': 'middle', 'font-size': 24 * F }, valText(i)));
+    }
+    svg.appendChild(g);
+  });
+  const last = cur();
+  $('#out').innerHTML = marks.length || jumps.length ? `지금 위치: <b>${hideMk ? '?' : valText(last)}</b>${jumps.length ? ` · ${jumps.length}번 뛰었어요` : ''}` : '눈금을 누르면 점을 찍어요.';
+  store.set('tm-nl-mode', mode); store.set('tm-nl-den', den);
+}
+function jumpText(k){
+  const s = spec();
+  if (s.frac){ const g = gcd(k, den); return `${k}/${den}`; }
+  return String(fix(s.val(k) - s.val(0)));
+}
+const cur = () => jumps.length ? jumps[jumps.length - 1].to : marks.length ? marks[marks.length - 1] : 0;
+$('#nl').addEventListener('click', e => {
+  const r = e.target.closest('[data-i]'); if (!r) return;
+  const i = +r.dataset.i, k = marks.indexOf(i);
+  if (k >= 0 && k === marks.length - 1 && !jumps.length) marks.splice(k, 1);
+  else { if (k >= 0) marks.splice(k, 1); marks.push(i); jumps = []; }
+  render();
+});
+function jump(dir){
+  const n = Math.max(1, Math.floor(+$('#jump').value || 1)), from = cur(), to = from + dir * n;
+  if (to < 0 || to > spec().n){ $('#out').textContent = '수직선 밖으로 나가요! 🦖'; return; }
+  if (!marks.length && !jumps.length) marks.push(from);
+  jumps.push({ from, to }); render();
+}
+$('#jf').addEventListener('click', () => jump(1));
+$('#jb').addEventListener('click', () => jump(-1));
+$('#clear').addEventListener('click', () => { marks = []; jumps = []; render(); });
+$('#hideLab').addEventListener('change', e => { hideLab = e.target.checked; render(); });
+$('#hideMk').addEventListener('change', e => { hideMk = e.target.checked; render(); });
+$('#mixed').addEventListener('change', e => { mixed = e.target.checked; render(); });
+$('#den').innerHTML = [2, 3, 4, 5, 6, 8, 10, 12].map(d => `<option value="${d}">${d}</option>`).join('');
+$('#den').addEventListener('change', e => { den = +e.target.value; marks = []; jumps = []; render(); });
+['cStart', 'cStep', 'cCount'].forEach(id => $('#' + id).addEventListener('input', () => {
+  const st = +$('#cStart').value || 0, sp = +$('#cStep').value || 1, ct = Math.max(2, Math.min(40, Math.floor(+$('#cCount').value || 10)));
+  custom = { start: st, step: sp, count: ct }; marks = marks.filter(i => i <= ct); jumps = []; render();
+}));
+function setMode(m){
+  mode = m; marks = []; jumps = [];
+  TT.press($('#modes'), $(`#modes [data-m="${m}"]`));
+  $('#fracRow').hidden = m !== 'frac'; $('#customRow').hidden = m !== 'custom';
+  $('#jump').value = m === '100' ? 10 : m === '1000' ? 10 : m === 'frac' ? 1 : 2;
+  render();
+}
+$('#modes').querySelectorAll('button').forEach(b => { b.setAttribute('aria-pressed', 'false'); b.addEventListener('click', () => setMode(b.dataset.m)); });
+$('#den').value = den;
+setMode(mode);
+addEventListener('resize', render);
+})();
+</script>
+</body>
+</html>

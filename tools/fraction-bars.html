@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분수 막대 · TyranoMath 수학 도구존</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tool.css">
+<style>
+.wall{width:100%; flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:clamp(4px,1vh,10px); position:relative; padding:0 4px}
+.bar{display:grid; grid-template-columns:clamp(64px,8vw,96px) 1fr; align-items:center; gap:10px; flex:1; max-height:64px; min-height:30px}
+.lab{font-family:'Fredoka',sans-serif; font-weight:700; text-align:right; font-size:clamp(16px,2vw,26px); color:var(--muted); display:flex; justify-content:flex-end; align-items:center}
+.lab.on{color:var(--ink)}
+.fr{display:inline-flex; flex-direction:column; align-items:center; line-height:1; vertical-align:middle}
+.fr i{font-style:normal; border-bottom:2.5px solid currentColor; padding:0 .15em}
+.cells{display:flex; height:100%; border:2.5px solid var(--ink); border-radius:8px; overflow:hidden; position:relative}
+.cell{flex:1; border:0; border-right:2px solid var(--ink); background:#fff; padding:0; display:grid; place-items:center; font-family:'Fredoka',sans-serif; font-weight:600; color:var(--muted); font-size:clamp(11px,1.3vw,17px); transition:background .12s}
+.cell:last-child{border-right:0}
+.cell.on{background:var(--c); color:#fff}
+.cell .fr i{border-bottom-width:1.5px}
+.guide{position:absolute; top:0; bottom:0; width:0; border-left:3px dashed var(--red); pointer-events:none}
+.guide b{position:absolute; top:-6px; left:-11px; width:22px; height:22px; border-radius:50%; background:var(--red)}
+.dens{display:grid; grid-template-columns:repeat(4,1fr); gap:6px}
+.dens .tool{min-height:40px; padding:4px; font-family:'Fredoka',sans-serif}
+@media (max-aspect-ratio:1/1){ .wall{flex:none} .bar{flex:none; height:46px} }
+.cmp{font-family:'Fredoka','Jua',sans-serif; font-size:clamp(18px,2vw,26px); text-align:center; line-height:1.6}
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" href="../toolzone.html" hidden>← 도구존</a>
+  <div class="title"><span class="dino-logo"></span>분수 막대</div>
+  <button class="tool" id="fullBtn">⛶ 전체 화면</button>
+</div>
+<div class="main">
+  <div class="stage">
+    <div class="wall" id="wall"></div>
+    <div class="cmp" id="cmp"></div>
+  </div>
+  <div class="side">
+    <div class="box">
+      <h3>막대 고르기 <small>몇으로 나눌까요?</small></h3>
+      <div class="dens" id="dens"></div>
+      <div class="grid2"><button class="tool" id="preset1">2·4·8 막대</button><button class="tool" id="preset2">3·6·12 막대</button></div>
+    </div>
+    <div class="box">
+      <h3>보기 설정</h3>
+      <label class="sw"><input type="checkbox" id="showPiece" checked> 조각에 분수 쓰기</label>
+      <label class="sw"><input type="checkbox" id="guideOn" checked> 빨간 비교선</label>
+      <input type="range" id="gRange" min="0" max="1000" value="500" aria-label="비교선 위치">
+      <label class="sw"><input type="checkbox" id="fill"> 왼쪽부터 채우기</label>
+      <button class="tool warn" id="clear">색칠 모두 지우기</button>
+    </div>
+    <div class="box">
+      <h3>이렇게 써요</h3>
+      <p class="note">조각을 누르면 색칠돼요. 왼쪽에 색칠한 만큼의 분수가 나와요.<br>두 막대를 색칠하면 아래에서 <b>크기를 비교</b>해 줘요.<br>빨간 비교선을 왼쪽 분수 이름 쪽에서 끌거나 오른쪽 조절 막대로 옮기면 그 자리에 딱 맞는 <b>크기가 같은 분수</b>를 알려 줘요.</p>
+    </div>
+  </div>
+</div>
+<script src="tool-common.js"></script>
+<script>
+(() => {
+'use strict';
+const { $, store } = TT;
+const ALL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12];
+const COL = { 1:'#E5546B', 2:'#FF9F43', 3:'#E8B500', 4:'#4CB963', 5:'#159A8C', 6:'#3B8FD9', 7:'#5C6BD6', 8:'#8E5BD6', 9:'#C858B5', 10:'#D9667F', 12:'#7A8B99' };
+let dens = store.get('tm-fb-dens', [1, 2, 3, 4, 6, 8]), shade = {}, guide = null;
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+const fr = (n, d) => d === 1 ? `<span>${n}</span>` : `<span class="fr"><i>${n}</i>${d}</span>`;
+function render(){
+  dens.sort((a, b) => a - b);
+  const showPiece = $('#showPiece').checked;
+  $('#wall').innerHTML = dens.map(d => {
+    const s = shade[d] || [], k = s.filter(Boolean).length;
+    return `<div class="bar"><div class="lab${k ? ' on' : ''}">${k ? fr(k, d) : fr(1, d) + '<small style="font-size:.5em;margin-left:4px">씩</small>'}</div><div class="cells" style="--c:${COL[d]}">${
+      Array.from({ length: d }, (_, i) => `<button class="cell${s[i] ? ' on' : ''}" data-d="${d}" data-i="${i}" aria-label="${d}분의 1 조각 ${i + 1}">${showPiece && d <= 12 ? (d === 1 ? '1' : fr(1, d)) : ''}</button>`).join('')}</div></div>`;
+  }).join('') + (guide != null && $('#guideOn').checked ? `<div class="guide" id="guide"><b></b></div>` : '');
+  placeGuide();
+  // 비교
+  const sh = dens.map(d => [d, (shade[d] || []).filter(Boolean).length]).filter(x => x[1]);
+  let html = '';
+  if (sh.length >= 2){
+    const list = sh.map(([d, k]) => ({ d, k, v: k / d })).sort((a, b) => b.v - a.v);
+    html = list.map((x, i) => (i ? (Math.abs(list[i - 1].v - x.v) < 1e-9 ? ' = ' : ' &gt; ') : '') + fr(x.k, x.d)).join('');
+  } else if (sh.length === 1) html = `색칠한 크기: ${fr(sh[0][1], sh[0][0])}${sh[0][1] === sh[0][0] ? ' = 1' : ''}`;
+  if (guide != null && $('#guideOn').checked){
+    const eq = ALL.filter(d => d > 0).map(d => [Math.round(guide * d), d]).filter(([n, d]) => n > 0 && n < d * 1.0001 && Math.abs(n / d - guide) < 0.004);
+    if (eq.length) html += `<div style="font-size:.85em;color:var(--red)">비교선 자리: ${eq.map(([n, d]) => fr(n, d)).join(' = ')}</div>`;
+  }
+  $('#cmp').innerHTML = html || '<span class="note" style="font-size:15px">조각을 눌러 색칠해 보세요</span>';
+  $('#dens').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', dens.includes(+b.dataset.d)));
+  store.set('tm-fb-dens', dens);
+}
+function placeGuide(){
+  const g = $('#guide'); if (!g) return;
+  const c = $('#wall .cells'); if (!c) return;
+  const wr = $('#wall').getBoundingClientRect(), cr = c.getBoundingClientRect();
+  g.style.left = (cr.left - wr.left + cr.width * guide) + 'px';
+}
+$('#dens').innerHTML = ALL.map(d => `<button class="tool" data-d="${d}">${d === 1 ? '1' : '1/' + d}</button>`).join('');
+$('#dens').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return; const d = +b.dataset.d;
+  if (dens.includes(d)){ if (dens.length > 1){ dens = dens.filter(x => x !== d); delete shade[d]; } }
+  else if (dens.length < 8) dens.push(d);
+  render();
+});
+$('#preset1').addEventListener('click', () => { dens = [1, 2, 4, 8]; shade = {}; render(); });
+$('#preset2').addEventListener('click', () => { dens = [1, 3, 6, 12]; shade = {}; render(); });
+// 조각 누르기 / 비교선 끌기
+let drag = false;
+function guideFrom(e){
+  const c = $('#wall .cells'); if (!c) return;
+  const r = c.getBoundingClientRect(), x = (e.touches ? e.touches[0] : e).clientX;
+  let t = Math.max(0, Math.min(1, (x - r.left) / r.width));
+  // 가까운 조각 경계에 붙여요
+  let best = t, bd = 0.012;
+  dens.forEach(d => { const s = Math.round(t * d) / d; if (Math.abs(s - t) < bd){ bd = Math.abs(s - t); best = s; } });
+  guide = best;
+}
+$('#wall').addEventListener('pointerdown', e => {
+  const cell = e.target.closest('.cell');
+  if (cell){
+    const d = +cell.dataset.d, i = +cell.dataset.i, s = shade[d] || (shade[d] = []);
+    if ($('#fill').checked){ const k = s.filter(Boolean).length; const n = (s[i] && k === i + 1) ? i : i + 1; shade[d] = Array.from({ length: d }, (_, j) => j < n); }
+    else s[i] = !s[i];
+    render(); return;
+  }
+  if (!$('#guideOn').checked) return;
+  drag = true; guideFrom(e); render();
+});
+addEventListener('pointermove', e => { if (drag){ guideFrom(e); render(); } });
+addEventListener('pointerup', () => drag = false);
+// 막대 가운데 공간을 누르면 비교선을 옮겨요 (조각 위에서 길게 끌기)
+$('#wall').addEventListener('dblclick', e => { if ($('#guideOn').checked){ guideFrom(e); render(); } });
+['showPiece', 'guideOn'].forEach(id => $('#' + id).addEventListener('change', () => { if (id === 'guideOn' && $('#guideOn').checked && guide == null) guide = .5; render(); }));
+$('#clear').addEventListener('click', () => { shade = {}; render(); });
+$('#gRange').addEventListener('input', e => { const t = +e.target.value / 1000; let best = t, bd = 0.015; dens.concat(ALL).forEach(d => { const s = Math.round(t * d) / d; if (Math.abs(s - t) < bd){ bd = Math.abs(s - t); best = s; } }); guide = best; if (!$('#guideOn').checked){ $('#guideOn').checked = true; } render(); });
+addEventListener('resize', placeGuide);
+guide = .5;
+render();
+})();
+</script>
+</body>
+</html>

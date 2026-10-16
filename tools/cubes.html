@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>쌓기나무 · TyranoMath 수학 도구존</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tool.css">
+<style>
+.stage{flex-direction:row; flex-wrap:wrap; gap:14px; align-content:center}
+.iso{flex:1 1 380px; min-width:0; height:100%; max-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center}
+#iso{width:100%; flex:1; min-height:0}
+.views{flex:0 1 250px; display:flex; flex-direction:column; gap:10px; justify-content:center}
+.view{background:#F7FBFA; border:3px solid var(--line); border-radius:16px; padding:6px 10px; text-align:center}
+.view h4{margin:0 0 4px; font-family:'Jua',sans-serif; font-weight:400; color:var(--teal-d); font-size:17px}
+.view svg{width:100%; max-height:120px}
+.views.hide svg{filter:blur(8px)}
+.views.hide .view{cursor:pointer}
+.total{font-family:'Jua',sans-serif; font-size:clamp(20px,2.4vw,30px)}
+.total b{font-family:'Fredoka',sans-serif; color:var(--teal-d)}
+.total.hide b{filter:blur(10px)}
+.tg{display:grid; gap:4px; margin:0 auto}
+.tg button{aspect-ratio:1; border-radius:10px; border:3px solid var(--line); background:#fff; font-family:'Fredoka',sans-serif; font-weight:700; font-size:20px; padding:0}
+.tg button.h1{background:#FFF0C2} .tg button.h2{background:#FFDE8A} .tg button.h3{background:#FFC857} .tg button.h4{background:#F7A93B} .tg button.h5{background:#E08A1E; color:#fff}
+@media (max-aspect-ratio:1/1){ .stage{flex-direction:column; flex-wrap:nowrap} .iso{flex:none; width:100%; height:auto} #iso{flex:none; height:auto} .views{flex:none; width:100%; flex-direction:row} .view{flex:1; min-width:0; padding:4px} .view h4{font-size:13px} }
+.front{text-align:center; font-family:'Jua',sans-serif; color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" href="../toolzone.html" hidden>← 도구존</a>
+  <div class="title"><span class="dino-logo"></span>쌓기나무</div>
+  <button class="tool" id="fullBtn">⛶ 전체 화면</button>
+</div>
+<div class="main">
+  <div class="stage">
+    <div class="iso"><svg id="iso" viewBox="0 0 520 440" role="img" aria-label="쌓은 모양"></svg><div class="total" id="total"></div></div>
+    <div class="views" id="views">
+      <div class="view"><h4>위에서 본 모양</h4><svg id="vTop"></svg></div>
+      <div class="view"><h4>앞에서 본 모양</h4><svg id="vFront"></svg></div>
+      <div class="view"><h4>옆(오른쪽)에서 본 모양</h4><svg id="vSide"></svg></div>
+    </div>
+  </div>
+  <div class="side">
+    <div class="box">
+      <h3>쌓기 <small>칸을 누르면 한 개씩</small></h3>
+      <div class="grid2" id="mode"><button class="tool" data-m="1" aria-pressed="true">＋ 쌓기</button><button class="tool" data-m="-1" aria-pressed="false">− 빼기</button></div>
+      <div class="tg" id="tg"></div>
+      <div class="front">↓ 앞</div>
+    </div>
+    <div class="box">
+      <div class="grid2"><button class="tool" id="rot">↻ 돌려 보기</button><button class="tool" id="rand">🎲 아무 모양</button></div>
+      <div class="grid2"><button class="tool" id="size">판 크기: 4×4</button><button class="tool warn" id="clear">모두 치우기</button></div>
+      <label class="sw"><input type="checkbox" id="numOn" checked> 위에서 본 모양에 개수 쓰기</label>
+      <label class="sw"><input type="checkbox" id="hideV"> 본 모양 가리기 (그려 보기)</label>
+      <label class="sw"><input type="checkbox" id="hideT"> 개수 가리기 (세어 보기)</label>
+    </div>
+  </div>
+</div>
+<script src="tool-common.js"></script>
+<script>
+(() => {
+'use strict';
+const { $, store } = TT;
+let N = store.get('tm-cb-n', 4), H = store.get('tm-cb-h', null), mode = 1, rot = 0;
+if (!H || H.length !== N) H = Array.from({ length: N }, () => Array(N).fill(0));
+if (!H.flat().some(Boolean)){ H[N - 1][0] = 2; H[N - 1][1] = 1; H[N - 2][0] = 1; }
+const MAXH = 5;
+function rotXY(x, y){ // 돌려 보기 (위에서 보아 시계 방향 90°씩)
+  for (let k = 0; k < rot; k++){ [x, y] = [N - 1 - y, x]; }
+  return [x, y];
+}
+function renderIso(){
+  const s = Math.min(46, 300 / (N + 1)), a = s * .866, b = s * .5;
+  const cells = [];
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++){ const [rx, ry] = rotXY(x, y); cells.push({ rx, ry, h: H[y][x] }); }
+  cells.sort((p, q) => (p.rx + p.ry) - (q.rx + q.ry) || p.rx - q.rx);
+  const ox = 260, oy = 440 - (N * 2) * b - 30;
+  let g = '';
+  // 바닥판
+  const P = (x, y, z) => [ox + (x - y) * a, oy + (x + y) * b - z * s];
+  const pp = (...ps) => ps.map(p => p.join(',')).join(' ');
+  g += `<polygon points="${pp(P(0, 0, 0), P(N, 0, 0), P(N, N, 0), P(0, N, 0))}" fill="#E6F2EF" stroke="#B8D6CF" stroke-width="2"/>`;
+  for (let k = 1; k < N; k++) g += `<line x1="${P(k, 0, 0)[0]}" y1="${P(k, 0, 0)[1]}" x2="${P(k, N, 0)[0]}" y2="${P(k, N, 0)[1]}" stroke="#C9E0DA"/><line x1="${P(0, k, 0)[0]}" y1="${P(0, k, 0)[1]}" x2="${P(N, k, 0)[0]}" y2="${P(N, k, 0)[1]}" stroke="#C9E0DA"/>`;
+  cells.forEach(c => {
+    for (let z = 0; z < c.h; z++){
+      const x = c.rx, y = c.ry;
+      g += `<polygon points="${pp(P(x, y, z + 1), P(x + 1, y, z + 1), P(x + 1, y + 1, z + 1), P(x, y + 1, z + 1))}" fill="#FFE29A" stroke="#8A5A1F" stroke-width="1.6" stroke-linejoin="round"/>`;
+      g += `<polygon points="${pp(P(x, y + 1, z), P(x + 1, y + 1, z), P(x + 1, y + 1, z + 1), P(x, y + 1, z + 1))}" fill="#F2B45A" stroke="#8A5A1F" stroke-width="1.6" stroke-linejoin="round"/>`;
+      g += `<polygon points="${pp(P(x + 1, y, z), P(x + 1, y + 1, z), P(x + 1, y + 1, z + 1), P(x + 1, y, z + 1))}" fill="#D98E2E" stroke="#8A5A1F" stroke-width="1.6" stroke-linejoin="round"/>`;
+    }
+  });
+  // 앞 표시 (판의 아래쪽이 앞)
+  const [fx, fy] = rotXY(N / 2 - .5, N - .5);
+  $('#iso').innerHTML = g;
+  const tot = H.flat().reduce((p, q) => p + q, 0);
+  const layers = [1, 2, 3, 4, 5].map(z => H.flat().filter(h => h >= z).length).filter(Boolean);
+  $('#total').innerHTML = `쌓기나무 <b>${tot}</b>개${layers.length > 1 ? `<span style="font-size:.6em;color:var(--muted)"> · ${layers.map((n, i) => `${i + 1}층 ${n}개`).join(', ')}</span>` : ''}`;
+}
+function gridSVG(el, rows, cols, fillFn, label){
+  const c = 22, W = cols * c + 4, Hh = rows * c + 4;
+  let g = '';
+  for (let r = 0; r < rows; r++) for (let k = 0; k < cols; k++){
+    const on = fillFn(r, k); if (!on) continue;
+    g += `<rect x="${2 + k * c}" y="${2 + r * c}" width="${c}" height="${c}" fill="#FFD27A" stroke="#8A5A1F" stroke-width="1.6"/>`;
+    if (label && label(r, k)) g += `<text x="${2 + k * c + c / 2}" y="${2 + r * c + c / 2 + 5}" text-anchor="middle" font-size="14" font-weight="700" fill="#22314A">${label(r, k)}</text>`;
+  }
+  el.setAttribute('viewBox', `0 0 ${Math.max(W, 10)} ${Math.max(Hh, 10)}`);
+  el.innerHTML = g || `<text x="5" y="16" font-size="12" fill="#5D6C83">없음</text>`;
+}
+function renderViews(){
+  const numOn = $('#numOn').checked;
+  gridSVG($('#vTop'), N, N, (r, k) => H[r][k] > 0, numOn ? (r, k) => H[r][k] : null);
+  const mh = Math.max(1, ...H.flat());
+  gridSVG($('#vFront'), mh, N, (r, k) => Math.max(...H.map(row => row[k])) >= mh - r);       // 앞: 열마다 가장 높은 것
+  gridSVG($('#vSide'), mh, N, (r, k) => Math.max(...H[N - 1 - k]) >= mh - r);              // 오른쪽: 행마다 (앞쪽이 왼쪽)
+}
+function renderGrid(){
+  const tg = $('#tg'); tg.style.gridTemplateColumns = `repeat(${N}, minmax(0, ${N > 4 ? 46 : 56}px))`;
+  tg.innerHTML = H.map((row, y) => row.map((h, x) => `<button class="h${h}" data-x="${x}" data-y="${y}" aria-label="${y + 1}행 ${x + 1}열 ${h}개">${h || ''}</button>`).join('')).join('');
+}
+function render(){ renderIso(); renderViews(); renderGrid(); $('#size').textContent = `판 크기: ${N}×${N}`; store.set('tm-cb-n', N); store.set('tm-cb-h', H); }
+$('#tg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; const x = +b.dataset.x, y = +b.dataset.y; H[y][x] = Math.max(0, Math.min(MAXH, H[y][x] + mode)); render(); });
+$('#tg').addEventListener('contextmenu', e => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); const x = +b.dataset.x, y = +b.dataset.y; H[y][x] = Math.max(0, H[y][x] - 1); render(); });
+$('#mode').addEventListener('click', e => { const b = e.target.closest('button'); if (b){ mode = +b.dataset.m; TT.press($('#mode'), b); } });
+$('#rot').addEventListener('click', () => { rot = (rot + 1) % 4; renderIso(); });
+$('#rand').addEventListener('click', () => { H = H.map(r => r.map(() => 0)); const n = TT.rnd(5, 10); for (let k = 0; k < n; k++){ const x = TT.rnd(0, N - 2), y = TT.rnd(1, N - 1); H[y][x] = Math.min(3, H[y][x] + 1); } render(); });
+$('#size').addEventListener('click', () => { N = N === 4 ? 5 : N === 5 ? 3 : 4; H = Array.from({ length: N }, () => Array(N).fill(0)); render(); });
+$('#clear').addEventListener('click', () => { H = H.map(r => r.map(() => 0)); render(); });
+$('#numOn').addEventListener('change', renderViews);
+$('#hideV').addEventListener('change', e => $('#views').classList.toggle('hide', e.target.checked));
+$('#views').addEventListener('click', () => { if ($('#hideV').checked){ $('#hideV').checked = false; $('#views').classList.remove('hide'); } });
+$('#hideT').addEventListener('change', e => $('#total').classList.toggle('hide', e.target.checked));
+render();
+})();
+</script>
+</body>
+</html>

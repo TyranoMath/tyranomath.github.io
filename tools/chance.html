@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>주사위와 회전판 · TyranoMath 수학 도구존</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tool.css">
+<style>
+.stage{justify-content:flex-start; gap:8px}
+.play{flex:1 1 55%; min-height:0; width:100%; display:flex; align-items:center; justify-content:center; gap:20px}
+.die{width:min(30vmin,170px); aspect-ratio:1}
+.die.roll{animation:roll .5s ease-out}
+@keyframes roll{0%{transform:rotate(-200deg) scale(.6)}60%{transform:rotate(20deg) scale(1.1)}100%{transform:none}}
+.spin-wrap{position:relative; height:100%; max-height:340px; aspect-ratio:1}
+#wheel{width:100%; height:100%; transition:transform 2.6s cubic-bezier(.15,.8,.2,1)}
+.pointer{position:absolute; left:50%; top:-6px; transform:translateX(-50%); width:0; height:0; border-left:16px solid transparent; border-right:16px solid transparent; border-top:30px solid #22314A; filter:drop-shadow(0 2px 0 #fff)}
+.coin{width:min(30vmin,170px); aspect-ratio:1; border-radius:50%; display:grid; place-items:center; font-family:'Jua',sans-serif; font-size:clamp(28px,4vw,44px); border:8px solid #C9A64B; background:radial-gradient(circle at 35% 30%, #FFF0B3, #FFD43B 60%, #E8B500); color:#7A5A00}
+.coin.flip{animation:flip .6s ease-in-out}
+@keyframes flip{50%{transform:rotateY(90deg) scale(1.15)}}
+.last{font-family:'Jua',sans-serif; font-size:clamp(22px,3vw,34px); text-align:center; min-height:1.4em}
+.last b{font-family:'Fredoka','Jua',sans-serif; color:var(--teal-d)}
+#chart{width:100%; flex:0 1 38%; min-height:120px}
+.tabs{display:grid; grid-template-columns:repeat(3,1fr); gap:6px}
+.secs{display:flex; flex-direction:column; gap:5px}
+.secs .r{display:grid; grid-template-columns:28px 1fr 40px 30px 40px; gap:6px; align-items:center; font-family:'Jua',sans-serif}
+.secs .sw-c{width:26px; height:26px; border-radius:8px; border:2px solid #22314A}
+.secs b{font-family:'Fredoka',sans-serif; text-align:center}
+.secs .tool{min-height:34px; padding:0}
+.word{font-size:13px; color:var(--muted)}
+.scale{display:grid; grid-template-columns:repeat(5,1fr); gap:3px; font-size:11px; text-align:center; font-family:'Jua',sans-serif}
+.scale span{background:#EEF6F4; border-radius:8px; padding:4px 2px}
+.scale span.on{background:var(--teal); color:#fff}
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="back" href="../toolzone.html" hidden>← 도구존</a>
+  <div class="title"><span class="dino-logo"></span>주사위와 회전판</div>
+  <span class="pill">던진 횟수 <b id="cnt">0</b>번</span>
+  <button class="tool" id="fullBtn">⛶ 전체 화면</button>
+</div>
+<div class="main">
+  <div class="stage">
+    <div class="play" id="play"></div>
+    <div class="last" id="last">버튼을 눌러 시작해요!</div>
+    <svg id="chart" viewBox="0 0 760 220" preserveAspectRatio="xMidYMid meet" aria-label="나온 횟수 그래프"></svg>
+  </div>
+  <div class="side">
+    <div class="box">
+      <div class="tabs" id="tabs"><button class="tool" data-t="dice">🎲 주사위</button><button class="tool" data-t="spin">🎯 회전판</button><button class="tool" data-t="coin">🪙 동전</button></div>
+    </div>
+    <div class="box">
+      <button class="tool main-btn" id="go" style="font-size:22px">🎲 던지기</button>
+      <div class="grid2"><button class="tool" id="go10">10번 한꺼번에</button><button class="tool" id="go100">100번 한꺼번에</button></div>
+      <button class="tool warn" id="reset">기록 지우기</button>
+    </div>
+    <div class="box" id="diceOpt">
+      <h3>주사위 개수</h3>
+      <div class="grid2" id="nd"><button class="tool" data-n="1">1개</button><button class="tool" data-n="2">2개 (합)</button></div>
+    </div>
+    <div class="box" id="spinOpt" hidden>
+      <h3>회전판 꾸미기 <small>칸 수를 늘리고 줄여요</small></h3>
+      <div class="secs" id="secs"></div>
+      <div class="grid2"><button class="tool" id="addC">＋ 색 더하기</button><button class="tool" id="preset">반반 회전판</button></div>
+    </div>
+    <div class="box">
+      <h3>일이 일어날 가능성</h3>
+      <div id="chanceTxt" class="note"></div>
+    </div>
+  </div>
+</div>
+<script src="tool-common.js"></script>
+<script>
+(() => {
+'use strict';
+const { $, store, rnd, esc } = TT;
+const COLORS = [['빨강', '#FF6B6B'], ['파랑', '#4DABF7'], ['노랑', '#FFD43B'], ['초록', '#69DB7C'], ['보라', '#B197FC'], ['주황', '#FFA94D']];
+let tab = store.get('tm-ch-tab', 'dice'), nd = 1, spin = store.get('tm-ch-spin', [3, 1, 0, 0, 0, 0].map((w, i) => w)), rec = {}, total = 0, wheelRot = 0, busy = false;
+const WORDS = ['불가능하다', '~아닐 것 같다', '반반이다', '~일 것 같다', '확실하다'];
+const wordOf = p => p === 0 ? 0 : p === 1 ? 4 : Math.abs(p - .5) < 1e-9 ? 2 : p < .5 ? 1 : 3;
+const pipPos = { 1:[[50,50]], 2:[[28,28],[72,72]], 3:[[26,26],[50,50],[74,74]], 4:[[28,28],[72,28],[28,72],[72,72]], 5:[[26,26],[74,26],[50,50],[26,74],[74,74]], 6:[[28,24],[72,24],[28,50],[72,50],[28,76],[72,76]] };
+const dieSVG = (v, cls = '') => `<svg class="die ${cls}" viewBox="0 0 100 100"><rect x="4" y="4" width="92" height="92" rx="18" fill="#fff" stroke="#22314A" stroke-width="4"/>${pipPos[v].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="9" fill="${v === 1 ? '#E5546B' : '#22314A'}"/>`).join('')}</svg>`;
+function outcomes(){
+  if (tab === 'dice') return nd === 1 ? [1, 2, 3, 4, 5, 6].map(String) : Array.from({ length: 11 }, (_, i) => String(i + 2));
+  if (tab === 'coin') return ['앞면', '뒷면'];
+  return COLORS.filter((_, i) => spin[i] > 0).map(c => c[0]);
+}
+function probs(){
+  if (tab === 'dice'){ if (nd === 1) return outcomes().map(() => 1 / 6); return outcomes().map(s => (6 - Math.abs(+s - 7)) / 36); }
+  if (tab === 'coin') return [.5, .5];
+  const tot = spin.reduce((a, b) => a + b, 0); return COLORS.map((_, i) => spin[i] / tot).filter((_, i) => spin[i] > 0);
+}
+function drawWheel(){
+  const tot = spin.reduce((a, b) => a + b, 0); let a = 0, g = '';
+  const parts = []; COLORS.forEach((c, i) => { for (let k = 0; k < spin[i]; k++) parts.push(i); });
+  const n = parts.length, d = 360 / n;
+  parts.forEach((ci, k) => {
+    const a0 = (k * d - 90) * Math.PI / 180, a1 = ((k + 1) * d - 90) * Math.PI / 180;
+    const p0 = [100 + 95 * Math.cos(a0), 100 + 95 * Math.sin(a0)], p1 = [100 + 95 * Math.cos(a1), 100 + 95 * Math.sin(a1)];
+    g += n === 1 ? `<circle cx="100" cy="100" r="95" fill="${COLORS[ci][1]}" stroke="#22314A" stroke-width="3"/>` : `<path d="M100 100 L${p0.join(' ')} A95 95 0 ${d > 180 ? 1 : 0} 1 ${p1.join(' ')} Z" fill="${COLORS[ci][1]}" stroke="#22314A" stroke-width="3"/>`;
+  });
+  g += `<circle cx="100" cy="100" r="8" fill="#22314A"/>`;
+  return { svg: g, parts, d };
+}
+function renderPlay(last){
+  const P = $('#play');
+  if (tab === 'dice') P.innerHTML = (last || (nd === 1 ? [6] : [3, 4])).map(v => dieSVG(v, last ? 'roll' : '')).join('');
+  else if (tab === 'coin') P.innerHTML = `<div class="coin ${last ? 'flip' : ''}">${last ? (last[0] === '앞면' ? '🦖 앞' : '123 뒤') : '🦖 앞'}</div>`;
+  else { const w = drawWheel(); P.innerHTML = `<div class="spin-wrap"><div class="pointer"></div><svg id="wheel" viewBox="0 0 200 200" style="transform:rotate(${wheelRot}deg)">${w.svg}</svg></div>`; }
+}
+function renderChart(){
+  const outs = outcomes(), ps = probs(), n = outs.length, max = Math.max(1, ...outs.map(o => rec[o] || 0));
+  const L = 50, R = 740, B = 180, T = 20, cw = (R - L) / n;
+  let g = `<line x1="${L}" x2="${R}" y1="${B}" y2="${B}" stroke="#22314A" stroke-width="2"/>`;
+  outs.forEach((o, i) => {
+    const v = rec[o] || 0, h = v / max * (B - T - 16), x = L + cw * i + cw * .15, w = cw * .7;
+    const color = tab === 'spin' ? COLORS.find(c => c[0] === o)[1] : tab === 'coin' ? '#FFD43B' : '#7FD08E';
+    g += `<rect x="${x}" y="${B - h}" width="${w}" height="${h}" fill="${color}" stroke="#22314A" stroke-width="1.5" rx="4"/>`;
+    g += `<text x="${x + w / 2}" y="${B - h - 6}" text-anchor="middle" font-size="16" font-weight="700" fill="#22314A">${v}</text>`;
+    g += `<text x="${x + w / 2}" y="${B + 24}" text-anchor="middle" font-size="${n > 8 ? 15 : 18}" fill="#22314A" font-family="Jua">${esc(o)}</text>`;
+    if (total) g += `<text x="${x + w / 2}" y="${B + 42}" text-anchor="middle" font-size="12" fill="#5D6C83">${Math.round(v / total * 100)}%</text>`;
+  });
+  $('#chart').innerHTML = g;
+  $('#cnt').textContent = total;
+  // 가능성 설명
+  let h = '';
+  if (tab === 'spin'){
+    h = outs.map((o, i) => { const p = ps[i], w = wordOf(p); return `<div style="margin:4px 0"><b style="color:${COLORS.find(c => c[0] === o)[1]};-webkit-text-stroke:.3px #22314A">${o}</b>에 멈출 가능성: <b>${['불가능하다', '멈추지 않을 것 같다', '반반이다', '멈출 것 같다', '확실하다'][w]}</b>${[0, .5, 1].some(v => Math.abs(v - p) < 1e-9) ? ` (수로 ${p === .5 ? '1/2' : p})` : ''}<div class="scale">${WORDS.map((t, k) => `<span class="${k === w ? 'on' : ''}">${t.replace('~', '')}</span>`).join('')}</div></div>`; }).join('');
+  } else if (tab === 'coin') h = `동전을 던지면 앞면이 나올 가능성은 <b>반반이다</b> (수로 1/2).<br>여러 번 던질수록 앞면과 뒷면이 나온 횟수가 비슷해져요.`;
+  else h = nd === 1 ? `주사위 눈은 1부터 6까지 나올 가능성이 모두 같아요.<br>7이 나올 가능성은 <b>불가능하다</b> (0), 6 이하가 나올 가능성은 <b>확실하다</b> (1).<br>짝수가 나올 가능성은 <b>반반이다</b> (1/2).`
+    : `주사위 두 개의 합은 <b>7</b>이 가장 잘 나와요. 2와 12는 잘 나오지 않아요. 100번 던져서 확인해 보세요!`;
+  $('#chanceTxt').innerHTML = h;
+}
+function one(){
+  if (tab === 'dice'){ const r = Array.from({ length: nd }, () => rnd(1, 6)); return { faces: r, key: String(nd === 1 ? r[0] : r[0] + r[1]) }; }
+  if (tab === 'coin'){ const k = Math.random() < .5 ? '앞면' : '뒷면'; return { faces: [k], key: k }; }
+  const { parts } = drawWheel(), k = rnd(0, parts.length - 1); return { idx: k, key: COLORS[parts[k]][0] };
+}
+function go(times){
+  if (busy) return;
+  let r;
+  for (let k = 0; k < times; k++){ r = one(); rec[r.key] = (rec[r.key] || 0) + 1; total++; }
+  if (tab === 'spin'){
+    const { d } = drawWheel(); busy = true;
+    const target = 360 - (r.idx * d + d / 2) + (Math.random() - .5) * d * .6;
+    wheelRot = wheelRot - (wheelRot % 360) + 360 * 5 + target;
+    $('#wheel').style.transform = `rotate(${wheelRot}deg)`;
+    const done = () => { busy = false; $('#last').innerHTML = times > 1 ? `${times}번 돌렸어요 · 마지막: <b>${r.key}</b>` : `<b>${r.key}</b>에 멈췄어요!`; renderChart(); };
+    setTimeout(done, times > 1 ? 400 : 2600);
+    if (times > 1) $('#wheel').style.transition = 'transform .4s'; else $('#wheel').style.transition = '';
+    return;
+  }
+  renderPlay(r.faces);
+  $('#last').innerHTML = (times > 1 ? `${times}번 던졌어요 · 마지막: ` : '') + (tab === 'dice' ? (nd === 1 ? `<b>${r.key}</b>${'이가이가가이'[+r.key - 1]} 나왔어요` : `${r.faces[0]} + ${r.faces[1]} = <b>${r.key}</b>`) : `<b>${r.key}</b>이 나왔어요`);
+  renderChart();
+}
+function renderSecs(){
+  $('#secs').innerHTML = COLORS.map((c, i) => spin[i] || i < 2 ? `<div class="r"><span class="sw-c" style="background:${c[1]}"></span><span>${c[0]}</span><button class="tool" data-m="${i}" aria-label="${c[0]} 칸 줄이기">−</button><b>${spin[i]}</b><button class="tool" data-p="${i}" aria-label="${c[0]} 칸 늘리기">＋</button></div>` : '').join('');
+}
+function render(){
+  TT.press($('#tabs'), $(`#tabs [data-t="${tab}"]`));
+  $('#diceOpt').hidden = tab !== 'dice'; $('#spinOpt').hidden = tab !== 'spin';
+  $('#go').textContent = tab === 'dice' ? '🎲 던지기' : tab === 'coin' ? '🪙 던지기' : '🎯 돌리기';
+  TT.press($('#nd'), $(`#nd [data-n="${nd}"]`));
+  renderPlay(); renderSecs(); renderChart();
+  store.set('tm-ch-tab', tab); store.set('tm-ch-spin', spin);
+}
+const reset = () => { rec = {}; total = 0; $('#last').textContent = '버튼을 눌러 시작해요!'; };
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !busy){ tab = b.dataset.t; reset(); render(); } });
+$('#nd').addEventListener('click', e => { const b = e.target.closest('button'); if (b){ nd = +b.dataset.n; reset(); render(); } });
+$('#go').addEventListener('click', () => go(1));
+$('#go10').addEventListener('click', () => go(10));
+$('#go100').addEventListener('click', () => go(100));
+$('#reset').addEventListener('click', () => { reset(); renderChart(); });
+$('#secs').addEventListener('click', e => {
+  const p = e.target.closest('[data-p]'), m = e.target.closest('[data-m]'); if (busy) return;
+  const tot = spin.reduce((a, b) => a + b, 0);
+  if (p && tot < 12) spin[+p.dataset.p]++;
+  if (m && spin[+m.dataset.m] > 0 && tot > 1) spin[+m.dataset.m]--;
+  reset(); render();
+});
+$('#addC').addEventListener('click', () => { const i = spin.findIndex(v => v === 0); if (i >= 0 && spin.reduce((a, b) => a + b, 0) < 12){ spin[i] = 1; reset(); render(); } });
+$('#preset').addEventListener('click', () => { spin = [1, 1, 0, 0, 0, 0]; reset(); render(); });
+render();
+})();
+</script>
+</body>
+</html>

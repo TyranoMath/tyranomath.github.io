@@ -152,6 +152,23 @@ const GAMES = [
    area : 퍼즐 분류 — '수 퍼즐' / '전략 퍼즐' / '논리 퍼즐' / '도형 퍼즐'
    file : puzzles 폴더 안 HTML 경로
    --------------------------------------------------------- */
+/* =========================================================
+   🧰 수학 도구존 — 수업 시간에 쓰는 수학 도구 (홈 3단계)
+   file 을 넣으면 '▶ 시작하기', 비워 두면 '준비 중'으로 보여요.
+   ========================================================= */
+const TOOLS = [
+  { title:'수 모형',       desc:'천·백·십·일 모형을 놓고 묶고 풀며 자릿값과 받아올림을 보여 줘요.', grade:'1~3학년', area:'수와 연산',   icon:'🧊', color:'#DDF0FF', date:'2026-10-16', file:'tools/base-ten.html' },
+  { title:'수직선',        desc:'눈금 간격을 바꿔 가며 자연수·분수·소수를 수직선에 나타내요.',       grade:'1~6학년', area:'수와 연산',   icon:'📏', color:'#FFE7CC', date:'2026-10-16', file:'tools/number-line.html' },
+  { title:'분수 막대',     desc:'막대를 똑같이 나누고 겹쳐 보며 분수의 크기를 비교해요.',             grade:'3~6학년', area:'수와 연산',   icon:'🍫', color:'#FFE3EA', date:'2026-10-16', file:'tools/fraction-bars.html' },
+  { title:'곱셈 배열판',   desc:'가로·세로 칸 수를 정해 곱셈과 나눗셈을 배열로 보여 줘요.',           grade:'2~4학년', area:'수와 연산',   icon:'🔢', color:'#FFF3C4', date:'2026-10-16', file:'tools/array.html' },
+  { title:'모형 시계',     desc:'시곗바늘을 돌리며 시각과 걸린 시간을 함께 알아봐요.',               grade:'1~3학년', area:'도형과 측정', icon:'⏰', color:'#DDF0FF', date:'2026-10-16', file:'tools/clock.html' },
+  { title:'각도기와 자',   desc:'화면 위 각도기와 자로 각과 길이를 직접 재어 봐요.',                 grade:'2~4학년', area:'도형과 측정', icon:'📐', color:'#E4F5D6', date:'2026-10-16', file:'tools/protractor.html' },
+  { title:'기하판',        desc:'못에 고무줄을 걸어 여러 가지 도형을 만들고 넓이를 세어 봐요.',       grade:'2~6학년', area:'도형과 측정', icon:'🔷', color:'#EFE6FF', date:'2026-10-16', file:'tools/geoboard.html' },
+  { title:'쌓기나무',      desc:'쌓기나무를 쌓고 위·앞·옆에서 본 모양을 알아봐요.',                  grade:'2~6학년', area:'도형과 측정', icon:'🧱', color:'#F3E6D3', date:'2026-10-16', file:'tools/cubes.html' },
+  { title:'그래프 만들기', desc:'자료를 넣으면 그림그래프·막대그래프·꺾은선그래프·띠그래프·원그래프로 바꿔 줘요.',      grade:'2~6학년', area:'자료와 가능성', icon:'📊', color:'#FFF3C4', date:'2026-10-16', file:'tools/graph-maker.html' },
+  { title:'주사위와 회전판', desc:'주사위를 던지고 회전판을 돌려 일이 일어날 가능성을 알아봐요.',     grade:'5~6학년', area:'자료와 가능성', icon:'🎲', color:'#FFE3EA', date:'2026-10-16', file:'tools/chance.html' }
+];
+
 const PUZZLES = [
   { title:'티라노 스도쿠', desc:'가로·세로·상자에 같은 숫자가 겹치지 않게 빈칸을 채워요. 4×4부터 9×9까지!', grade:'1~6학년', area:'수 퍼즐',   icon:'🔢', image:'puzzles/thumbs/sudoku.svg', color:'#EFE6FF', date:'2026-10-09', file:'puzzles/sudoku.html' },
   { title:'티라노 오목',   desc:'공룡 알 5개를 먼저 한 줄로 이으면 승리! 친구나 컴퓨터 티라노와 겨뤄요.',     grade:'1~6학년', area:'전략 퍼즐', icon:'🥚', image:'puzzles/thumbs/omok.svg',   color:'#F6E3C0', date:'2026-10-09', file:'puzzles/omok.html' },

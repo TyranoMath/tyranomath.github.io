@@ -12,7 +12,8 @@ const GAME_LIST  = typeof GAMES  !== 'undefined' && Array.isArray(GAMES)  ? GAME
 const UNIT_LIST  = typeof UNITS  !== 'undefined' && Array.isArray(UNITS)  ? UNITS  : [];
 const BEST_LIST  = typeof BEST   !== 'undefined' && Array.isArray(BEST)   ? BEST   : [];
 const PUZZLE_LIST = typeof PUZZLES !== 'undefined' && Array.isArray(PUZZLES) ? PUZZLES : [];
-const LISTS = { games: GAME_LIST, puzzles: PUZZLE_LIST };
+const TOOL_LIST = typeof TOOLS !== 'undefined' && Array.isArray(TOOLS) ? TOOLS : [];
+const LISTS = { games: GAME_LIST, puzzles: PUZZLE_LIST, tools: TOOL_LIST };
 // 퍼즐존 분류
 const PUZZLE_TYPES = [
   { name:'수 퍼즐',   icon:'🔢' },
@@ -169,7 +170,7 @@ if (bugTab){
    ========================================================= */
 function cardHTML(key, i, opts={}){
   const g = LISTS[key][i];
-  const verb = '▶ 시작하기';
+  const verb = key === 'tools' ? '▶ 열기' : '▶ 시작하기';
   const newBadge = g.file && isNew(g) ? '<span class="badge-new">NEW</span>' : '';
   return `
     <button type="button" class="game${g.file ? '' : ' soon'}" data-list="${key}" data-i="${i}" ${g.file ? '' : 'aria-disabled="true"'}>
@@ -205,7 +206,7 @@ function getPlays(){ try { return JSON.parse(store.get('tm-plays') || '{}') || {
 function countPlay(file){
   const p = getPlays(); p[file] = (p[file] || 0) + 1; store.set('tm-plays', JSON.stringify(p));
   // 구글 시트에도 +1 (게임 파일만, 실패해도 게임은 그대로 열려요)
-  if (CFG.statsUrl && /^(games|puzzles)\//.test(file)){
+  if (CFG.statsUrl && /^(games|puzzles|tools)\//.test(file)){
     try { fetch(CFG.statsUrl + '?action=hit&file=' + encodeURIComponent(file), { mode:'no-cors', keepalive:true }).catch(() => {}); } catch(e){}
   }
 }
@@ -318,7 +319,10 @@ document.addEventListener('click', e => {
 // data-latest="games" 또는 "puzzles" 인 칸에 최신 항목을 보여 줘요
 $$('[data-latest]').forEach(el => {
   const key = el.dataset.latest, list = LISTS[key] || [];
-  const latest = list.map((item, i) => ({ item, i })).filter(x => x.item.file).sort(byLatest).slice(0, CFG.latestCount).map(x => x.i);
+  let latest = list.map((item, i) => ({ item, i })).filter(x => x.item.file).sort(byLatest).slice(0, CFG.latestCount).map(x => x.i);
+  // 아직 열린 것이 적으면 '준비 중'인 것도 함께 보여 줘요 (수학 도구존)
+  if (key === 'tools' && latest.length < CFG.latestCount)
+    latest = latest.concat(list.map((item, i) => ({ item, i })).filter(x => !x.item.file).slice(0, CFG.latestCount - latest.length).map(x => x.i));
   renderInto(el, key, latest);
 });
 
@@ -377,14 +381,14 @@ if ($('#zoneGrid')){
   // 게임존(games) / 퍼즐존(puzzles) 공통 — <main data-list="..."> 로 구분해요
   const ZKEY = ($('main[data-list]') && $('main[data-list]').dataset.list) || 'games';
   const ZLIST = LISTS[ZKEY] || [];
-  const NOUN = ZKEY === 'puzzles' ? '퍼즐' : '게임';
+  const NOUN = ZKEY === 'puzzles' ? '퍼즐' : ZKEY === 'tools' ? '도구' : '게임';
   const state = { area: '전체', grade: '0', q: '', sort: 'new' };
   const ready = ZLIST.filter(g => g.file);
   $('#statTotal').textContent = ready.length;
   $('#statNew').textContent = ready.filter(isNew).length;
 
   // 영역 버튼
-  const chips = ZKEY === 'puzzles' ? [{ name:'전체', icon:'🧩' }, ...PUZZLE_TYPES] : [{ name:'전체', icon:'🎮' }, ...AREAS];
+  const chips = ZKEY === 'puzzles' ? [{ name:'전체', icon:'🧩' }, ...PUZZLE_TYPES] : [{ name:'전체', icon: ZKEY === 'tools' ? '🧰' : '🎮' }, ...AREAS];
   $('#areaChips').innerHTML = chips.map(a => {
     const n = a.name === '전체' ? ZLIST.length : ZLIST.filter(g => g.area === a.name).length;
     return `<button type="button" data-area="${esc(a.name)}" aria-pressed="${a.name === '전체'}"><span aria-hidden="true">${a.icon}</span>${esc(a.name)}<small>${n}</small></button>`;
@@ -434,7 +438,7 @@ if ($('#zoneGrid')){
   const m = location.hash.match(/^#game=(.+)$/);
   if (!m || !$('#player')) return;
   const file = decodeURIComponent(m[1]);
-  for (const key of ['games', 'puzzles']){
+  for (const key of ['games', 'puzzles', 'tools']){
     const gi = LISTS[key].findIndex(g => g.file === file);
     if (gi >= 0) return openItem(key, gi);
   }
