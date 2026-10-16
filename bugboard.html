@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko" data-device="pc">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>버그 제보방 · TyranoMath</title>
+<meta name="description" content="TyranoMath 버그 제보방 - 고장 난 곳을 알려 주세요">
+<meta name="theme-color" content="#4CB963">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦖</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/tyrano.css">
+</head>
+
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="dino" viewBox="0 0 220 200">
+    <!-- 꼬리 -->
+    <path d="M58 142 Q18 142 6 106 Q30 126 62 118 Z" fill="#4CB963"/>
+    <!-- 등 가시 -->
+    <path d="M86 88 L80 68 L98 82 Z" fill="#FF9F43"/>
+    <path d="M71 98 L60 80 L81 92 Z" fill="#FF9F43"/>
+    <path d="M59 112 L44 98 L67 106 Z" fill="#FF9F43"/>
+    <path d="M108 34 L110 14 L126 28 Z" fill="#FF9F43"/>
+    <path d="M128 28 L136 9 L146 26 Z" fill="#FF9F43"/>
+    <!-- 다리 -->
+    <rect x="68" y="156" width="25" height="32" rx="11" fill="#3A9D51"/>
+    <rect x="106" y="156" width="25" height="32" rx="11" fill="#3A9D51"/>
+    <!-- 몸통 -->
+    <ellipse cx="96" cy="128" rx="47" ry="44" fill="#5CC46F"/>
+    <ellipse cx="108" cy="134" rx="26" ry="32" fill="#E8F7C8"/>
+    <path d="M94 120 h28 M94 134 h30 M96 148 h26" stroke="#CFE9A9" stroke-width="3" stroke-linecap="round"/>
+    <!-- 머리 -->
+    <rect x="92" y="26" width="112" height="80" rx="38" fill="#5CC46F"/>
+    <!-- 눈 -->
+    <circle cx="150" cy="56" r="15" fill="#fff" stroke="#2E6B3A" stroke-width="2"/>
+    <circle cx="154" cy="58" r="8.5" fill="#22314A"/>
+    <circle cx="157.5" cy="54" r="3" fill="#fff"/>
+    <!-- 볼터치 · 콧구멍 -->
+    <ellipse cx="174" cy="76" rx="10" ry="5.5" fill="#FF8FA3" opacity=".65"/>
+    <ellipse cx="191" cy="50" rx="3.2" ry="2.2" fill="#2E6B3A"/>
+    <!-- 웃는 입 + 이빨 -->
+    <path d="M140 86 Q166 102 194 84" stroke="#2E6B3A" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M152 91 l4 7 l4 -5 Z M174 92 l4 7 l4 -7 Z" fill="#fff" stroke="#2E6B3A" stroke-width="1.2" stroke-linejoin="round"/>
+    <!-- 연필 -->
+    <g transform="rotate(-32 160 116)">
+      <rect x="152" y="92" width="11" height="40" rx="2" fill="#FFD43B" stroke="#E0A800" stroke-width="1.5"/>
+      <rect x="152" y="92" width="11" height="7" rx="2" fill="#FF8FA3"/>
+      <path d="M152 132 L157.5 144 L163 132 Z" fill="#F5D6A8"/>
+      <path d="M155.5 140 L157.5 144 L159.5 140 Z" fill="#22314A"/>
+    </g>
+    <!-- 짧은 팔 -->
+    <path d="M136 118 q16 -4 20 8 q-3 5 -9 2 q-4 -4 -11 -1 Z" fill="#3A9D51"/>
+  </symbol>
+</svg>
+
+<div id="google_translate_element" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand notranslate" href="index.html" translate="no" aria-label="TyranoMath 처음으로">
+      <svg><use href="#dino"/></svg>
+      <span>Tyrano<b>Math</b></span>
+    </a>
+
+    <nav class="nav" aria-label="주요 메뉴">
+      <a href="index.html#learn" title="차근차근 익히는 수학 개념"><span class="ico">🦖 </span>개념 탐험대</a>
+      <a href="index.html#check" title="나만의 수학 실력 점검하기"><span class="ico">🎯 </span>실력 진단소</a>
+      <a href="toolzone.html" title="수업에 바로 쓰는 수학 도구"><span class="ico">🧰 </span>수학 도구존</a>
+      <a href="gamezone.html" title="즐겁게 플레이하며 배우는 수학"><span class="ico">🎮 </span>티라노 게임존</a>
+      <a href="puzzlezone.html" title="생각하며 푸는 수학 퍼즐"><span class="ico">🧩 </span>티라노 퍼즐존</a>
+      <!-- 버그 제보방: 아래 CONFIG.bugReportUrl 에 링크를 넣으면 연결돼요 -->
+      <a class="bug-tab" id="bugTab" href="bugboard.html" aria-current="page" aria-label="버그 제보방"><span aria-hidden="true">🐞</span><span class="txt">&nbsp;버그 제보방</span></a>
+    </nav>
+
+    <!-- 1. 번역 기능 (상단 오른쪽) -->
+    <div class="lang">
+      <button class="lang-btn" id="langBtn" aria-haspopup="true" aria-expanded="false" aria-controls="langPanel">
+        <span aria-hidden="true">🌐</span>
+        <span class="txt notranslate" translate="no" id="langCurrent">한국어</span>
+        <span aria-hidden="true">▾</span>
+      </button>
+      <div class="lang-panel notranslate" translate="no" id="langPanel" role="dialog" aria-label="언어 선택">
+        <input type="text" id="langSearch" placeholder="Search language / 언어 검색" autocomplete="off">
+        <div class="lang-list" id="langList"></div>
+        <p class="lang-note">Google 번역으로 자동 번역됩니다. Powered by Google Translate.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- 3. 기기별 화면 설정 탭 -->
+<div class="device-bar">
+  <div class="wrap">
+    <span class="label">화면 설정</span>
+    <div class="tabs" role="tablist" aria-label="화면 모드">
+      <button class="tab" role="tab" data-mode="auto"><span aria-hidden="true">✨</span><span class="txt">자동</span></button>
+      <button class="tab" role="tab" data-mode="board"><span aria-hidden="true">🧑‍🏫</span><span class="txt">전자칠판</span></button>
+      <button class="tab" role="tab" data-mode="pad"><span aria-hidden="true">📲</span><span class="txt">패드</span></button>
+      <button class="tab" role="tab" data-mode="phone"><span aria-hidden="true">📱</span><span class="txt">스마트폰</span></button>
+      <button class="tab" role="tab" data-mode="pc"><span aria-hidden="true">💻</span><span class="txt">컴퓨터</span></button>
+    </div>
+    <span class="auto-hint" id="autoHint"></span>
+    <div class="device-tools">
+      <button class="tool" id="fontDown" aria-label="글자 작게">가−</button>
+      <button class="tool" id="fontUp" aria-label="글자 크게">가+</button>
+      <button class="tool" id="fullBtn">⛶ 전체 화면</button>
+    </div>
+  </div>
+</div>
+
+<main id="bugboard">
+  <section class="zone-hero bug">
+    <div class="wrap">
+      <div class="txt">
+        <a class="back" href="index.html">← 홈으로</a>
+        <h1>🐞 버그 제보방</h1>
+        <p>고장 난 곳이나 이상한 점을 알려 주세요. 티라노가 고쳐 줄게요!</p>
+        <div class="zone-stats">
+          <span>전체 제보 <b id="statTotal">0</b>개</span>
+          <span>✅ 해결 <b id="statDone">0</b>개</span>
+        </div>
+      </div>
+      <svg class="zone-dino" viewBox="0 0 220 200" aria-hidden="true"><use href="#dino"/></svg>
+    </div>
+  </section>
+
+  <section class="bb-wrap">
+    <div class="wrap bb-grid">
+      <!-- 글쓰기 -->
+      <form class="bb-card bb-write" id="bbForm" autocomplete="off">
+        <h2>✏️ 제보하기</h2>
+        <label class="bb-fld">닉네임 <small>한글·영어·숫자 2~8글자 · 진짜 이름은 쓰지 않아요</small><input id="bbNick" maxlength="8" placeholder="예) 날쌘티라노"></label>
+        <div class="bb-fld">어디에서 생겼나요?<div class="bb-cats" id="bbCats" role="group" aria-label="분류"></div></div>
+        <label class="bb-fld">게임·단원·도구 이름 <small>(알면 써 주세요)</small><input id="bbLoc" maxlength="60" list="bbLocList" placeholder="예) 구구단 화산 탈출"><datalist id="bbLocList"></datalist></label>
+        <label class="bb-fld">어떤 문제가 있었나요? <small id="bbCount">0 / 300</small><textarea id="bbTxt" maxlength="300" rows="5" placeholder="예) 7 × 8 = 56을 골랐는데 틀렸다고 나와요."></textarea></label>
+        <p class="bb-info" id="bbInfo"></p>
+        <p class="bb-err" id="bbErr" role="alert"></p>
+        <button class="btn bb-send" id="bbSend" type="submit">🐞 제보 올리기</button>
+      </form>
+
+      <!-- 목록 -->
+      <div class="bb-card bb-listcard">
+        <div class="bb-listhead"><h2>📋 제보 목록</h2><button class="tool" id="bbReload" type="button">↻ 새로 고침</button></div>
+        <div class="area-chips bb-filter" id="bbFilter" role="group" aria-label="분류로 보기"></div>
+        <ul class="bb-list" id="bbList"></ul>
+        <div class="bb-pages" id="bbPages"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status"></div>
+
+<footer>
+  <div class="wrap">
+    <svg viewBox="0 0 220 200" aria-hidden="true"><use href="#dino"/></svg>
+    <div class="copy">
+      <div class="owner"><span class="notranslate" translate="no" style="white-space:nowrap">© 2026 TyranoMath 백태진</span> <span style="white-space:nowrap">All rights reserved.</span></div>
+      <div>티라노와 함께 즐거운 수학 시간!</div>
+    </div>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="assets/tyrano.js"></script>
+<script src="assets/bugboard.js"></script>
+</body>
+</html>

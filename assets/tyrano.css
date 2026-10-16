@@ -540,3 +540,51 @@ html[data-device="board"] .player-box{width:100%; height:100%}
 .zone-hero.tool .zone-stats b{color:#159A8C}
 main[data-list="tools"] .area-chips button[aria-pressed="true"]{background:#159A8C; border-color:#159A8C}
 main[data-list="tools"] .game .play{background:#159A8C}
+
+/* =========================================================
+   🐞 버그 제보방 (게시판)
+   ========================================================= */
+.nav a.bug-tab[aria-current="page"]{background:#E5546B; color:#fff}
+.zone-hero.bug{background:linear-gradient(135deg, #FFE3EA 0%, #FFF3C4 100%); border-bottom-color:#F5C2CB}
+.zone-hero.bug .back{color:#B83A4F}
+.zone-hero.bug .zone-stats b{color:#E5546B}
+.bb-wrap{padding:22px 0 40px}
+.bb-grid{display:grid; grid-template-columns:minmax(0, 380px) minmax(0, 1fr); gap:20px; align-items:start}
+.bb-card{background:#fff; border:var(--border) solid var(--line); border-radius:22px; padding:18px; box-shadow:0 5px 0 var(--line)}
+.bb-card h2{margin:0 0 10px; font-size:1.3rem}
+.bb-write{display:flex; flex-direction:column; gap:12px; position:sticky; top:12px}
+.bb-fld{display:flex; flex-direction:column; gap:6px; font-family:'Jua',sans-serif; font-size:1rem}
+.bb-fld small{font-family:'Gowun Dodum',sans-serif; color:var(--muted); font-size:.78rem}
+.bb-fld input,.bb-fld textarea{font:inherit; font-family:'Gowun Dodum',sans-serif; font-size:1rem; border:3px solid var(--line); border-radius:14px; padding:9px 12px; background:#FFFDF8; color:var(--ink); resize:vertical}
+.bb-fld input:focus,.bb-fld textarea:focus{outline:none; border-color:#E5546B}
+.bb-cats{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:6px}
+.bb-cats button,.bb-filter button{font-family:'Jua',sans-serif; border:3px solid var(--line); background:#fff; border-radius:12px; padding:7px 6px; font-size:.92rem; display:flex; gap:4px; align-items:center; justify-content:center; cursor:pointer; color:var(--ink)}
+.bb-cats button[aria-pressed="true"],.bb-filter button[aria-pressed="true"]{background:#E5546B; border-color:#E5546B; color:#fff}
+.bb-info{margin:0; font-size:.8rem; color:var(--muted)}
+.bb-err{margin:0; min-height:1.2em; font-size:.92rem; color:#E5546B; font-family:'Jua',sans-serif}
+.bb-send{background:#E5546B; box-shadow:0 5px 0 #B83A4F; border-color:#B83A4F}
+.bb-send:disabled{opacity:.6}
+.bb-listhead{display:flex; justify-content:space-between; align-items:center; gap:8px}
+.bb-filter{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 12px}
+.bb-filter button{padding:5px 10px}
+.bb-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px}
+.bb-item{border:3px solid var(--line); border-radius:16px; padding:12px 14px; background:#FFFDF8}
+.bb-meta{display:flex; flex-wrap:wrap; gap:6px 8px; align-items:center; font-size:.85rem}
+.bb-meta b{font-family:'Fredoka',sans-serif; color:var(--muted)}
+.bb-tag{background:#EEF3F8; border-radius:999px; padding:1px 9px; font-family:'Jua',sans-serif}
+.bb-st{border-radius:999px; padding:1px 9px; font-family:'Jua',sans-serif; color:#fff; background:#8A97A8}
+.bb-st.doing{background:#FF9F43} .bb-st.done{background:#4CB963} .bb-st.no{background:#B0B8C4}
+.bb-who{color:var(--muted); margin-left:auto}
+.bb-loc{margin-top:6px; font-family:'Jua',sans-serif; font-size:.92rem; color:#2F6FA8}
+.bb-txt{margin:6px 0 0; white-space:pre-wrap; word-break:break-word; line-height:1.55}
+.bb-ans{margin-top:10px; background:#E4F5D6; border-radius:12px; padding:8px 12px; white-space:pre-wrap; line-height:1.5}
+.bb-ans b{display:block; font-family:'Jua',sans-serif; font-weight:400; color:var(--green-d)}
+.bb-del{margin-top:8px; border:0; background:none; color:#B83A4F; text-decoration:underline; cursor:pointer; font:inherit; font-size:.85rem; padding:0}
+.bb-empty{text-align:center; color:var(--muted); padding:28px 8px; line-height:1.7}
+.bb-pages{display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:14px}
+.bb-pages button{min-width:40px; height:40px; border-radius:12px; border:3px solid var(--line); background:#fff; font-family:'Fredoka',sans-serif; font-weight:700; cursor:pointer}
+.bb-pages button[aria-current="page"]{background:#E5546B; border-color:#E5546B; color:#fff}
+@media (max-width:860px){ .bb-grid{grid-template-columns:minmax(0,1fr)} .bb-write{position:static} }
+html[data-device="phone"] .bb-grid{grid-template-columns:minmax(0,1fr)}
+.bb-card{min-width:0} .bb-fld input,.bb-fld textarea{width:100%; min-width:0; box-sizing:border-box}
+html[data-device="phone"] .bb-write{position:static}

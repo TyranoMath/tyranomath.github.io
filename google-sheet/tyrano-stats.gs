@@ -10,6 +10,7 @@
  *   랭킹_전체  : 게임·단계·닉네임·반 코드별 가장 좋은 기록 (전체 랭킹)
  *   랭킹_일별  : 날짜별 가장 좋은 기록 (오늘 / 이번 주 랭킹, 15일 지나면 자동 정리)
  *   금칙어     : 닉네임에 쓰면 안 되는 말 (A열에 한 줄씩 더 적으면 바로 적용돼요)
+ *   버그제보   : 🐞 버그 제보 게시판 글 (상태·선생님 답변 칸을 고치면 게시판에 바로 보여요)
  *
  * 👩‍🏫 선생님 도움말
  *   - 이상한 기록은 '랭킹_전체'·'랭킹_일별'에서 그 줄을 지우면 랭킹에서 사라져요.
@@ -69,11 +70,21 @@ function doGet(e) {
     if (p.action === 'rank_start') out = rankStart_(p);
     else if (p.action === 'rank_put') out = rankPut_(p);
     else if (p.action === 'rank_get') out = rankGet_(p);
+    else if (p.action === 'bug_list') out = bugList_(p);
+    else if (p.action === 'bug_put') out = bugPut_(p);
+    else if (p.action === 'bug_del') out = bugDel_(p);
     else out = plays_(p);
   } catch (err) {
     out = { ok: false, msg: '잠시 후 다시 해 주세요.' };
   }
   return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// 버그 제보 글처럼 긴 글은 POST 로도 받아요 (본문은 key=value 형식)
+function doPost(e) {
+  const p = Object.assign({}, (e && e.parameter) || {});
+  try { if (e && e.postData && e.postData.contents) { const q = JSON.parse(e.postData.contents); Object.assign(p, q); } } catch (err) {}
+  return doGet({ parameter: p });
 }
 
 /* ---------- 플레이 수 ---------- */
@@ -309,8 +320,89 @@ function levels_(g) {
   return out.slice(0, 60);
 }
 
+
+/* =========================================================
+   🐞 버그 제보 게시판
+   - 선생님은 '버그제보' 탭에서 [상태]를 '접수 → 확인 중 → 해결'로 바꾸고 [선생님 답변]을 적어요.
+   - [숨김] 칸에 아무 글자(예: O)나 적으면 게시판에서 숨겨져요.
+   ========================================================= */
+const SH_BUG = '버그제보';
+const HEAD_BUG = ['번호', '올린 시각', '닉네임', '분류', '위치', '내용', '기기 정보', '상태', '선생님 답변', '숨김', '기기'];
+const BUG_CATS = ['개념 탐험대', '실력 진단소', '수학 도구존', '티라노 게임존', '티라노 퍼즐존', '기타'];
+const BUG_PAGE = 10;
+function bugSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(SH_BUG);
+  if (!sh) {
+    sh = ss.insertSheet(SH_BUG);
+    sh.appendRow(HEAD_BUG);
+    sh.setFrozenRows(1);
+    sh.getRange(1, 1, 1, HEAD_BUG.length).setFontWeight('bold').setBackground('#FFE3EA');
+    sh.setColumnWidth(6, 360); sh.setColumnWidth(9, 260);
+  }
+  return sh;
+}
+const clean_ = (s, n) => String(s || '').replace(/[\u0000-\u0008\u000B-\u001F]/g, '').replace(/\r/g, '').trim().slice(0, n);
+function bugList_(p) {
+  const cache = CacheService.getScriptCache(), cat = BUG_CATS.indexOf(p.cat) >= 0 ? p.cat : '', key = 'bug|' + cat;
+  let list = null;
+  const hit = cache.get(key);
+  if (hit) list = JSON.parse(hit);
+  else {
+    const ban = banList_();
+    list = rows_(bugSheet_(), 11).filter(r => r[0] && !String(r[9]).trim() && (!cat || r[3] === cat)).map(r => ({
+      no: Number(r[0]), at: r[1] instanceof Date ? Utilities.formatDate(r[1], TZ, 'yyyy-MM-dd HH:mm') : String(r[1]).slice(0, 16),
+      n: badNick_(r[2], ban) ? '익명' : String(r[2]), cat: String(r[3]), loc: String(r[4]), txt: String(r[5]),
+      st: String(r[7] || '접수'), ans: String(r[8] || ''), d: String(r[10])
+    })).reverse();
+    cache.put(key, JSON.stringify(list).slice(0, 95000), 20);
+  }
+  const page = Math.max(1, Math.floor(Number(p.page) || 1)), dev = String(p.d || '');
+  const rows = list.slice((page - 1) * BUG_PAGE, page * BUG_PAGE).map(r => { const o = Object.assign({}, r, { mine: !!dev && r.d === dev }); delete o.d; return o; });
+  const done = list.filter(r => /해결/.test(r.st) && !/안/.test(r.st)).length;
+  return { ok: true, rows: rows, total: list.length, pages: Math.max(1, Math.ceil(list.length / BUG_PAGE)), page: page, done: done };
+}
+function bugPut_(p) {
+  const nick = cleanNick_(p.n), cat = String(p.cat || ''), loc = clean_(p.loc, 60), txt = clean_(p.txt, 300), info = clean_(p.info, 120), dev = String(p.d || '').slice(0, 40);
+  if (nick.length < 2 || nick.length > 8 || !/^[가-힣A-Za-z0-9 _]+$/.test(nick)) return { ok: false, msg: '닉네임은 한글·영어·숫자 2~8글자로 써요.' };
+  if (badNick_(nick)) return { ok: false, msg: '닉네임에 쓸 수 없는 말이 있어요.' };
+  if (BUG_CATS.indexOf(cat) < 0) return { ok: false, msg: '어디에서 생긴 문제인지 골라 주세요.' };
+  if (txt.length < 5) return { ok: false, msg: '어떤 문제인지 5글자 이상 써 주세요.' };
+  const ban = banList_();
+  const SKIP = ['운영자', '관리자', '선생님', 'admin', '장애인', '죽어', '뒤져', '뒤질', '살인', 'damn'].map(norm_);   // 글 내용에서는 써도 되는 말 (예: "티라노가 죽어요")
+  if (ban.some(w => w && w.length >= 2 && SKIP.indexOf(w) < 0 && norm_(txt + ' ' + loc).indexOf(w) >= 0)) return { ok: false, msg: '쓸 수 없는 말이 들어 있어요. 고운 말로 다시 써 주세요.' };
+  if (!dev) return { ok: false, msg: '잠시 후 다시 해 주세요.' };
+  const cache = CacheService.getScriptCache();
+  if (cache.get('bugput_' + dev)) return { ok: false, msg: '1분 뒤에 다시 올릴 수 있어요.' };
+  const dayKey = 'bugday_' + dev + '_' + today_(), cnt = Number(cache.get(dayKey) || 0);
+  if (cnt >= 10) return { ok: false, msg: '오늘은 더 올릴 수 없어요. 내일 다시 올려 주세요.' };
+  const lock = LockService.getScriptLock();
+  lock.waitLock(8000);
+  try {
+    const sh = bugSheet_(), R = rows_(sh, 1), no = R.reduce((m, r) => Math.max(m, Number(r[0]) || 0), 0) + 1;
+    sh.appendRow([no, new Date(), T_(nick), cat, T_(loc), T_(txt), T_(info), '접수', '', '', dev]);
+    cache.put('bugput_' + dev, '1', 60); cache.put(dayKey, String(cnt + 1), 86400);
+    BUG_CATS.concat(['']).forEach(c => cache.remove('bug|' + c));
+    return { ok: true, no: no };
+  } finally { lock.releaseLock(); }
+}
+function bugDel_(p) {
+  const no = Number(p.no), dev = String(p.d || '');
+  if (!no || !dev) return { ok: false, msg: '지울 수 없어요.' };
+  const lock = LockService.getScriptLock();
+  lock.waitLock(8000);
+  try {
+    const sh = bugSheet_(), R = rows_(sh, 11), i = R.findIndex(r => Number(r[0]) === no);
+    if (i < 0 || String(R[i][10]) !== dev) return { ok: false, msg: '내가 쓴 글만 지울 수 있어요.' };
+    if (String(R[i][8]).trim()) return { ok: false, msg: '선생님이 답변한 글은 지울 수 없어요.' };
+    sh.getRange(i + 2, 10).setValue('글쓴이 삭제');
+    BUG_CATS.concat(['']).forEach(c => CacheService.getScriptCache().remove('bug|' + c));
+    return { ok: true };
+  } finally { lock.releaseLock(); }
+}
+
 /** (선택) Apps Script 편집기에서 이 함수를 한 번 실행하면 탭이 미리 만들어지고 권한 승인도 끝나요. */
 function setup() {
   getSheet_();
-  rankSheet_(SH_ALL); rankSheet_(SH_DAY); rankSheet_(SH_BAN);
+  rankSheet_(SH_ALL); rankSheet_(SH_DAY); rankSheet_(SH_BAN); bugSheet_();
 }

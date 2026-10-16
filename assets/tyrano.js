@@ -161,8 +161,9 @@ applyMode();
    ========================================================= */
 const bugTab = $('#bugTab');
 if (bugTab){
-  if (CFG.bugReportUrl) bugTab.href = CFG.bugReportUrl;
-  else bugTab.addEventListener('click', e => { e.preventDefault(); toast('버그 제보방 링크를 준비하고 있어요 🦖'); });
+  // 구글 시트(statsUrl)가 있으면 사이트 안 게시판으로, 설문지 주소(bugReportUrl)만 있으면 설문지로 가요
+  if (CFG.bugReportUrl && !CFG.statsUrl){ bugTab.href = CFG.bugReportUrl; bugTab.target = '_blank'; bugTab.rel = 'noopener'; }
+  else { bugTab.href = 'bugboard.html'; bugTab.removeAttribute('target'); }
 }
 
 /* =========================================================
@@ -230,6 +231,7 @@ function openEntry(g){
   returnHash = location.hash.startsWith('#game=') ? '' : location.hash;
   $('#playerTitle').innerHTML = `<span aria-hidden="true">${esc(g.icon || '🎮')}</span><span>${esc(g.title)}</span>`;
   $('#playerFrame').src = g.file;
+  if ($('#playerBug')) $('#playerBug').href = 'bugboard.html?from=' + encodeURIComponent(g.file);
   $('#playerNew').href = g.file;
   $('#player').classList.add('open');
   document.body.classList.add('no-scroll');
@@ -244,6 +246,11 @@ function closeItem(){
   document.body.classList.remove('no-scroll');
   try { history.replaceState(null, '', location.pathname + location.search + returnHash); } catch(e){}
   lastFocus?.focus();
+}
+if ($('#player') && $('#playerNew') && !$('#playerBug')){
+  // 게임 창에서 바로 버그 제보 (어떤 게임인지 자동으로 채워져요)
+  const a = document.createElement('a'); a.className = 'tool'; a.id = 'playerBug'; a.href = 'bugboard.html'; a.textContent = '🐞 제보'; a.title = '이 화면의 버그 제보하기';
+  $('#playerNew').after(a);
 }
 if ($('#player')){
   $('#playerClose').addEventListener('click', closeItem);
