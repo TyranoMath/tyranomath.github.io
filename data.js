@@ -15,7 +15,7 @@ const CONFIG = {
 
   // 📈 구글 시트 플레이 수 집계 주소 (Apps Script 웹 앱 URL, .../exec 로 끝나요)
   //    넣으면 모든 학생의 플레이 수로 인기 게임 BEST 10 이 정해져요. 비우면 기기별 집계.
-  statsUrl: ''
+  statsUrl: 'https://script.google.com/macros/s/AKfycbyGpTZofoXW0mwkyJGQFNtjG0wssAYbRsmz5Xfmgu6UhCXBPpJvGUZZvwx5wQfMtrnQgQ/exec'
 };
 
 /* ---------------------------------------------------------
