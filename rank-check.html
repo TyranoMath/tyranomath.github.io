@@ -85,9 +85,26 @@ async function run(){
 
   const r3 = row('4. 랭킹 불러오기 (드랍더넘버 8줄)');
   const c = await tfetch({ action: 'rank_get', g: 'drop-number', l: '8', p: 'day', c: '', n: '', mc: '', d: 'check' }, 30000);
-  let getOk = false;
+  var getOk = false;
   if (c.ok){ try { const d = JSON.parse(c.txt); getOk = !!d.ok; set(r3, getOk, getOk ? `성공: 기록 ${d.total}개 (${c.ms}ms)` : `서버 답: ${d.msg}`, c.txt.slice(0, 300)); } catch(e){ set(r3, false, `JSON 이 아닌 답 (HTTP ${c.status})`, c.txt.slice(0, 300)); } }
   else set(r3, false, `연결 실패 (${c.ms}ms)`, c.err);
+
+  const GP = { action: 'rank_get', g: 'drop-number', l: '8', p: 'day', c: '', n: '', mc: '', d: 'check' };
+  const r3b = row('4-2. 랭킹 불러오기 (주소에 시각을 붙여서)');
+  const c2 = await tfetch(Object.assign({}, GP, { _: Date.now().toString(36) }), 30000);
+  let get2 = false;
+  if (c2.ok){ try { const d = JSON.parse(c2.txt); get2 = !!d.ok; set(r3b, get2, get2 ? `성공 (${c2.ms}ms)` : `서버 답: ${d.msg}`, c2.txt.slice(0, 300)); } catch(e){ set(r3b, false, `JSON 이 아닌 답 (HTTP ${c2.status})`, c2.txt.slice(0, 300)); } }
+  else set(r3b, false, `연결 실패 (${c2.ms}ms)`, c2.err);
+  const r3c = row('4-3. 랭킹 불러오기 (POST 방식)');
+  let get3 = false;
+  { const t0 = performance.now(); try { const r = await fetch(URL_, { method: 'POST', body: JSON.stringify(GP), cache: 'no-store' }); const txt = await r.text(); const ms = Math.round(performance.now() - t0);
+      try { const d = JSON.parse(txt); get3 = !!d.ok; set(r3c, get3, get3 ? `성공 (${ms}ms)` : `서버 답: ${d.msg}`, txt.slice(0, 300)); } catch(e){ set(r3c, false, `JSON 이 아닌 답 (HTTP ${r.status})`, txt.slice(0, 300)); } }
+    catch(e){ set(r3c, false, `연결 실패 (${Math.round(performance.now() - t0)}ms)`, (e.name || '') + ': ' + e.message); } }
+  const r3d = row('4-4. 랭킹 불러오기 (JSONP 방식)');
+  const c4 = await tjsonp(Object.assign({}, GP, { _: Date.now().toString(36) }), 30000);
+  const get4 = c4.ok && c4.d && c4.d.ok;
+  if (c4.ok) set(r3d, get4, get4 ? `성공 (${c4.ms}ms)` : `서버 답: ${c4.d && c4.d.msg}`, JSON.stringify(c4.d).slice(0, 300)); else set(r3d, false, `${c4.err} (${c4.ms}ms)`);
+  getOk = getOk || get2 || get3 || get4;
 
   const r4 = row('5. 게임 시작 표 받기 (드랍더넘버 8줄)');
   const s = await tfetch({ action: 'rank_start', g: 'drop-number', l: '8', d: 'check' + Date.now() }, 30000);
@@ -101,7 +118,7 @@ function verdict(v){
   const el = document.getElementById('verdict'); el.hidden = false;
   let m;
   if (v.nourl) m = 'data.js 의 statsUrl 에 웹 앱 주소를 넣어 주세요.';
-  else if (v.ver && v.getOk && v.startOk) m = '🎉 모두 정상이에요! 그래도 게임에서 안 되면 Ctrl+F5 로 새로고침해 주세요 (예전 파일이 남아 있을 수 있어요).';
+  else if (v.ver && v.getOk && v.startOk) m = '🎉 랭킹을 받을 수 있는 방법이 있어요! 사이트의 랭킹은 통하는 방법을 자동으로 골라 써요. 그래도 게임에서 안 되면 Ctrl+F5 로 새로고침해 주세요 (예전 파일이 남아 있을 수 있어요).';
   else if (!v.fetchOk && !v.jsonpOk) m = '이 기기·인터넷에서 랭킹 서버 주소에 아예 닿지 않아요. ① 학교·회사 인터넷 보안 프로그램이 script.google.com / script.googleusercontent.com 을 막고 있는지, ② 광고 차단 확장 프로그램이 있는지 확인해 주세요. 휴대폰 데이터(와이파이 끄기)로 이 화면을 열어 비교해 보면 원인을 알 수 있어요.';
   else if (!v.ver) m = '서버에 예전 코드가 배포되어 있어요. Apps Script 에 새 tyrano-stats.gs 를 붙여 넣고 저장한 뒤, 새 버전으로 배포해 주세요.';
   else if (!v.startOk && /알 수 없는/.test(v.startMsg)) m = '서버 코드가 새 퍼즐을 몰라요. 최신 tyrano-stats.gs 로 다시 배포해 주세요.';

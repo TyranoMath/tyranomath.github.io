@@ -56,43 +56,51 @@ function getUrl(){
 }
 const SCRIPT_SRC = (document.currentScript && document.currentScript.src) || '';
 // 구글 Apps Script 는 한동안 안 쓰면 첫 응답이 10초 넘게 걸릴 때가 있어요 → 넉넉히 기다리고, 읽기는 한 번 더 시도해요
-async function api1(params, ms){
+// 요청마다 주소를 조금씩 다르게(_=시각) 해서, 브라우저가 예전 답(만료된 구글 주소)을 다시 쓰지 않게 해요
+const qs = params => new URLSearchParams(Object.assign({ d: DEV }, params, { _: Date.now().toString(36) + Math.random().toString(36).slice(2, 6) })).toString();
+async function api1(params, ms, post){
   const u = await getUrl(); if (!u){ const e = new Error('nourl'); e.kind = 'nourl'; throw e; }
-  const q = new URLSearchParams(Object.assign({ d: DEV }, params)).toString();
   const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), ms);
   try {
-    const r = await fetch(u + (u.includes('?') ? '&' : '?') + q, { signal: ctrl.signal });
+    const r = post
+      ? await fetch(u, { method: 'POST', body: JSON.stringify(Object.assign({ d: DEV }, params)), signal: ctrl.signal, cache: 'no-store' })
+      : await fetch(u + (u.includes('?') ? '&' : '?') + qs(params), { signal: ctrl.signal, cache: 'no-store' });
     const txt = await r.text();
     try { return JSON.parse(txt); } catch(_){ const e = new Error('notjson'); e.kind = 'json'; e.body = txt.slice(0, 200); throw e; }
   } finally { clearTimeout(timer); }
 }
-// fetch 가 막히면(CORS·리디렉션 문제) <script> 방식(JSONP)으로 한 번 더 받아요
+// fetch 가 막히면 <script> 방식(JSONP)으로도 받아요
 let jpN = 0;
 function jsonp(params, ms){
   return getUrl().then(u => new Promise((res, rej) => {
     const cb = '__tmr' + Date.now().toString(36) + (jpN++);
-    const q = new URLSearchParams(Object.assign({ d: DEV }, params, { callback: cb })).toString();
     const sc = document.createElement('script');
     const done = (fn, v) => { clearTimeout(t); try { delete window[cb]; } catch(_){ window[cb] = undefined; } sc.remove(); fn(v); };
     const t = setTimeout(() => { const e = new Error('timeout'); e.name = 'AbortError'; done(rej, e); }, ms);
     window[cb] = d => done(res, d);
     sc.onerror = () => { const e = new Error('jsonp'); e.kind = 'net'; done(rej, e); };
-    sc.src = u + (u.includes('?') ? '&' : '?') + q;
+    sc.src = u + (u.includes('?') ? '&' : '?') + qs(Object.assign({}, params, { callback: cb }));
     document.head.appendChild(sc);
   }));
 }
-let useJP = false;                                   // 한 번 막히면 그다음부터는 바로 JSONP 로 받아요
+// 받는 방법: 0 = 보통(GET) · 1 = POST · 2 = JSONP. 한 번 통한 방법을 기억해서 계속 써요
+let mode = 0;
+const viaMode = (m, params, ms) => m === 2 ? jsonp(params, ms) : api1(params, ms, m === 1);
 async function api(params, ms = 25000, tries = 2){
-  for (let i = 0; ; i++){
-    try { return useJP ? await jsonp(params, ms) : await api1(params, ms); }
-    catch(e){
-      if (e.kind === 'nourl') throw e;
-      if (e.name !== 'AbortError' && e.kind !== 'json' && !useJP){ try { const d = await jsonp(params, ms); useJP = true; return d; } catch(e2){ if (i + 1 >= tries) throw e2; } }
-      else if (e.name !== 'AbortError'){ if (i + 1 >= tries) throw e; }
-      else if (i + 1 >= tries) throw e;
-      await new Promise(r => setTimeout(r, 1200));
+  let last;
+  for (let i = 0; i < tries; i++){
+    for (let k = 0; k < 3; k++){
+      const m = (mode + k) % 3;
+      try { const d = await viaMode(m, params, ms); mode = m; return d; }
+      catch(e){
+        last = e;
+        if (e.kind === 'nourl') throw e;
+        if (e.name === 'AbortError') break;          // 서버가 늦은 거라면 다른 방법보다 한 번 더 기다려요
+      }
     }
+    if (i + 1 < tries) await new Promise(r => setTimeout(r, 1200));
   }
+  throw last;
 }
 function errMsg(e){
   if (e && e.kind === 'json') return '랭킹 서버가 이상한 답을 보냈어요. 선생님: Apps Script를 "새 버전"으로 다시 배포하고, 액세스를 "모든 사용자"로 해 주세요.';
