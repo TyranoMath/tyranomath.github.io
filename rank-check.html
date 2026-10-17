@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>랭킹 연결 점검 - TyranoMath</title>
+<style>
+body{margin:0;background:#FFF8EC;color:#22314A;font-family:'Gowun Dodum',system-ui,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;line-height:1.6}
+main{max-width:760px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:24px;margin:0 0 4px;color:#6C3FB4}
+p.sub{margin:0 0 16px;color:#5D6C83}
+button{font:inherit;border:0;border-radius:14px;padding:10px 22px;background:#4CB963;color:#fff;font-size:17px;cursor:pointer;box-shadow:0 4px 0 #2F8A47}
+button.alt{background:#fff;color:#6C3FB4;border:2px solid #ECDFC8;box-shadow:0 3px 0 #ECDFC8}
+ol{padding:0;list-style:none;margin:16px 0}
+li{background:#fff;border:2px solid #ECDFC8;border-radius:16px;padding:10px 14px;margin-bottom:10px}
+li b{display:block}
+li .st{font-weight:700}
+.ok{color:#2F8A47}.bad{color:#E5546B}.wait{color:#5D6C83}
+pre{white-space:pre-wrap;word-break:break-all;background:#F6F1E7;border-radius:10px;padding:8px;font-size:12px;margin:6px 0 0;max-height:140px;overflow:auto}
+.verdict{background:#EFE6FF;border:2px solid #8E5BD6;border-radius:16px;padding:12px 14px;font-size:16px}
+footer{text-align:center;color:#5D6C83;font-size:13px;padding:20px 0}
+</style>
+</head>
+<body>
+<main>
+  <h1>🦖 랭킹 연결 점검</h1>
+  <p class="sub">이 화면에서 사이트가 랭킹 서버(구글 Apps Script)와 잘 연결되는지 하나씩 검사해요. 끝나면 화면 전체를 캡처해 주세요.</p>
+  <div><button id="run">점검 시작</button> <button class="alt" id="copy">결과 복사</button></div>
+  <ol id="list"></ol>
+  <div class="verdict" id="verdict" hidden></div>
+</main>
+<footer>© 2026 TyranoMath 백태진 All rights reserved. / 티라노와 함께 즐거운 수학 시간!</footer>
+<script src="data.js"></script>
+<script>
+(function(){
+const URL_ = (typeof CONFIG !== 'undefined' && CONFIG.statsUrl) || '';
+const list = document.getElementById('list'), out = [];
+let override = ''; try { override = localStorage.getItem('tm-rank-url') || ''; } catch(e){}
+function row(title){ const li = document.createElement('li'); li.innerHTML = `<b>${title}</b><span class="st wait">검사 중…</span><pre hidden></pre>`; list.appendChild(li); return li; }
+function set(li, ok, msg, detail){
+  const st = li.querySelector('.st'); st.className = 'st ' + (ok ? 'ok' : 'bad'); st.textContent = (ok ? '✅ ' : '❌ ') + msg;
+  if (detail){ const pre = li.querySelector('pre'); pre.hidden = false; pre.textContent = detail; }
+  out.push(li.querySelector('b').textContent + ' → ' + (ok ? 'OK ' : 'FAIL ') + msg + (detail ? '\n   ' + detail.slice(0, 300) : ''));
+}
+const q = (p) => URL_ + (URL_.includes('?') ? '&' : '?') + new URLSearchParams(p).toString();
+async function tfetch(p, ms){
+  const t0 = performance.now(), ctrl = new AbortController(), tm = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const r = await fetch(q(p), { signal: ctrl.signal });
+    const txt = await r.text();
+    return { ok: true, status: r.status, txt, ms: Math.round(performance.now() - t0) };
+  } catch(e){ return { ok: false, err: (e.name || '') + ': ' + (e.message || e), ms: Math.round(performance.now() - t0) }; }
+  finally { clearTimeout(tm); }
+}
+function tjsonp(p, ms){
+  return new Promise(res => {
+    const t0 = performance.now(), cb = '__chk' + Date.now().toString(36);
+    const sc = document.createElement('script');
+    const end = r => { clearTimeout(tm); delete window[cb]; sc.remove(); r.ms = Math.round(performance.now() - t0); res(r); };
+    const tm = setTimeout(() => end({ ok: false, err: '시간 초과 (응답이 자바스크립트가 아니거나 너무 늦어요)' }), ms);
+    window[cb] = d => end({ ok: true, d });
+    sc.onerror = () => end({ ok: false, err: '스크립트를 불러오지 못했어요 (주소가 막혔거나 오류 페이지)' });
+    sc.src = q(Object.assign({}, p, { callback: cb }));
+    document.head.appendChild(sc);
+  });
+}
+async function run(){
+  list.innerHTML = ''; out.length = 0; document.getElementById('verdict').hidden = true;
+  out.push('페이지: ' + location.href, '브라우저: ' + navigator.userAgent, '온라인: ' + navigator.onLine);
+  const r0 = row('1. 사이트에 들어 있는 랭킹 서버 주소 (data.js)');
+  if (!URL_){ set(r0, false, 'statsUrl 이 비어 있어요'); return verdict({ nourl: true }); }
+  set(r0, /\/macros\/s\/.+\/exec$/.test(URL_), URL_.replace(/^(.{50}).*(.{18})$/, '$1…$2'), URL_ + (override ? '\n(주의: 이 기기에 시험용 주소가 저장돼 있어요: ' + override + ')' : ''));
+
+  const r1 = row('2. 서버 버전 확인 (fetch)');
+  const a = await tfetch({ action: 'ver' }, 30000);
+  let ver = null;
+  if (a.ok){ try { const d = JSON.parse(a.txt); ver = d.ver || null; set(r1, !!ver, ver ? `버전 ${ver} (${a.ms}ms)` : `답은 왔지만 버전이 없어요 → 예전 코드예요 (${a.ms}ms)`, a.txt.slice(0, 300)); }
+    catch(e){ set(r1, false, `JSON 이 아닌 답이 왔어요 (HTTP ${a.status}, ${a.ms}ms)`, a.txt.slice(0, 300)); } }
+  else set(r1, false, `연결 실패 (${a.ms}ms)`, a.err);
+
+  const r2 = row('3. 서버 버전 확인 (JSONP 방식)');
+  const b = await tjsonp({ action: 'ver' }, 30000);
+  if (b.ok) set(r2, true, `${b.d && b.d.ver ? '버전 ' + b.d.ver : '답은 왔어요'} (${b.ms}ms)`, JSON.stringify(b.d).slice(0, 300));
+  else set(r2, false, `${b.err} (${b.ms}ms)`);
+
+  const r3 = row('4. 랭킹 불러오기 (드랍더넘버 8줄)');
+  const c = await tfetch({ action: 'rank_get', g: 'drop-number', l: '8', p: 'day', c: '', n: '', mc: '', d: 'check' }, 30000);
+  let getOk = false;
+  if (c.ok){ try { const d = JSON.parse(c.txt); getOk = !!d.ok; set(r3, getOk, getOk ? `성공: 기록 ${d.total}개 (${c.ms}ms)` : `서버 답: ${d.msg}`, c.txt.slice(0, 300)); } catch(e){ set(r3, false, `JSON 이 아닌 답 (HTTP ${c.status})`, c.txt.slice(0, 300)); } }
+  else set(r3, false, `연결 실패 (${c.ms}ms)`, c.err);
+
+  const r4 = row('5. 게임 시작 표 받기 (드랍더넘버 8줄)');
+  const s = await tfetch({ action: 'rank_start', g: 'drop-number', l: '8', d: 'check' + Date.now() }, 30000);
+  let startOk = false, startMsg = '';
+  if (s.ok){ try { const d = JSON.parse(s.txt); startOk = !!d.ok; startMsg = d.msg || ''; set(r4, startOk, startOk ? `성공 (${s.ms}ms)` : `서버 답: ${d.msg}`, s.txt.slice(0, 300)); } catch(e){ set(r4, false, `JSON 이 아닌 답 (HTTP ${s.status})`, s.txt.slice(0, 300)); } }
+  else set(r4, false, `연결 실패 (${s.ms}ms)`, s.err);
+
+  verdict({ fetchOk: a.ok, ver, jsonpOk: b.ok, getOk, startOk, startMsg });
+}
+function verdict(v){
+  const el = document.getElementById('verdict'); el.hidden = false;
+  let m;
+  if (v.nourl) m = 'data.js 의 statsUrl 에 웹 앱 주소를 넣어 주세요.';
+  else if (v.ver && v.getOk && v.startOk) m = '🎉 모두 정상이에요! 그래도 게임에서 안 되면 Ctrl+F5 로 새로고침해 주세요 (예전 파일이 남아 있을 수 있어요).';
+  else if (!v.fetchOk && !v.jsonpOk) m = '이 기기·인터넷에서 랭킹 서버 주소에 아예 닿지 않아요. ① 학교·회사 인터넷 보안 프로그램이 script.google.com / script.googleusercontent.com 을 막고 있는지, ② 광고 차단 확장 프로그램이 있는지 확인해 주세요. 휴대폰 데이터(와이파이 끄기)로 이 화면을 열어 비교해 보면 원인을 알 수 있어요.';
+  else if (!v.ver) m = '서버에 예전 코드가 배포되어 있어요. Apps Script 에 새 tyrano-stats.gs 를 붙여 넣고 저장한 뒤, 새 버전으로 배포해 주세요.';
+  else if (!v.startOk && /알 수 없는/.test(v.startMsg)) m = '서버 코드가 새 퍼즐을 몰라요. 최신 tyrano-stats.gs 로 다시 배포해 주세요.';
+  else if (!v.fetchOk && v.jsonpOk) m = '일반 방식은 막히고 JSONP 방식만 돼요. 사이트의 랭킹은 자동으로 JSONP 로 바꿔서 쓰니, 최신 assets/rank.js 를 올리고 Ctrl+F5 로 새로고침해 주세요.';
+  else m = '일부 검사가 실패했어요. 이 화면을 캡처해서 보내 주세요.';
+  el.textContent = '진단: ' + m; out.push('진단: ' + m);
+}
+document.getElementById('run').onclick = run;
+document.getElementById('copy').onclick = () => { const t = out.join('\n'); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => alert('결과를 복사했어요. 채팅에 붙여 넣어 주세요.')).catch(() => prompt('아래 내용을 복사해 주세요', t)); };
+run();
+})();
+</script>
+</body>
+</html>
