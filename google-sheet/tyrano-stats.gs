@@ -37,6 +37,8 @@ const FILE_RULE = /^(games|puzzles|tools)\/[A-Za-z0-9_\-\/]+\.html$/;
    resume: 저장했다가 이어 하는 퍼즐 (시작 후 지난 시간 검사를 하지 않아요)
    --------------------------------------------------------- */
 const DYN = /^[0-9A-Za-z가-힣+\-−×÷|.,:_ ]{1,60}$/;
+// 배포 확인용 버전: 주소 뒤에 ?action=ver 를 붙여 열면 보여요
+const GS_VER = '2026-10-17b';
 const QUIZ = { kind:'score', level:/^[0-2]$/, max:200, rate:1.7 };
 const RULES = {
   // 퍼즐존
@@ -73,7 +75,8 @@ function doGet(e) {
   const p = (e && e.parameter) || {};
   let out;
   try {
-    if (p.action === 'rank_start') out = rankStart_(p);
+    if (p.action === 'ver') out = { ok: true, ver: GS_VER };
+    else if (p.action === 'rank_start') out = rankStart_(p);
     else if (p.action === 'rank_put') out = rankPut_(p);
     else if (p.action === 'rank_get') out = rankGet_(p);
     else if (p.action === 'visit') out = visit_(p);
@@ -84,6 +87,10 @@ function doGet(e) {
   } catch (err) {
     out = { ok: false, msg: '잠시 후 다시 해 주세요.' };
   }
+  // 브라우저가 막는 경우(CORS)를 대비해 JSONP(callback)로도 답해요
+  const cb = String(p.callback || '');
+  if (/^[A-Za-z_$][\w$]{0,40}$/.test(cb))
+    return ContentService.createTextOutput(cb + '(' + JSON.stringify(out) + ');').setMimeType(ContentService.MimeType.JAVASCRIPT);
   return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -192,9 +199,7 @@ function rankStart_(p) {
   const rule = ruleOf_(String(p.g || ''));
   if (!rule || !rule.level.test(String(p.l || ''))) return { ok: false, msg: '알 수 없는 게임이에요.' };
   const cache = CacheService.getScriptCache();
-  const dev = String(p.d || '').slice(0, 40);
-  if (dev && cache.get('st_' + dev)) return { ok: false, msg: 'busy' };   // 2초 안에 또 시작하면 무시
-  if (dev) cache.put('st_' + dev, '1', 2);
+  // (예전에는 2초 안에 다시 시작하면 'busy' 로 막았는데, 느린 응답을 다시 보낼 때 표를 못 받는 문제가 있어 없앴어요)
   const token = Utilities.getUuid().replace(/-/g, '').slice(0, 20);
   cache.put('tk_' + token, JSON.stringify({ g: p.g, l: String(p.l), s: Date.now() }), 21600);   // 6시간
   return { ok: true, token: token };

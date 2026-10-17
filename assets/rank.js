@@ -66,17 +66,39 @@ async function api1(params, ms){
     try { return JSON.parse(txt); } catch(_){ const e = new Error('notjson'); e.kind = 'json'; e.body = txt.slice(0, 200); throw e; }
   } finally { clearTimeout(timer); }
 }
+// fetch 가 막히면(CORS·리디렉션 문제) <script> 방식(JSONP)으로 한 번 더 받아요
+let jpN = 0;
+function jsonp(params, ms){
+  return getUrl().then(u => new Promise((res, rej) => {
+    const cb = '__tmr' + Date.now().toString(36) + (jpN++);
+    const q = new URLSearchParams(Object.assign({ d: DEV }, params, { callback: cb })).toString();
+    const sc = document.createElement('script');
+    const done = (fn, v) => { clearTimeout(t); try { delete window[cb]; } catch(_){ window[cb] = undefined; } sc.remove(); fn(v); };
+    const t = setTimeout(() => { const e = new Error('timeout'); e.name = 'AbortError'; done(rej, e); }, ms);
+    window[cb] = d => done(res, d);
+    sc.onerror = () => { const e = new Error('jsonp'); e.kind = 'net'; done(rej, e); };
+    sc.src = u + (u.includes('?') ? '&' : '?') + q;
+    document.head.appendChild(sc);
+  }));
+}
+let useJP = false;                                   // 한 번 막히면 그다음부터는 바로 JSONP 로 받아요
 async function api(params, ms = 25000, tries = 2){
   for (let i = 0; ; i++){
-    try { return await api1(params, ms); }
-    catch(e){ if (i + 1 >= tries || e.kind === 'json' || e.kind === 'nourl') throw e; await new Promise(r => setTimeout(r, 1200)); }
+    try { return useJP ? await jsonp(params, ms) : await api1(params, ms); }
+    catch(e){
+      if (e.kind === 'nourl') throw e;
+      if (e.name !== 'AbortError' && e.kind !== 'json' && !useJP){ try { const d = await jsonp(params, ms); useJP = true; return d; } catch(e2){ if (i + 1 >= tries) throw e2; } }
+      else if (e.name !== 'AbortError'){ if (i + 1 >= tries) throw e; }
+      else if (i + 1 >= tries) throw e;
+      await new Promise(r => setTimeout(r, 1200));
+    }
   }
 }
 function errMsg(e){
-  if (e && e.kind === 'json') return '랭킹 서버(구글 시트)가 이상한 답을 보냈어요. 선생님: Apps Script를 "새 버전"으로 다시 배포하고, 액세스를 "모든 사용자"로 해 주세요.';
+  if (e && e.kind === 'json') return '랭킹 서버가 이상한 답을 보냈어요. 선생님: Apps Script를 "새 버전"으로 다시 배포하고, 액세스를 "모든 사용자"로 해 주세요.';
   if (e && e.name === 'AbortError') return '랭킹 서버가 늦게 답하고 있어요. 잠시 뒤 다시 불러와 주세요.';
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return '인터넷 연결을 확인해 주세요.';
-  return '랭킹 서버(구글 시트)에 연결하지 못했어요. 잠시 뒤 다시 해 주세요.';
+  return '랭킹 서버에 연결하지 못했어요. 잠시 뒤 다시 해 주세요.';
 }
 
 /* ---------- 모양 ---------- */
@@ -324,7 +346,8 @@ function start(lv, name){
   getUrl().then(u => {
     if (!u) return;
     C.tokErr = '';
-    tokP[lv] = api({ action: 'rank_start', g: C.game, l: lv }, 25000, 3).then(d => { if (d && d.ok) tokens[lv] = d.token; else C.tokErr = (d && d.msg) || ''; }).catch(e => { C.tokErr = errMsg(e); });
+    const ask = () => api({ action: 'rank_start', g: C.game, l: lv }, 25000, 3).then(d => (d && d.msg === 'busy') ? new Promise(r => setTimeout(r, 2200)).then(ask) : d);
+    tokP[lv] = ask().then(d => { if (d && d.ok) tokens[lv] = d.token; else C.tokErr = (d && d.msg === '알 수 없는 게임이에요.') ? '랭킹 서버가 아직 이 게임을 몰라요. 선생님께 알려 주세요. (서버 새 버전 배포 필요)' : ((d && d.msg) || ''); }).catch(e => { C.tokErr = errMsg(e); });
   });
 }
 
