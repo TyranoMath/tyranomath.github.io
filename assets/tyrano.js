@@ -470,7 +470,7 @@ if ($('#zoneGrid')){
   let dev = store.get('tm-rank-dev');
   if (!dev){ dev = 'd' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4); store.set('tm-rank-dev', dev); }
   const isNew = store.get('tm-visit-day') !== d;
-  const ctrl = new AbortController(); setTimeout(() => ctrl.abort(), 8000);
+  const ctrl = new AbortController(); setTimeout(() => ctrl.abort(), 20000);
   fetch(CFG.statsUrl + '?action=visit&new=' + (isNew ? 1 : 0) + '&d=' + encodeURIComponent(dev), { signal: ctrl.signal })
     .then(r => r.json()).then(v => {
       if (!v || !v.ok) throw 0;

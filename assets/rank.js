@@ -55,12 +55,28 @@ function getUrl(){
   return urlP;
 }
 const SCRIPT_SRC = (document.currentScript && document.currentScript.src) || '';
-async function api(params, ms = 9000){
-  const u = await getUrl(); if (!u) throw new Error('nourl');
+// 구글 Apps Script 는 한동안 안 쓰면 첫 응답이 10초 넘게 걸릴 때가 있어요 → 넉넉히 기다리고, 읽기는 한 번 더 시도해요
+async function api1(params, ms){
+  const u = await getUrl(); if (!u){ const e = new Error('nourl'); e.kind = 'nourl'; throw e; }
   const q = new URLSearchParams(Object.assign({ d: DEV }, params)).toString();
   const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), ms);
-  try { const r = await fetch(u + (u.includes('?') ? '&' : '?') + q, { signal: ctrl.signal }); return await r.json(); }
-  finally { clearTimeout(timer); }
+  try {
+    const r = await fetch(u + (u.includes('?') ? '&' : '?') + q, { signal: ctrl.signal });
+    const txt = await r.text();
+    try { return JSON.parse(txt); } catch(_){ const e = new Error('notjson'); e.kind = 'json'; e.body = txt.slice(0, 200); throw e; }
+  } finally { clearTimeout(timer); }
+}
+async function api(params, ms = 25000, tries = 2){
+  for (let i = 0; ; i++){
+    try { return await api1(params, ms); }
+    catch(e){ if (i + 1 >= tries || e.kind === 'json' || e.kind === 'nourl') throw e; await new Promise(r => setTimeout(r, 1200)); }
+  }
+}
+function errMsg(e){
+  if (e && e.kind === 'json') return '랭킹 서버(구글 시트)가 이상한 답을 보냈어요. 선생님: Apps Script를 "새 버전"으로 다시 배포하고, 액세스를 "모든 사용자"로 해 주세요.';
+  if (e && e.name === 'AbortError') return '랭킹 서버가 늦게 답하고 있어요. 잠시 뒤 다시 불러와 주세요.';
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return '인터넷 연결을 확인해 주세요.';
+  return '랭킹 서버(구글 시트)에 연결하지 못했어요. 잠시 뒤 다시 해 주세요.';
 }
 
 /* ---------- 모양 ---------- */
@@ -128,7 +144,7 @@ const fmtT = t => t ? `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`
 
 /* ---------- 상태 ---------- */
 const C = { game:'', title:'', kind:'score', unit:'', levels:[], level:null, mount:[], onOpen:null, onClose:null };
-let root = null, view = { lv:'', per:'day', scope:'all' }, refreshT = null, tokens = {}, lastRows = null, busy = false, cardSent = false;
+let root = null, view = { lv:'', per:'day', scope:'all' }, refreshT = null, tokens = {}, tokP = {}, lastRows = null, busy = false, cardSent = false;
 
 let cssDone = false;
 function css(){ if (cssDone) return; cssDone = true; const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st); }
@@ -184,7 +200,7 @@ async function load(quiet){
     const d = await api({ action: 'rank_get', g: C.game, l: view.lv, p: view.per, c: cls, n: getNick(), mc: getClass() });
     if (my.lv !== view.lv || my.per !== view.per || my.scope !== view.scope) return;
     renderBoard(d && d.ok ? d : { error: (d && d.msg) || '랭킹을 불러오지 못했어요.' });
-  } catch(e){ if (!quiet) renderBoard({ error: '인터넷 연결을 확인해 주세요.' }); }
+  } catch(e){ if (!quiet) renderBoard({ error: errMsg(e) }); }
 }
 function renderBoard(d, loading){
   if (!root || root.hidden && !loading) return;
@@ -193,7 +209,7 @@ function renderBoard(d, loading){
   const per = [['day', '오늘'], ['week', '이번 주'], ['all', '전체 기간']];
   const sc = [['all', '🌏 모두'], ['class', '🏫 우리 반']];
   let list;
-  if (loading) list = `<div class="tmr-empty">랭킹을 불러오는 중… 🦖</div>`;
+  if (loading) list = `<div class="tmr-empty">랭킹을 불러오는 중… 🦖<br><small>오랜만에 열면 10초쯤 걸릴 수 있어요</small></div>`;
   else if (d.needClass) list = `<div class="tmr-empty">선생님이 알려 준 <b>반 코드</b>를 넣으면<br>우리 반 친구들끼리 순위를 볼 수 있어요.</div>
       <div class="tmr-form"><label>반 코드<input id="tmrCls" maxlength="12" placeholder="예) 햇살3-2" autocomplete="off"></label><div class="tmr-err" id="tmrErr"></div><div class="tmr-row"><button class="tmr-go" type="button" id="tmrClsGo">우리 반 랭킹 보기</button></div></div>`;
   else if (d.error) list = `<div class="tmr-empty">😢 ${esc(d.error)}<br><button class="tmr-link" type="button" id="tmrRetry">다시 불러오기</button></div>`;
@@ -254,9 +270,18 @@ function profile(done){
 /* ---------- 기록 올리기 ---------- */
 async function finish(rec){
   const u = await getUrl().catch(() => ''); if (!u) return;
-  const lv = String(rec.level), tk = tokens[lv];
-  if (!tk){ return; }                                  // 시작할 때 인터넷이 없었으면 조용히 넘어가요
+  const lv = String(rec.level);
+  if (tokP[lv]) await tokP[lv];                       // 표를 받는 중이면 기다려요
+  const tk = tokens[lv];
   if (C.kind === 'score' && !(rec.value > 0)) return;
+  if (!tk){                                            // 시작할 때 랭킹 서버와 연결되지 않았으면 이유를 알려 줘요
+    clearInterval(refreshT); refreshT = null;
+    show('🏆 랭킹');
+    root.querySelector('#tmrBody').innerHTML = `<div class="tmr-empty">😢 이번 판은 랭킹에 올릴 수 없어요.<br><small>게임을 시작할 때 랭킹 서버와 연결되지 않았어요.${C.tokErr ? '<br>' + esc(C.tokErr) : ''}<br>다음 판은 인터넷이 연결된 상태에서 시작해 주세요.</small></div>
+      <div class="tmr-row"><button class="tmr-go alt" type="button" id="tmrNo">닫기</button></div>`;
+    root.querySelector('#tmrNo').addEventListener('click', close);
+    return;
+  }
   clearInterval(refreshT); refreshT = null;
   show('🏆 랭킹에 올릴까요?');
   const body = root.querySelector('#tmrBody');
@@ -275,7 +300,7 @@ async function finish(rec){
     ls.set('tm-rank-nick', nick); ls.set('tm-rank-class', cls);
     busy = true; const btn = body.querySelector('#tmrPut'); btn.disabled = true; btn.textContent = '올리는 중…'; err.textContent = '';
     try {
-      const d = await api({ action: 'rank_put', g: C.game, l: lv, ln: name, n: nick, c: cls, v: rec.value, t: Math.round(rec.t || 0), k: tk });
+      const d = await api({ action: 'rank_put', g: C.game, l: lv, ln: name, n: nick, c: cls, v: rec.value, t: Math.round(rec.t || 0), k: tk }, 30000, 1);
       if (!d || !d.ok){ err.textContent = (d && d.msg) || '올리지 못했어요.'; btn.disabled = false; btn.textContent = '🏆 올리기'; return; }
       delete tokens[lv];
       const r = d.today;
@@ -284,7 +309,7 @@ async function finish(rec){
         <div class="tmr-row"><button class="tmr-go" type="button" id="tmrSee">랭킹 보기</button><button class="tmr-go alt" type="button" id="tmrNo">닫기</button></div>`;
       body.querySelector('#tmrSee').addEventListener('click', () => { view.per = 'day'; view.scope = cls ? 'class' : 'all'; open(lv, name); });
       body.querySelector('#tmrNo').addEventListener('click', close);
-    } catch(e){ err.textContent = '인터넷 연결을 확인하고 다시 눌러 주세요.'; btn.disabled = false; btn.textContent = '🏆 올리기'; }
+    } catch(e){ err.textContent = errMsg(e) + ' (다시 눌러도 돼요)'; btn.disabled = false; btn.textContent = '🏆 올리기'; }
     finally { busy = false; }
   };
   body.querySelector('#tmrPut').addEventListener('click', put);
@@ -298,7 +323,8 @@ function start(lv, name){
   if (name) C.lastName = name;
   getUrl().then(u => {
     if (!u) return;
-    api({ action: 'rank_start', g: C.game, l: lv }, 8000).then(d => { if (d && d.ok) tokens[lv] = d.token; }).catch(() => {});
+    C.tokErr = '';
+    tokP[lv] = api({ action: 'rank_start', g: C.game, l: lv }, 25000, 3).then(d => { if (d && d.ok) tokens[lv] = d.token; else C.tokErr = (d && d.msg) || ''; }).catch(e => { C.tokErr = errMsg(e); });
   });
 }
 

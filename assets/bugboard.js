@@ -64,7 +64,7 @@ function checkNick(n){
   return '';
 }
 async function api(params, post){
-  const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 12000);
+  const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 25000);
   try {
     const q = new URLSearchParams(Object.assign({ d: DEV }, params));
     const r = post ? await fetch(URL_, { method:'POST', body: JSON.stringify(Object.assign({ d: DEV }, params)), signal: ctrl.signal })

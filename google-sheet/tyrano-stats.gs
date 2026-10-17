@@ -226,7 +226,7 @@ function rankPut_(p) {
   if (rule.kind === 'time') {
     if (v < rule.min(l)) return { ok: false, msg: '너무 빠른 기록이라 올릴 수 없어요.' };
     if (v > 6 * 3600) return { ok: false, msg: '기록이 너무 길어요.' };
-    if (!rule.resume && v > real + 5) return { ok: false, msg: '기록이 이상해요.' };
+    if (!rule.resume && v > real + 30) return { ok: false, msg: '기록이 이상해요.' };
   } else if (rule.kind === 'low') {
     if (v < rule.min(l) || v > rule.max) return { ok: false, msg: '기록이 이상해요.' };
     if (real < v * 0.3) return { ok: false, msg: '기록이 이상해요.' };
