@@ -476,7 +476,7 @@ if ($('#zoneGrid')){
       if (!v || !v.ok) throw 0;
       if (isNew) store.set('tm-visit-day', d);
       const f = n => Number(n || 0).toLocaleString();
-      box.innerHTML = `<span aria-hidden="true">👀</span> 오늘 <b>${f(v.today)}</b>명 <i>·</i> 어제 <b>${f(v.yesterday)}</b>명 <i>·</i> 전체 <b>${f(v.total)}</b>명`;
+      box.innerHTML = `<span aria-hidden="true">👀</span> 전체 방문자 <b>${f(v.total)}</b>명`;
     }).catch(() => box.remove());
 })();
 
