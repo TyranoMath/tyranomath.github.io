@@ -49,6 +49,11 @@ const RULES = {
   'omok':           { kind:'low',   level:/^[0-2]$/, min:() => 5, max:200 },
   'block-stack':    { kind:'score', level:/^(1|4|8)$/, max:5000000, rate:4000 },
   'tile-match':     { kind:'score', level:/^(1|2)$/, max:2000000 },
+  '2048':           { kind:'score', level:/^[3-6]$/, max:5000000, resume:true },
+  'drop-number':    { kind:'score', level:/^[6-8]$/, max:50000000, resume:true },
+  'kenken':         { kind:'time',  level:/^[3-7]-[1-3]$/, min:l => ({ 3:3, 4:6, 5:12, 6:20, 7:35 })[l.split('-')[0]], resume:true },
+  'janggi':         { kind:'low',   level:/^[1-3]$/, min:() => 3, max:400 },
+  'chess':          { kind:'low',   level:/^[1-3]$/, min:() => 2, max:300 },
   // 게임존
   'tyrano-plus':       { kind:'score', level:/^(10|20|100)$/, max:200, rate:1.7 },
   'gugudan-volcano':   QUIZ, 'shape-fossil': QUIZ, 'tyrano-clock': QUIZ, 'pattern-footprint': QUIZ, 'egg-graph': QUIZ,

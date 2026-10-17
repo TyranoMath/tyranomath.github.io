@@ -179,5 +179,10 @@ const PUZZLES = [
   { title:'티라노 사무라이 스도쿠', desc:'9×9 스도쿠 판 5개가 겹쳐 있어요! 겹친 상자는 두 판의 규칙을 모두 지켜야 하는 최강 도전.', grade:'3~6학년', area:'수 퍼즐', icon:'🏯', image:'puzzles/thumbs/samurai-sudoku.svg', color:'#EFE6FF', date:'2026-10-11', file:'puzzles/samurai-sudoku.html' },
   { title:'티라노 슬라이딩 퍼즐', desc:'빈칸으로 조각을 밀어 숫자 순서나 공룡·우주·바다 그림을 완성해요. 내 사진으로도 할 수 있어요!', grade:'1~6학년', area:'논리 퍼즐', icon:'🧩', image:'puzzles/thumbs/sliding.svg', color:'#EFE6FF', date:'2026-10-11', file:'puzzles/sliding.html' },
   { title:'티라노 타일 매칭', desc:'1층·2층으로 쌓인 타일에서 같은 짝 3개를 모아 없애요. 과일·동물부터 연산·수 세기·도형까지!', grade:'1~4학년', area:'수 퍼즐', icon:'🀄', image:'puzzles/thumbs/tile-match.svg', color:'#EFE6FF', date:'2026-10-12', file:'puzzles/tile-match.html' },
-  { title:'티라노 크로스 매스', desc:'빈칸에 숫자 화석을 놓아 가로식과 세로식을 모두 맞혀요! 덧셈·뺄셈부터 혼합 계산까지 4단계.', grade:'1~6학년', area:'수 퍼즐', icon:'➕', image:'puzzles/thumbs/crossmath.svg', color:'#FFE7CC', date:'2026-10-12', file:'puzzles/crossmath.html' }
+  { title:'티라노 크로스 매스', desc:'빈칸에 숫자 화석을 놓아 가로식과 세로식을 모두 맞혀요! 덧셈·뺄셈부터 혼합 계산까지 4단계.', grade:'1~6학년', area:'수 퍼즐', icon:'➕', image:'puzzles/thumbs/crossmath.svg', color:'#FFE7CC', date:'2026-10-12', file:'puzzles/crossmath.html' },
+  { title:'티라노 2048', desc:'판을 밀어 같은 수끼리 합쳐요! 2, 4, 8, 16… 두 배씩 커지는 수로 2048에 도전해요.', grade:'1~6학년', area:'수 퍼즐', icon:'🔢', image:'puzzles/thumbs/2048.svg', color:'#FFF1C9', date:'2026-10-17', file:'puzzles/2048.html' },
+  { title:'티라노 드랍더넘버', desc:'숫자 블록을 떨어뜨려 같은 수끼리 합쳐요! 연달아 합치면 콤보 점수가 쑥쑥.', grade:'1~6학년', area:'수 퍼즐', icon:'⬇️', image:'puzzles/thumbs/drop-number.svg', color:'#DDF0FF', date:'2026-10-17', file:'puzzles/drop-number.html' },
+  { title:'티라노 켄켄', desc:'줄마다 같은 수 없이, 묶음 칸의 계산 결과를 맞춰 칸을 채워요. 3×3부터 7×7까지.', grade:'2~6학년', area:'수 퍼즐', icon:'🧮', image:'puzzles/thumbs/kenken.svg', color:'#E4F5D6', date:'2026-10-17', file:'puzzles/kenken.html' },
+  { title:'티라노 장기', desc:'친구와 둘이서, 또는 컴퓨터 티라노와 장기를 둬요. 외통수로 왕을 잡으면 승리!', grade:'3~6학년', area:'전략 퍼즐', icon:'🀄', image:'puzzles/thumbs/janggi.svg', color:'#F6E3C6', date:'2026-10-17', file:'puzzles/janggi.html' },
+  { title:'티라노 체스', desc:'친구와 둘이서, 또는 컴퓨터 티라노와 체스를 둬요. 체크메이트로 킹을 잡으면 승리!', grade:'3~6학년', area:'전략 퍼즐', icon:'♟️', image:'puzzles/thumbs/chess.svg', color:'#EFE6FF', date:'2026-10-17', file:'puzzles/chess.html' }
 ];

@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>티라노 체스</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<style>
+/* Layout: one screen, no tabs. Square board left (or top), control rail with move list right (or below). */
+:root{
+  --bg:#FFF8EC; --surface:#ffffff; --ink:#22314A; --muted:#5D6C83; --line:#ECDFC8;
+  --accent:#8E5BD6; --accent-ink:#ffffff; --accent-soft:#EFE6FF;
+  --sq-light:#F1EAFB; --sq-dark:#9B7FCB; --frame:#3E3358;
+  --hl-last:rgba(255,212,90,.55); --hl-sel:rgba(255,212,90,.85); --hl-check:#e5484d;
+  --pw-fill:#fbf6ea; --pw-line:#26301f; --pb-fill:#2b322d; --pb-line:#0e120f; --pb-detail:#c9d6cc;
+  --overlay:rgba(40,28,70,.6);
+  --font-display:"Jua","Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --font-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+
+html,body{height:100%;margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;
+  -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;overflow:hidden}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.app{height:100%;max-width:1680px;margin:0 auto;padding-inline:16px;padding-block:12px;
+  display:grid;gap:12px;grid-template-columns:minmax(0,1fr);
+  grid-template-rows:auto auto auto;grid-template-areas:"top" "stage" "panel";overflow:auto}
+@media (min-aspect-ratio:5/4) and (min-width:760px){
+  .app{grid-template-columns:minmax(0,1fr) clamp(290px,28vw,420px);grid-template-rows:auto minmax(0,1fr);
+    grid-template-areas:"top top" "stage panel";gap:14px clamp(16px,2vw,32px);padding-block:16px}
+}
+@media not ((min-aspect-ratio:5/4) and (min-width:760px)){
+  body{overflow:auto} .app{height:auto;min-height:100%;overflow:visible}
+}
+
+.top{grid-area:top;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0}
+.brand svg{width:clamp(34px,3.2vw,48px);height:auto;flex:none}
+.brand-txt{display:flex;flex-direction:column;line-height:1.05}
+.brand-txt small{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.brand-txt b{font-family:var(--font-display);font-weight:400;font-size:clamp(20px,2.2vw,32px)}
+.turn{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px 6px 8px;
+  font-family:var(--font-display);font-size:clamp(16px,1.6vw,22px)}
+.turn i{width:26px;height:26px;border-radius:50%;display:block;border:3px solid var(--pw-line)}
+.turn.w i{background:var(--pw-fill)} .turn.b i{background:var(--pb-fill);border-color:var(--pb-detail)}
+.icons{display:flex;gap:6px}
+.icon-btn{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;touch-action:manipulation}
+.icon-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.icon-btn[aria-pressed="false"] .on,.icon-btn[aria-pressed="true"] .off{display:none}
+
+/* board */
+.stage{grid-area:stage;min-height:0;min-width:0;display:grid;place-items:center;position:relative}
+.board{position:relative;background:var(--frame);border-radius:16px;padding:var(--pad,10px);touch-action:none;max-width:100%;
+  box-shadow:0 2px 0 rgba(0,0,0,.08),0 18px 40px -18px rgba(0,0,0,.5)}
+.squares{position:relative;width:100%;height:100%;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);border-radius:6px;overflow:hidden}
+.sq{position:relative;background:var(--sq-light)}
+.sq.d{background:var(--sq-dark)}
+.sq.last::before,.sq.sel::before{content:"";position:absolute;inset:0;background:var(--hl-last)}
+.sq.sel::before{background:var(--hl-sel)}
+.sq.check::after{content:"";position:absolute;inset:0;background:radial-gradient(circle,var(--hl-check) 0,rgba(229,72,77,.55) 40%,transparent 72%)}
+.sq .co{position:absolute;font-family:var(--font-display);font-size:calc(var(--cell)*.17);line-height:1;color:var(--sq-dark);opacity:.95;z-index:1}
+.sq.d .co{color:var(--sq-light)}
+.sq .co.f{right:5%;bottom:4%} .sq .co.r{left:5%;top:5%}
+.layer{position:absolute;inset:var(--pad)}
+.dot{position:absolute;width:12.5%;height:12.5%;display:grid;place-items:center;pointer-events:none;z-index:3}
+.dot::before{content:"";width:30%;height:30%;border-radius:50%;background:rgba(20,40,25,.38)}
+.dot.cap::before{width:88%;height:88%;background:transparent;border:calc(var(--cell)*.07) solid rgba(20,40,25,.38)}
+.piece{position:absolute;width:12.5%;height:12.5%;z-index:2;transition:left .2s ease,top .2s ease;pointer-events:none;display:grid;place-items:center}
+.piece svg{width:88%;height:88%;overflow:visible;filter:drop-shadow(0 calc(var(--cell)*.03) 0 rgba(0,0,0,.25))}
+.piece.drag{transition:none;z-index:6} .piece.drag svg{transform:scale(1.15)}
+.piece.gone{opacity:0;transition:opacity .2s}
+.facing .piece.top svg{transform:rotate(180deg)}
+.pc .b{stroke-width:3.2;stroke-linejoin:round;stroke-linecap:round}
+.pc.w .b{fill:var(--pw-fill);stroke:var(--pw-line)} .pc.w .d{fill:none;stroke:var(--pw-line);stroke-width:3;stroke-linecap:round}
+.pc.b .b{fill:var(--pb-fill);stroke:var(--pb-line)} .pc.b .d{fill:none;stroke:var(--pb-detail);stroke-width:3;stroke-linecap:round}
+.pc.w .e{fill:var(--pw-line)} .pc.b .e{fill:var(--pb-detail)}
+
+.banner{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:8;pointer-events:none;white-space:nowrap;
+  font-family:var(--font-display);font-size:clamp(36px,7vw,84px);color:#fff;background:var(--hl-check);padding:.1em .6em;border-radius:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.35);animation:pop 1.2s ease forwards}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}25%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0}}
+.thinking{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:6;background:var(--ink);color:var(--bg);padding:6px 14px;border-radius:999px;font-size:14px;pointer-events:none}
+.over{position:absolute;inset:0;display:grid;place-items:center;border-radius:inherit;background:var(--overlay);z-index:9}
+.over-card{background:var(--surface);color:var(--ink);border-radius:20px;padding:clamp(18px,3vw,30px);text-align:center;width:min(88%,380px)}
+.over-card h2{margin:0 0 6px;font-family:var(--font-display);font-weight:400;font-size:clamp(28px,4vw,44px);color:var(--accent)}
+.over-card p{margin:0 0 14px;color:var(--muted)}
+.promo{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.promo button{aspect-ratio:1;max-width:100%;border-radius:14px;border:1px solid var(--line);background:var(--sq-light);cursor:pointer;display:grid;place-items:center;padding:6%}
+.promo button svg{width:100%;height:100%}
+.promo small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+
+/* panel */
+.panel{grid-area:panel;min-height:0;min-width:0;display:flex;flex-direction:column;gap:12px}
+@media (min-aspect-ratio:5/4) and (min-width:760px){.panel{overflow:auto;padding-right:2px}}
+.group{display:flex;flex-direction:column;gap:6px;min-width:0}
+.label{font-size:13px;color:var(--muted);letter-spacing:.05em}
+.caps{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cap{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 10px;min-width:0}
+.cap.on{box-shadow:0 0 0 3px var(--accent)}
+.cap .hd{display:flex;justify-content:space-between;align-items:center;font-family:var(--font-display);font-size:clamp(16px,1.5vw,20px)}
+.cap .adv{font-size:15px;color:var(--accent)}
+.tray{display:flex;flex-wrap:wrap;gap:0;min-height:26px;margin-top:4px}
+.tray svg{width:24px;height:24px;margin-right:-5px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px}
+.seg button{border:0;background:transparent;border-radius:10px;min-height:42px;cursor:pointer;font-family:var(--font-display);font-size:clamp(15px,1.4vw,19px);touch-action:manipulation;white-space:nowrap;padding:0 4px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.btn{min-height:50px;border-radius:14px;border:1px solid var(--line);background:var(--surface);cursor:pointer;white-space:nowrap;min-width:0;
+  font-family:var(--font-display);font-size:clamp(15px,1.5vw,20px);display:flex;align-items:center;justify-content:center;gap:6px;padding:0 6px;touch-action:manipulation}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn:disabled{opacity:.45;cursor:default}
+.btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 12px;min-height:46px;cursor:pointer}
+.toggle input{width:22px;height:22px;accent-color:var(--accent)}
+.help{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.55;min-height:64px}
+.help b{font-family:var(--font-display);font-weight:400;font-size:17px}
+.moves{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 10px;max-height:180px;overflow:auto;
+  display:grid;grid-template-columns:auto 1fr 1fr;gap:2px 10px;font-variant-numeric:tabular-nums;font-size:15px;align-content:start}
+.moves .n{color:var(--muted)} .moves .cur{background:var(--accent-soft);border-radius:6px;padding:0 4px;margin:0 -4px}
+.moves:empty::before{content:"아직 둔 수가 없어요";color:var(--muted);grid-column:1/-1;font-size:13px}
+@media not ((min-aspect-ratio:5/4) and (min-width:760px)){
+  .panel{gap:10px}
+  .setup{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .help,.moves-group{display:none}
+}
+@media (max-width:560px){ .setup{grid-template-columns:1fr !important} .brand-txt small{display:none} }
+@media (prefers-reduced-motion:reduce){.piece{transition:none}.banner{animation-duration:.01s}}
+
+/* ---------- 티라노 퍼즐존 모양 ---------- */
+.brand .back{text-decoration:none;font-family:var(--font-display);background:#8E5BD6;color:#fff;border-radius:999px;padding:6px 14px;white-space:nowrap;font-size:15px;flex:none}
+.brand .dino-logo{display:flex;flex:none}
+.brand .dino-logo svg{width:clamp(40px,3.6vw,54px);height:auto}
+.brand-txt b{color:#6C3FB4}
+.icons{align-items:center}
+#startOv.setup:not([hidden]){display:block!important;position:fixed;inset:0;z-index:40}
+#startOv .back{text-decoration:none;font-family:'Jua',sans-serif;background:#8E5BD6;color:#fff;border-radius:999px;padding:6px 14px;white-space:nowrap}
+#startOv .chips button{color:#22314A;cursor:pointer}
+#startOv .chips button[aria-pressed="true"]{color:#fff}
+#startOv .btn.go{border:0;border-radius:18px;padding:8px 30px;background:#4CB963;color:#fff;font-family:'Jua',sans-serif;font-size:clamp(20px,2.4vw,28px);
+  box-shadow:0 5px 0 #2F8A47;min-height:56px;min-width:min(100%,300px)}
+#startOv .btn.go:active{transform:translateY(4px);box-shadow:0 1px 0 #2F8A47}
+#startOv .resume{margin:8px 0 0;color:#5D6C83;font-size:14px}
+@media (max-width:560px){.brand .back{padding:5px 10px;font-size:13px}.brand .dino-logo svg{width:36px}
+  .icon-btn{width:40px;height:40px}.icons .tmr-btn .tmr-t{display:none}.stat{min-width:56px!important;padding:3px 8px!important}.stats{gap:6px}.top{gap:8px 10px!important}}
+</style>
+<link rel="stylesheet" href="puzzle-setup.css">
+</head>
+<body>
+
+
+<div class="overlay setup" id="startOv"><div class="setup-in">
+  <header class="setup-top"><a class="back setup-back" href="../puzzlezone.html" hidden>← 퍼즐존</a><div class="title"><span class="dino-logo"></span>티라노 체스</div></header>
+  <section class="intro-card"><div><h1 style="--n:19">크앙! 말을 움직여 <span class="hl">체크메이트</span>를 노려요</h1><p>말마다 움직이는 법이 달라요. 말을 누르면 갈 수 있는 곳이 보여요. <b>상대 킹이 도망칠 곳 없이 공격하면</b> 이겨요.</p><div class="howto"><span><b>①</b>말 누르고 갈 곳 누르기</span><span><b>②</b>상대 말 잡기</span><span><b>③</b>킹을 꼼짝 못 하게!</span></div></div>
+    <div class="intro-art" aria-hidden="true"><img src="thumbs/chess.svg" alt=""><span class="spark s1">♞</span><span class="spark s2">♛</span></div></section>
+  <section class="opt"><h3>상대 <small>컴퓨터를 적은 수로 이기면 랭킹에 올라가요</small></h3><div class="chips" id="lvChips"><button data-v="2p">둘이서<small>한 기기로</small></button><button data-v="1">컴퓨터<small>쉬움</small></button><button data-v="2">컴퓨터<small>보통</small></button><button data-v="3">컴퓨터<small>어려움</small></button></div></section>
+  <p class="best" id="bestTxt"></p>
+  <div class="row start-row"><button class="btn go" id="go">시작하기 🦖</button></div>
+</div></div>
+
+<div class="app">
+  <header class="top">
+    <div class="brand"><a class="back" id="back" href="../puzzlezone.html" hidden>← 퍼즐존</a><span class="dino-logo"></span>
+      <div class="brand-txt"><small>TyranoMath</small><b>티라노 체스</b></div>
+    </div>
+    <div class="turn w" id="turn" aria-live="polite"><i></i><span id="turnTxt">흰색 차례</span></div>
+    <div class="icons">
+      <button class="icon-btn" id="bSound" aria-pressed="true" aria-label="효과음">
+        <svg class="on" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+        <svg class="off" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>
+      </button>
+      <button class="icon-btn" id="bFull" aria-label="전체 화면" hidden><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="board" id="board" role="application" aria-label="체스판. 내 말을 누른 뒤 갈 곳을 누르거나, 말을 끌어서 옮기세요.">
+      <div class="squares" id="squares"></div>
+      <div class="layer" id="layer"></div>
+    </div>
+  </main>
+
+  <aside class="panel">
+    <div class="caps">
+      <div class="cap" id="capW"><div class="hd"><span>흰색</span><span class="adv" id="advW"></span></div><div class="tray" id="trW"></div></div>
+      <div class="cap" id="capB"><div class="hd"><span>검은색</span><span class="adv" id="advB"></span></div><div class="tray" id="trB"></div></div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="bNew"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg><span>새 게임</span></button>
+      <button class="btn" id="bUndo"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>무르기</button>
+      <button class="btn" id="bFlip"><svg viewBox="0 0 24 24"><path d="M7 4v16M4 7l3-3 3 3M17 20V4M14 17l3 3 3-3"/></svg>판 돌리기</button>
+    </div>
+    <div class="setup">
+      <div class="group">
+        <div class="label">상대</div>
+        <div class="seg" id="segMode"><button data-v="2p">둘이서</button><button data-v="ai">컴퓨터와</button></div>
+        <div class="seg" id="segSide" data-ai><button data-v="w">나는 흰색</button><button data-v="b">나는 검은색</button></div>
+        <div class="seg" id="segLevel" data-ai><button data-v="1">쉬움</button><button data-v="2">보통</button><button data-v="3">어려움</button></div>
+        <label class="toggle" id="faceRow" for="chkFace"><span>마주 보고 두기 (위쪽 말 뒤집기)</span><input type="checkbox" id="chkFace"></label>
+      </div>
+      <div class="group">
+        <label class="toggle" for="chkHint"><span>갈 수 있는 곳 표시</span><input type="checkbox" id="chkHint"></label>
+        <label class="toggle" for="chkCoord"><span>좌표 표시 (a~h, 1~8)</span><input type="checkbox" id="chkCoord"></label>
+        <div class="label" id="note" style="color:var(--accent)"></div>
+      </div>
+    </div>
+    <div class="help" id="help"></div>
+    <div class="group moves-group">
+      <div class="label">기보</div>
+      <div class="moves" id="moves"></div>
+    </div>
+  </aside>
+</div>
+
+<script src="puzzle-common.js"></script>
+<script src="../assets/rank.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+    set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  };
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------------- pieces (drawn in code) ---------------- */
+  const SHAPES = {
+    P:`<path class="b" d="M30 86h40l-4-8H34z"/><path class="b" d="M37 78c1-12 5-20 7-26h12c2 6 6 14 7 26z"/><ellipse class="b" cx="50" cy="51" rx="11" ry="4"/><circle class="b" cx="50" cy="35" r="12"/>`,
+    R:`<path class="b" d="M26 86h48l-3-8H29z"/><path class="b" d="M34 78l3-36h26l3 36z"/><path class="b" d="M30 42V20h9v7h6v-7h10v7h6v-7h9v22z"/><path class="d" d="M37 50h26"/>`,
+    N:`<path class="b" d="M26 86h48l-3-8H29z"/><path class="b" d="M34 78c-1-14 6-20 12-28-6 2-12 6-17 4-4-2-3-8 2-13 6-6 10-12 12-18l3-8 6 7c14 3 22 16 21 56z"/><circle class="e" cx="48" cy="30" r="3"/><path class="d" d="M60 40c3 8 4 18 3 30"/>`,
+    B:`<path class="b" d="M26 86h48l-3-8H29z"/><path class="b" d="M38 78c2-8 4-12 5-16h14c1 4 3 8 5 16z"/><ellipse class="b" cx="50" cy="61" rx="12" ry="4"/><path class="b" d="M50 20c-10 8-15 18-15 26 0 7 6 12 15 12s15-5 15-12c0-8-5-18-15-26z"/><circle class="b" cx="50" cy="15" r="5"/><path class="d" d="M54 32l-8 10"/>`,
+    Q:`<path class="b" d="M24 86h52l-3-8H27z"/><path class="b" d="M30 78l-6-46 14 18 4-26 8 24 8-24 4 26 14-18-6 46z"/><circle class="b" cx="24" cy="30" r="5"/><circle class="b" cx="42" cy="22" r="5"/><circle class="b" cx="58" cy="22" r="5"/><circle class="b" cx="76" cy="30" r="5"/><path class="d" d="M33 68h34"/>`,
+    K:`<path class="b" d="M24 86h52l-3-8H27z"/><path class="b" d="M30 78c-8-14-12-30 0-34 8-3 14 4 20 10 6-6 12-13 20-10 12 4 8 20 0 34z"/><path class="b" d="M44 54c0-10 2-18 6-22 4 4 6 12 6 22z"/><path class="b" d="M46 6h8v8h8v8h-8v10h-8V22h-8v-8h8z"/><path class="d" d="M33 68h34"/>`
+  };
+  const svg = (t,c) => `<svg class="pc ${c}" viewBox="0 0 100 100" aria-hidden="true">${SHAPES[t]}</svg>`;
+  const NAME={K:'킹',Q:'퀸',R:'룩',B:'비숍',N:'나이트',P:'폰'};
+  const COLOR={w:'흰색',b:'검은색'};
+  const RULE={
+    K:'모든 방향으로 한 칸 움직입니다. 공격받는 칸으로는 갈 수 없어요. <b style="font-size:inherit">캐슬링</b>: 킹과 룩이 한 번도 움직이지 않았고 사이가 비어 있으면, 킹이 룩 쪽으로 두 칸 가고 룩이 킹을 넘어옵니다.',
+    Q:'가로·세로·대각선으로 막히지 않으면 몇 칸이든 갑니다. 가장 강한 말이에요.',
+    R:'가로·세로로 막히지 않으면 몇 칸이든 갑니다.',
+    B:'대각선으로 막히지 않으면 몇 칸이든 갑니다. 처음 칸과 같은 색 칸만 다녀요.',
+    N:'L자로 움직입니다 (두 칸 곧게 + 옆으로 한 칸). 다른 말을 뛰어넘을 수 있는 유일한 말이에요.',
+    P:'앞으로 한 칸, 처음 자리에서는 두 칸까지 갈 수 있어요. 잡을 때는 앞 대각선으로. 끝줄에 닿으면 퀸·룩·비숍·나이트로 <b style="font-size:inherit">승진</b>합니다. 옆 폰이 두 칸 뛰어 지나가면 바로 다음 수에 대각선으로 잡을 수 있어요(앙파상).'
+  };
+  const VAL={P:100,N:320,B:330,R:500,Q:900,K:20000};
+  const PTS={P:1,N:3,B:3,R:5,Q:9,K:0};
+
+  /* ---------------- rules engine ---------------- */
+  // board: 64 strings like 'wP' or '' ; index 0 = a8, 63 = h1
+  const START='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
+  function initial(){
+    const b=[]; for(const ch of START.replace(/\//g,'')){ if(/\d/.test(ch)) for(let i=0;i<+ch;i++) b.push(''); else b.push((ch===ch.toUpperCase()?'w':'b')+ch.toUpperCase()); }
+    return { b, turn:'w', cr:'KQkq', ep:-1, half:0 };
+  }
+  const opp = c => c==='w'?'b':'w';
+  const R_ = i => i>>3, C_ = i => i&7;
+  const sqName = i => 'abcdefgh'[C_(i)] + (8-R_(i));
+  const KN=[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+  const KG=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+  const DIA=[[-1,-1],[-1,1],[1,-1],[1,1]], ORT=[[-1,0],[1,0],[0,-1],[0,1]];
+
+  function attacked(b, sq, by){
+    const r=R_(sq), c=C_(sq);
+    const pr = by==='w' ? r+1 : r-1;               // pawn of 'by' sits one row toward its own side
+    if(pr>=0&&pr<8){ for(const dc of [-1,1]){ const cc=c+dc; if(cc>=0&&cc<8 && b[pr*8+cc]===by+'P') return true; } }
+    for(const [dr,dc] of KN){ const rr=r+dr, cc=c+dc; if(rr>=0&&rr<8&&cc>=0&&cc<8 && b[rr*8+cc]===by+'N') return true; }
+    for(const [dr,dc] of KG){ const rr=r+dr, cc=c+dc; if(rr>=0&&rr<8&&cc>=0&&cc<8 && b[rr*8+cc]===by+'K') return true; }
+    for(const [dirs,set] of [[ORT,'RQ'],[DIA,'BQ']]) for(const [dr,dc] of dirs){
+      let rr=r+dr, cc=c+dc;
+      while(rr>=0&&rr<8&&cc>=0&&cc<8){ const p=b[rr*8+cc]; if(p){ if(p[0]===by && set.includes(p[1])) return true; break; } rr+=dr; cc+=dc; }
+    }
+    return false;
+  }
+  const kingSq = (b,c) => b.indexOf(c+'K');
+  const inCheck = (s,c=s.turn) => { const k=kingSq(s.b,c); return k<0 || attacked(s.b,k,opp(c)); };
+
+  function pseudo(s){
+    const b=s.b, me=s.turn, en=opp(me), out=[];
+    for(let i=0;i<64;i++){
+      const p=b[i]; if(!p||p[0]!==me) continue;
+      const r=R_(i), c=C_(i), t=p[1];
+      if(t==='P'){
+        const d = me==='w'?-1:1, start = me==='w'?6:1, last = me==='w'?0:7;
+        const push=(f,to,flag)=>{ if(R_(to)===last) for(const pr of 'QRBN') out.push({f,t:to,promo:pr,flag}); else out.push({f,t:to,flag}); };
+        const one=(r+d)*8+c;
+        if(r+d>=0&&r+d<8 && !b[one]){ push(i,one); if(r===start && !b[(r+2*d)*8+c]) out.push({f:i,t:(r+2*d)*8+c,flag:'double'}); }
+        for(const dc of [-1,1]){ const cc=c+dc, rr=r+d; if(cc<0||cc>7||rr<0||rr>7) continue; const to=rr*8+cc;
+          if(b[to] && b[to][0]===en) push(i,to);
+          else if(to===s.ep) out.push({f:i,t:to,flag:'ep'}); }
+      } else if(t==='N'||t==='K'){
+        for(const [dr,dc] of (t==='N'?KN:KG)){ const rr=r+dr, cc=c+dc; if(rr<0||rr>7||cc<0||cc>7) continue; const to=rr*8+cc; if(!b[to]||b[to][0]===en) out.push({f:i,t:to}); }
+        if(t==='K'){
+          const home = me==='w'?60:4, ks = me==='w'?'K':'k', qs = me==='w'?'Q':'q';
+          if(i===home && !attacked(b,home,en)){
+            if(s.cr.includes(ks) && !b[home+1] && !b[home+2] && b[home+3]===me+'R' && !attacked(b,home+1,en) && !attacked(b,home+2,en)) out.push({f:i,t:home+2,flag:'castle'});
+            if(s.cr.includes(qs) && !b[home-1] && !b[home-2] && !b[home-3] && b[home-4]===me+'R' && !attacked(b,home-1,en) && !attacked(b,home-2,en)) out.push({f:i,t:home-2,flag:'castle'});
+          }
+        }
+      } else {
+        const dirs = t==='R'?ORT : t==='B'?DIA : ORT.concat(DIA);
+        for(const [dr,dc] of dirs){ let rr=r+dr, cc=c+dc;
+          while(rr>=0&&rr<8&&cc>=0&&cc<8){ const to=rr*8+cc; if(!b[to]) out.push({f:i,t:to}); else { if(b[to][0]===en) out.push({f:i,t:to}); break; } rr+=dr; cc+=dc; } }
+      }
+    }
+    return out;
+  }
+  function make(s, m){
+    const b=s.b.slice(), p=b[m.f], me=s.turn;
+    const cap = m.flag==='ep' ? b[m.t + (me==='w'?8:-8)] : b[m.t];
+    b[m.t]=p; b[m.f]='';
+    if(m.flag==='ep') b[m.t + (me==='w'?8:-8)]='';
+    if(m.promo) b[m.t]=me+m.promo;
+    if(m.flag==='castle'){ if(m.t===62){b[61]=b[63];b[63]='';} else if(m.t===58){b[59]=b[56];b[56]='';} else if(m.t===6){b[5]=b[7];b[7]='';} else if(m.t===2){b[3]=b[0];b[0]='';} }
+    let cr=s.cr;
+    if(p[1]==='K') cr = cr.replace(me==='w'?/[KQ]/g:/[kq]/g,'');
+    const strip = sq => { if(sq===63) cr=cr.replace('K',''); if(sq===56) cr=cr.replace('Q',''); if(sq===7) cr=cr.replace('k',''); if(sq===0) cr=cr.replace('q',''); };
+    strip(m.f); strip(m.t);
+    return { b, turn:opp(me), cr, ep: m.flag==='double' ? (m.f+m.t)>>1 : -1, half: (p[1]==='P'||cap) ? 0 : s.half+1, cap };
+  }
+  function legal(s){ return pseudo(s).filter(m=>{ const n=make(s,m); return !inCheck(n, s.turn); }); }
+  const key = s => s.b.join(',')+s.turn+s.cr+s.ep;
+  function insufficient(b){
+    const ps=b.filter(Boolean).filter(p=>p[1]!=='K');
+    if(!ps.length) return true;
+    if(ps.length===1 && 'NB'.includes(ps[0][1])) return true;
+    return false;
+  }
+  function san(s, m, list){
+    if(m.flag==='castle') return (m.t>m.f?'O-O':'O-O-O') + suffix(s,m);
+    const p=s.b[m.f], t=p[1], capt = !!s.b[m.t] || m.flag==='ep';
+    let str='';
+    if(t==='P'){ str = (capt ? 'abcdefgh'[C_(m.f)]+'x' : '') + sqName(m.t) + (m.promo?'='+m.promo:''); }
+    else {
+      const others=list.filter(o=>o.t===m.t && o.f!==m.f && s.b[o.f]===p);
+      let dis='';
+      if(others.length){ if(!others.some(o=>C_(o.f)===C_(m.f))) dis='abcdefgh'[C_(m.f)]; else if(!others.some(o=>R_(o.f)===R_(m.f))) dis=String(8-R_(m.f)); else dis=sqName(m.f); }
+      str = t + dis + (capt?'x':'') + sqName(m.t);
+    }
+    return str + suffix(s,m);
+  }
+  function suffix(s,m){ const n=make(s,m); if(!inCheck(n)) return ''; return legal(n).length ? '+' : '#'; }
+
+  /* ---------------- computer player ---------------- */
+  const PST={
+    P:[0,0,0,0,0,0,0,0,50,50,50,50,50,50,50,50,10,10,20,30,30,20,10,10,5,5,10,25,25,10,5,5,0,0,0,20,20,0,0,0,5,-5,-10,0,0,-10,-5,5,5,10,10,-20,-20,10,10,5,0,0,0,0,0,0,0,0],
+    N:[-50,-40,-30,-30,-30,-30,-40,-50,-40,-20,0,0,0,0,-20,-40,-30,0,10,15,15,10,0,-30,-30,5,15,20,20,15,5,-30,-30,0,15,20,20,15,0,-30,-30,5,10,15,15,10,5,-30,-40,-20,0,5,5,0,-20,-40,-50,-40,-30,-30,-30,-30,-40,-50],
+    B:[-20,-10,-10,-10,-10,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,10,10,5,0,-10,-10,5,5,10,10,5,5,-10,-10,0,10,10,10,10,0,-10,-10,10,10,10,10,10,10,-10,-10,5,0,0,0,0,5,-10,-20,-10,-10,-10,-10,-10,-10,-20],
+    R:[0,0,0,0,0,0,0,0,5,10,10,10,10,10,10,5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,0,0,0,5,5,0,0,0],
+    Q:[-20,-10,-10,-5,-5,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,5,5,5,0,-10,-5,0,5,5,5,5,0,-5,0,0,5,5,5,5,0,-5,-10,5,5,5,5,5,0,-10,-10,0,5,0,0,0,0,-10,-20,-10,-10,-5,-5,-10,-10,-20],
+    K:[-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-20,-30,-30,-40,-40,-30,-30,-20,-10,-20,-20,-20,-20,-20,-20,-10,20,20,0,0,0,0,20,20,20,30,10,0,0,10,30,20]
+  };
+  function evaluate(s){
+    let sc=0; const b=s.b;
+    for(let i=0;i<64;i++){ const p=b[i]; if(!p) continue; const t=p[1];
+      const v=VAL[t] + PST[t][p[0]==='w'?i:i^56];
+      sc += p[0]===s.turn ? v : -v; }
+    return sc;
+  }
+  const mvv = (s,m) => { const c=s.b[m.t]; return (c?VAL[c[1]]*10-VAL[s.b[m.f][1]]/10:0) + (m.promo?800:0); };
+  let nodes=0;
+  function quiesce(s, alpha, beta, depth){
+    nodes++;
+    const stand=evaluate(s);
+    if(depth===0) return stand;
+    if(stand>=beta) return stand; if(stand>alpha) alpha=stand;
+    const ms=pseudo(s).filter(m=>s.b[m.t]||m.promo).sort((a,b)=>mvv(s,b)-mvv(s,a));
+    for(const m of ms){
+      if(s.b[m.t] && s.b[m.t][1]==='K') return 50000;
+      const sc=-quiesce(make(s,m), -beta, -alpha, depth-1);
+      if(sc>=beta) return sc; if(sc>alpha) alpha=sc;
+    }
+    return alpha;
+  }
+  function negamax(s, depth, alpha, beta, q){
+    nodes++;
+    if(depth===0) return q ? quiesce(s,alpha,beta,4) : evaluate(s);
+    const ms=pseudo(s).sort((a,b)=>mvv(s,b)-mvv(s,a));
+    let best=-1e9, any=false;
+    for(const m of ms){
+      if(s.b[m.t] && s.b[m.t][1]==='K') return 50000+depth;
+      const n=make(s,m);
+      const sc=-negamax(n, depth-1, -beta, -alpha, q);
+      if(sc<=-49000){ continue; }               // move left own king capturable: illegal
+      any=true;
+      if(sc>best) best=sc; if(best>alpha) alpha=best; if(alpha>=beta) break;
+    }
+    if(!any) return inCheck(s) ? -40000-depth : 0;  // mate or stalemate
+    return best;
+  }
+  function aiMove(s, level){
+    const ms=legal(s); if(!ms.length) return null;
+    const depth = level===1?1:(level===2?2:3), noise = level===1?120:(level===2?15:0), q = level>=2;
+    ms.sort((a,b)=>mvv(s,b)-mvv(s,a));
+    let best=ms[0], bs=-1e12;
+    for(const m of ms){
+      let n=make(s,m), sc=-negamax(n, depth-1, -1e9, 1e9, q);
+      if(repCount[key(n)]>=1 && sc>-200) sc-=30;   // avoid drifting into repetition when not losing
+      sc+=Math.random()*noise;
+      if(sc>bs){ bs=sc; best=m; }
+    }
+    return best;
+  }
+
+  /* ---------------- state ---------------- */
+  const prefs = Object.assign({ mode:'2p', side:'w', level:2, face:false, hint:true, coord:true, sound:true, flip:false }, store.get('tm-chess-prefs',{}));
+  /* 랭킹: 컴퓨터를 가장 적은 수로 이긴 순위 (단계마다) */
+  const LVN={1:'쉬움',2:'보통',3:'어려움'};
+  let rk={ok:false,sent:false,lv:0}, booting=true;
+  const myMoves=()=>moves.filter((m,i)=>(i%2===0)===(prefs.side==='w')).length;
+  const rkResume=()=>{ if(prefs.mode==='ai' && !over && rk.ok && rk.lv===prefs.level) TMRank.start(String(prefs.level), '컴퓨터 '+LVN[prefs.level]); };
+  TMRank.setup({ game:'chess', title:'티라노 체스', kind:'low', unit:'수', note:'컴퓨터 티라노를 가장 적은 수로 이긴 순위예요', levels:[['1','컴퓨터 쉬움'],['2','컴퓨터 보통'],['3','컴퓨터 어려움']], level:()=>String(prefs.level), mount:['.icons','.setup-top'] });
+  let states, moves, sel=-1, over=null, busy=false, repCount={}, pendingPromo=null;
+  const cur = () => states[states.length-1];
+  function rebuildRep(){ repCount={}; states.forEach(s=>{ const k=key(s); repCount[k]=(repCount[k]||0)+1; }); }
+
+  /* ---------------- sound ---------------- */
+  let actx=null;
+  function tone(f,d=.06,type='triangle',vol=.08,when=0){
+    if(!prefs.sound) return;
+    try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+      const o=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime+when;
+      o.type=type; o.frequency.value=f; g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t+d+.02); }catch(e){}
+  }
+  const sfxMove=()=>{ tone(220,.06,'square',.04); tone(150,.08,'sine',.07,.01); };
+  const sfxCap=()=>{ tone(330,.06,'square',.05); tone(160,.14,'sine',.09,.04); };
+  const sfxCheck=()=>[660,880].forEach((f,i)=>tone(f,.12,'triangle',.08,i*.12));
+
+  /* ---------------- drawing ---------------- */
+  const boardEl=$('board'), sqEl=$('squares'), layer=$('layer'), stage=$('stage');
+  const flipped = () => !!prefs.flip;
+  const vpos = i => { let r=R_(i), c=C_(i); if(flipped()){ r=7-r; c=7-c; } return { left:c*12.5+'%', top:r*12.5+'%' }; };
+  const sqs=[];
+  for(let v=0; v<64; v++){ const d=document.createElement('div'); sqEl.appendChild(d); sqs.push(d); }
+  function viewIndex(i){ return flipped() ? 63-i : i; }   // board index -> grid cell order
+
+  function fit(){
+    const r=stage.getBoundingClientRect();
+    const wide=matchMedia('(min-aspect-ratio:5/4) and (min-width:760px)').matches;
+    const maxH = wide ? r.height-4 : window.innerHeight*0.72;
+    const side=Math.max(240, Math.floor(Math.min(r.width, maxH)));
+    boardEl.style.width=boardEl.style.height=side+'px';
+    const pad=Math.round(side*.022);
+    boardEl.style.setProperty('--pad', pad+'px');
+    boardEl.style.setProperty('--cell', ((side-pad*2)/8)+'px');
+  }
+  new ResizeObserver(fit).observe(stage); addEventListener('resize', fit);
+
+  const pieceEls=new Map();   // square -> element
+  function drawSquares(){
+    const s=cur(), last=moves[moves.length-1], chk = !over || over.why==='체크메이트' ? inCheck(s) : false;
+    const ks=kingSq(s.b, s.turn);
+    const tg = sel>=0 && prefs.hint ? new Set(legal(s).filter(m=>m.f===sel).map(m=>m.t)) : new Set();
+    for(let i=0;i<64;i++){
+      const el=sqs[viewIndex(i)], r=R_(i), c=C_(i);
+      el.className='sq'+((r+c)%2?' d':'')+(last&&(last.f===i||last.t===i)?' last':'')+(i===sel?' sel':'')+(chk&&i===ks?' check':'');
+      let co='';
+      if(prefs.coord){
+        const bottom = flipped()? r===0 : r===7, left = flipped()? c===7 : c===0;
+        if(bottom) co+=`<span class="co f">${'abcdefgh'[c]}</span>`;
+        if(left) co+=`<span class="co r">${8-r}</span>`;
+      }
+      el.innerHTML=co;
+    }
+    layer.querySelectorAll('.dot').forEach(d=>d.remove());
+    tg.forEach(t=>{ const d=document.createElement('div'); d.className='dot'+(s.b[t]||(s.b[sel][1]==='P'&&C_(t)!==C_(sel))?' cap':''); Object.assign(d.style,vpos(t)); layer.appendChild(d); });
+  }
+  function placePieces(full){
+    const s=cur();
+    boardEl.classList.toggle('facing', prefs.face && prefs.mode==='2p');
+    if(full){ layer.querySelectorAll('.piece').forEach(e=>e.remove()); pieceEls.clear(); }
+    for(let i=0;i<64;i++){
+      const p=s.b[i]; let el=pieceEls.get(i);
+      if(!p){ if(el){ el.remove(); pieceEls.delete(i); } continue; }
+      if(!el || el.dataset.p!==p){ if(el) el.remove(); el=document.createElement('div'); el.className='piece'; el.dataset.p=p; el.innerHTML=svg(p[1],p[0]); layer.appendChild(el); pieceEls.set(i,el); }
+      Object.assign(el.style, vpos(i));
+      el.classList.toggle('top', flipped() ? p[0]==='w' : p[0]==='b');
+      el.setAttribute('aria-label', `${COLOR[p[0]]} ${NAME[p[1]]} ${sqName(i)}`);
+    }
+  }
+  // animate a move: slide elements, then reconcile
+  function animateMove(prev, m){
+    const mover=pieceEls.get(m.f);
+    const capSq = m.flag==='ep' ? m.t + (prev.turn==='w'?8:-8) : m.t;
+    const victim=pieceEls.get(capSq);
+    if(victim && victim!==mover){ victim.classList.add('gone'); pieceEls.delete(capSq); setTimeout(()=>victim.remove(),220); }
+    if(mover){ pieceEls.delete(m.f); pieceEls.set(m.t, mover); Object.assign(mover.style, vpos(m.t)); }
+    if(m.flag==='castle'){
+      const [rf,rt] = m.t===62?[63,61]:m.t===58?[56,59]:m.t===6?[7,5]:[0,3];
+      const rook=pieceEls.get(rf); if(rook){ pieceEls.delete(rf); pieceEls.set(rt,rook); Object.assign(rook.style, vpos(rt)); }
+    }
+    setTimeout(()=>placePieces(false), m.promo ? 210 : 0);
+  }
+  function draw(full){ placePieces(full); drawSquares(); status(); }
+
+  function status(){
+    const s=cur(), t=$('turn'); t.className='turn '+s.turn;
+    const me = prefs.mode==='ai' ? (s.turn===prefs.side?' (나)':' (컴퓨터)') : '';
+    $('turnTxt').textContent = over ? (over.winner ? `${COLOR[over.winner]} 승리` : '무승부') : `${COLOR[s.turn]} 차례${me}`;
+    $('capW').classList.toggle('on', !over && s.turn==='w'); $('capB').classList.toggle('on', !over && s.turn==='b');
+    // captured pieces: what each side has taken
+    const taken={w:[],b:[]}; states.forEach(x=>{ if(x.cap) taken[x.turn==='w'?'b':'w'].push(x.cap); });
+    // x.turn is side to move after the capture, so capturer = opposite of x.turn
+    const order='QRBNP';
+    const tray=c=>taken[c].slice().sort((a,b)=>order.indexOf(a[1])-order.indexOf(b[1])).map(p=>svg(p[1],p[0])).join('');
+    $('trW').innerHTML=tray('w'); $('trB').innerHTML=tray('b');
+    let mat=0; s.b.forEach(p=>{ if(p) mat += (p[0]==='w'?1:-1)*PTS[p[1]]; });
+    $('advW').textContent = mat>0 ? '+'+mat : ''; $('advB').textContent = mat<0 ? '+'+(-mat) : '';
+    $('bUndo').disabled = busy || !moves.length;
+    // move list
+    let h=''; for(let i=0;i<moves.length;i+=2){
+      h+=`<span class="n">${i/2+1}.</span><span class="${i===moves.length-1?'cur':''}">${moves[i].san}</span><span class="${i+1===moves.length-1?'cur':''}">${moves[i+1]?moves[i+1].san:''}</span>`; }
+    const mv=$('moves'); mv.innerHTML=h; mv.scrollTop=mv.scrollHeight;
+  }
+  function help(i){
+    const h=$('help'), s=cur();
+    if(i!==undefined && s.b[i]){ const p=s.b[i]; h.innerHTML=`<b>${COLOR[p[0]]} ${NAME[p[1]]}</b><br>${RULE[p[1]]}`; return; }
+    h.innerHTML = !over && inCheck(s) ? `<b style="color:var(--hl-check)">체크를 받았어요</b><br>${COLOR[s.turn]} 킹이 공격받고 있어요. 킹을 피하거나, 사이를 막거나, 공격한 말을 잡으세요.`
+      : `<b>말을 눌러 보세요</b><br>움직일 수 있는 곳이 점으로 나오고, 오른쪽 설명칸에 그 말이 움직이는 법이 나옵니다. 흰색이 먼저 둡니다. 상대 킹이 도망칠 수 없게 공격하면(체크메이트) 이깁니다.`;
+  }
+  const humanTurn = () => prefs.mode==='2p' || cur().turn===prefs.side;
+
+  /* ---------------- play ---------------- */
+  function commit(m){
+    const s=cur(), list=legal(s);
+    const sn=san(s,m,list);
+    const n=make(s,m);
+    states.push(n); moves.push({f:m.f,t:m.t,promo:m.promo||null,flag:m.flag||null,san:sn});
+    repCount[key(n)]=(repCount[key(n)]||0)+1;
+    sel=-1;
+    n.cap ? sfxCap() : sfxMove();
+    animateMove(s, m);
+    after();
+  }
+  function after(){
+    const s=cur(), lm=legal(s), chk=inCheck(s);
+    if(!lm.length) over = chk ? {winner:opp(s.turn), why:'체크메이트'} : {winner:null, why:'스테일메이트'};
+    else if(s.half>=100) over={winner:null, why:'50수 규칙'};
+    else if(repCount[key(s)]>=3) over={winner:null, why:'같은 배치 세 번 반복'};
+    else if(insufficient(s.b)) over={winner:null, why:'체크메이트할 말이 부족'};
+    drawSquares(); status(); save();
+    if(over){ setTimeout(showEnd, 450); return; }
+    if(chk){ banner('체크!'); sfxCheck(); }
+    help(); maybeAI();
+  }
+  function maybeAI(){
+    if(over || prefs.mode!=='ai' || cur().turn===prefs.side) return;
+    busy=true; status();
+    const th=document.createElement('div'); th.className='thinking'; th.textContent='컴퓨터가 생각 중…'; boardEl.appendChild(th);
+    setTimeout(()=>{
+      const m=aiMove(cur(), +prefs.level);
+      th.remove(); busy=false;
+      if(m) commit(m);
+    }, 300);
+  }
+  function tryMove(f,t){
+    const ms=legal(cur()).filter(m=>m.f===f && m.t===t);
+    if(!ms.length) return false;
+    if(ms[0].promo){ askPromo(ms[0].f, ms[0].t); return true; }
+    commit(ms[0]); return true;
+  }
+  function askPromo(f,t){
+    const c=cur().turn;
+    pendingPromo={f,t};
+    const w=document.createElement('div'); w.className='over'; w.id='promoBox';
+    w.innerHTML=`<div class="over-card"><h2>승진</h2><p>폰을 무엇으로 바꿀까요?</p><div class="promo">${'QRBN'.split('').map(p=>`<div><button data-p="${p}" aria-label="${NAME[p]}">${svg(p,c)}</button><small>${NAME[p]}</small></div>`).join('')}</div>
+      <button class="btn" id="promoCancel" style="width:100%;margin-top:12px">취소</button></div>`;
+    boardEl.appendChild(w);
+    w.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{ w.remove(); const m=legal(cur()).find(x=>x.f===f&&x.t===t&&x.promo===b.dataset.p); pendingPromo=null; if(m) commit(m); });
+    $('promoCancel').onclick=()=>{ w.remove(); pendingPromo=null; sel=-1; draw(true); help(); };
+  }
+  function banner(txt){ const b=document.createElement('div'); b.className='banner'; b.textContent=txt; boardEl.appendChild(b); setTimeout(()=>b.remove(),1250); }
+  function showEnd(){
+    document.querySelector('.over:not(#promoBox)')?.remove();
+    const w=document.createElement('div'); w.className='over';
+    let title, sub;
+    if(over.winner){
+      title=`${COLOR[over.winner]} 승리`;
+      sub = over.why==='기권' ? '상대가 기권했어요' : '체크메이트! 킹이 더 도망칠 곳이 없어요';
+      if(prefs.mode==='ai') sub += '<br>' + (over.winner===prefs.side ? '내가 이겼어요!' : '컴퓨터가 이겼어요');
+    } else { title='무승부'; sub = over.why==='스테일메이트' ? '스테일메이트: 둘 수 있는 수가 없지만 체크는 아니에요' : over.why; }
+    w.innerHTML=`<div class="over-card"><h2>${title}</h2><p>${sub}</p>
+      <div class="actions" style="grid-template-columns:1fr 1fr"><button class="btn" id="bLook">판 보기</button><button class="btn primary" id="bAgain">다시 하기</button></div></div>`;
+    boardEl.appendChild(w);
+    if(over.winner) [523,659,784,1047].forEach((f,i)=>tone(f,.18,'triangle',.08,i*.11)); else tone(392,.3,'sine',.07);
+    $('bAgain').onclick=()=>{ w.remove(); newGame(); };
+    $('bLook').onclick=()=>w.remove();
+    if(!booting && prefs.mode==='ai' && over.winner===prefs.side && rk.ok && !rk.sent && rk.lv===prefs.level){ rk.sent=true; save(); TMRank.finish({ level:String(prefs.level), name:'컴퓨터 '+LVN[prefs.level], value:myMoves() }); }
+  }
+  function newGame(){
+    document.querySelectorAll('.over').forEach(e=>e.remove());
+    states=[initial()]; moves=[]; sel=-1; over=null; busy=false; pendingPromo=null; rebuildRep();
+    prefs.flip = prefs.mode==='ai' && prefs.side==='b';
+    $('note').textContent='';
+    rk={ok:prefs.mode==='ai',sent:false,lv:prefs.level}; if(!booting) rkResume();
+    draw(true); save(); help(); maybeAI();
+  }
+  function undo(){
+    if(busy||!moves.length) return;
+    // in AI mode, step back to the human's turn
+    let n = 1;
+    if(prefs.mode==='ai'){ n = cur().turn===prefs.side ? 2 : 1; if(n>moves.length) n=moves.length; }
+    for(let k=0;k<n && moves.length;k++){ moves.pop(); states.pop(); }
+    rebuildRep();
+    document.querySelectorAll('.over').forEach(e=>e.remove()); over=null; sel=-1; pendingPromo=null;
+    tone(250,.07); draw(true); save(); help(); maybeAI();
+  }
+  function save(){
+    store.set('tm-chess-prefs', prefs);
+    store.set('tm-chess-game', { moves:moves.map(m=>[m.f,m.t,m.promo||'']), rk });
+  }
+  function load(){
+    const g=store.get('tm-chess-game',null); if(!g||!Array.isArray(g.moves)) return false;
+    states=[initial()]; moves=[];
+    for(const [f,t,pr] of g.moves){
+      const s=cur(), list=legal(s), m=list.find(x=>x.f===f&&x.t===t&&(x.promo||'')===pr);
+      if(!m) break;
+      const sn=san(s,m,list); states.push(make(s,m)); moves.push({f,t,promo:pr||null,flag:m.flag||null,san:sn});
+    }
+    rebuildRep(); rk = g.rk || {ok:prefs.mode==='ai',sent:false,lv:prefs.level};
+    const s=cur(), lm=legal(s), chk=inCheck(s);
+    if(!lm.length) over = chk ? {winner:opp(s.turn), why:'체크메이트'} : {winner:null, why:'스테일메이트'};
+    else if(s.half>=100) over={winner:null, why:'50수 규칙'};
+    else if(repCount[key(s)]>=3) over={winner:null, why:'같은 배치 세 번 반복'};
+    else if(insufficient(s.b)) over={winner:null, why:'체크메이트할 말이 부족'};
+    return true;
+  }
+
+  /* ---------------- input: tap or drag ---------------- */
+  function sqAt(x,y){
+    const r=layer.getBoundingClientRect();
+    let c=Math.floor((x-r.left)/(r.width/8)), rr=Math.floor((y-r.top)/(r.height/8));
+    if(c<0||c>7||rr<0||rr>7) return -1;
+    if(flipped()){ rr=7-rr; c=7-c; }
+    return rr*8+c;
+  }
+  let drag=null;
+  boardEl.addEventListener('pointerdown', e=>{
+    if(e.target.closest('.over') || busy || over || pendingPromo || !humanTurn()) return;
+    if(e.pointerType==='mouse' && e.button!==0) return;
+    if(drag) return;
+    const i=sqAt(e.clientX,e.clientY); if(i<0) return;
+    const s=cur(), p=s.b[i];
+    if(sel>=0 && i!==sel && (!p || p[0]!==s.turn)){ if(!tryMove(sel,i)){ sel=-1; drawSquares(); help(); } return; }
+    if(p && p[0]===s.turn){
+      sel=i; drawSquares(); help(i);
+      drag={id:e.pointerId, from:i, x:e.clientX, y:e.clientY, moved:false, el:pieceEls.get(i)};
+      try{ boardEl.setPointerCapture(e.pointerId); }catch(_){}
+    } else { sel=-1; drawSquares(); help(i); }
+  });
+  boardEl.addEventListener('pointermove', e=>{
+    if(!drag || e.pointerId!==drag.id) return;
+    if(!drag.moved && Math.hypot(e.clientX-drag.x, e.clientY-drag.y)<8) return;
+    drag.moved=true; const el=drag.el; if(!el) return; el.classList.add('drag');
+    const r=layer.getBoundingClientRect();
+    el.style.left=((e.clientX-r.left)/r.width*100-6.25)+'%'; el.style.top=((e.clientY-r.top)/r.height*100-6.25)+'%';
+  });
+  const endDrag=e=>{
+    if(!drag || e.pointerId!==drag.id) return;
+    const d=drag; drag=null; d.el && d.el.classList.remove('drag');
+    if(!d.moved) return;
+    const i = e.type==='pointercancel' ? -1 : sqAt(e.clientX,e.clientY);
+    if(i>=0 && i!==d.from && tryMove(d.from,i)){ if(pendingPromo) Object.assign(d.el.style, vpos(d.from)); return; }
+    if(d.el) Object.assign(d.el.style, vpos(d.from));
+  };
+  boardEl.addEventListener('pointerup', endDrag);
+  boardEl.addEventListener('pointercancel', endDrag);
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && sel>=0){ sel=-1; drawSquares(); help(); } });
+
+  /* ---------------- controls ---------------- */
+  function segSync(){
+    const map={segMode:prefs.mode, segSide:prefs.side, segLevel:String(prefs.level)};
+    for(const id in map) document.querySelectorAll('#'+id+' button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===map[id]));
+    document.querySelectorAll('[data-ai]').forEach(el=>el.hidden = prefs.mode!=='ai');
+    $('faceRow').hidden = prefs.mode!=='2p';
+    $('chkFace').checked=!!prefs.face; $('chkHint').checked=!!prefs.hint; $('chkCoord').checked=!!prefs.coord;
+    $('bSound').setAttribute('aria-pressed', prefs.sound);
+  }
+  function gameSetting(fn){
+    if(moves.length && !over) rk.ok=false;
+    fn(); segSync(); store.set('tm-chess-prefs',prefs);
+    if(!moves.length || over) newGame();
+    else $('note').textContent='새 게임을 누르면 바뀐 설정으로 시작해요.';
+  }
+  document.querySelectorAll('#segMode button').forEach(b=>b.onclick=()=>gameSetting(()=>prefs.mode=b.dataset.v));
+  document.querySelectorAll('#segSide button').forEach(b=>b.onclick=()=>gameSetting(()=>prefs.side=b.dataset.v));
+  document.querySelectorAll('#segLevel button').forEach(b=>b.onclick=()=>{ prefs.level=+b.dataset.v; if(moves.length && !over && rk.lv!==prefs.level) rk.ok=false; else if(!moves.length) rk.lv=prefs.level; segSync(); save(); });
+  $('chkFace').onchange=e=>{ prefs.face=e.target.checked; placePieces(false); save(); };
+  $('chkHint').onchange=e=>{ prefs.hint=e.target.checked; drawSquares(); save(); };
+  $('chkCoord').onchange=e=>{ prefs.coord=e.target.checked; drawSquares(); save(); };
+  $('bSound').onclick=()=>{ prefs.sound=!prefs.sound; segSync(); save(); if(prefs.sound) tone(660); };
+  $('bFlip').onclick=()=>{ prefs.flip=!prefs.flip; draw(true); save(); };
+  $('bUndo').onclick=undo;
+  let armed=null;
+  $('bNew').onclick=()=>{
+    if(!moves.length || over){ newGame(); return; }
+    const sp=$('bNew').querySelector('span');
+    if(armed){ clearTimeout(armed); armed=null; sp.textContent='새 게임'; newGame(); return; }
+    sp.textContent='한 번 더 누르기';
+    armed=setTimeout(()=>{ armed=null; sp.textContent='새 게임'; },3000);
+  };
+  const fullBtn=$('bFull');
+  if(document.fullscreenEnabled || document.webkitFullscreenEnabled){
+    fullBtn.hidden=false;
+    fullBtn.onclick=()=>{ try{
+      if(document.fullscreenElement||document.webkitFullscreenElement) (document.exitFullscreen||document.webkitExitFullscreen).call(document);
+      else { const el=document.documentElement; const p=(el.requestFullscreen||el.webkitRequestFullscreen).call(el); p&&p.catch&&p.catch(()=>{}); }
+    }catch(_){} };
+  }
+  async function wake(){ try{ if(navigator.wakeLock && document.visibilityState==='visible') await navigator.wakeLock.request('screen'); }catch(_){} }
+  document.addEventListener('visibilitychange', wake); wake();
+
+  /* ---------------- start ---------------- */
+  segSync(); fit();
+  if(load()){ draw(true); help(); if(over) showEnd(); else maybeAI(); }
+  else newGame();
+
+  booting=false;
+  // expose engine for self-test only
+  window.__chess = { initial, legal, make, inCheck, san, aiMove, pseudo };
+
+  /* ---------- 퍼즐존 시작 화면 ---------- */
+  const ov=document.getElementById('startOv');
+  const pick=g=>{ const b=ov.querySelector('#'+g+' [aria-pressed="true"]'); return b?b.dataset.v:null; };
+  const mark=(g,v)=>ov.querySelectorAll('#'+g+' button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===String(v)));
+  ov.querySelectorAll('.chips').forEach(g=>g.addEventListener('click',e=>{ const b=e.target.closest('button'); if(b){ mark(g.id,b.dataset.v); showPick(); } }));
+  // 시작 화면이 떠 있는 동안에는 키보드가 판을 움직이지 않아요
+  ['keydown','keyup'].forEach(t=>window.addEventListener(t,e=>{ if(!ov.hidden && !(e.key==='Enter' || e.key===' ' || e.key==='Tab') ) e.stopImmediatePropagation(); },true));
+
+  const showPick=()=>{ $('bestTxt').textContent=''; };
+  mark('lvChips', prefs.mode==='ai' ? prefs.level : '2p');
+  const resumeP=document.createElement('p'); resumeP.className='resume'; resumeP.textContent='하던 판과 같은 상대를 고르면 이어서 둬요.'; $('bestTxt').after(resumeP); resumeP.hidden = !moves.length || !!over;
+  $('go').onclick=()=>{
+    const v=pick('lvChips'); ov.hidden=true;
+    const mode = v==='2p' ? '2p' : 'ai', lv = v==='2p' ? prefs.level : +v;
+    const same = mode===prefs.mode && (mode==='2p' || lv===prefs.level);
+    prefs.mode=mode; prefs.level=lv; segSync(); store.set('tm-chess-prefs',prefs);
+    if(!same || over || !moves.length) newGame();
+    else rkResume();
+    fit();
+  };
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>티라노 2048</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<style>
+/* Layout: one screen, no tabs. Slate board well + control rail (right on wide screens, below on tall screens). */
+:root{
+  --bg:#FFF8EC; --surface:#ffffff; --ink:#22314A; --muted:#5D6C83; --line:#ECDFC8;
+  --accent:#8E5BD6; --accent-ink:#ffffff; --accent-soft:#EFE6FF;
+  --board:#3E3358; --cell:rgba(255,255,255,.08);
+  --overlay:rgba(40,28,70,.62);
+  --font-display:"Jua","Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --font-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+
+html,body{height:100%;margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;
+  -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;overflow:hidden}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.app{height:100%;max-width:1680px;margin:0 auto;padding-inline:16px;padding-block:12px;
+  display:grid;gap:12px;grid-template-columns:minmax(0,1fr);
+  grid-template-rows:auto minmax(220px,1fr) auto;grid-template-areas:"top" "stage" "panel";overflow:auto}
+@media (min-aspect-ratio:5/4) and (min-width:760px){
+  .app{grid-template-columns:minmax(0,1fr) clamp(270px,27vw,400px);grid-template-rows:auto minmax(0,1fr);
+    grid-template-areas:"top top" "stage panel";gap:16px clamp(16px,2vw,32px);padding-block:16px}
+}
+
+.top{grid-area:top;display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;margin-right:auto}
+.brand svg{width:clamp(34px,3.2vw,48px);height:auto;flex:none}
+.brand-txt{display:flex;flex-direction:column;line-height:1.05}
+.brand-txt small{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.brand-txt b{font-family:var(--font-display);font-weight:400;font-size:clamp(20px,2.2vw,32px)}
+.stats{display:flex;gap:8px}
+.stat{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:5px 12px;min-width:82px;text-align:center}
+.stat span{display:block;font-size:12px;color:var(--muted);letter-spacing:.04em}
+.stat b{display:block;font-family:var(--font-display);font-weight:400;font-size:clamp(18px,1.9vw,28px);font-variant-numeric:tabular-nums;line-height:1.1}
+.plus{position:absolute;left:50%;top:40%;transform:translateX(-50%);font-family:var(--font-display);color:var(--accent);font-size:20px;pointer-events:none;animation:rise .7s ease-out forwards}
+@keyframes rise{to{opacity:0;transform:translate(-50%,-34px)}}
+.icons{display:flex;gap:6px}
+.icon-btn{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;touch-action:manipulation}
+.icon-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.icon-btn[aria-pressed="false"] .on,.icon-btn[aria-pressed="true"] .off{display:none}
+
+/* board */
+.stage{grid-area:stage;min-height:0;min-width:0;display:grid;place-items:center;position:relative}
+.board{position:relative;background:var(--board);border-radius:clamp(14px,2.4%,26px);padding:var(--pad,10px);touch-action:none;max-width:100%;
+  box-shadow:0 2px 0 rgba(0,0,0,.08),0 18px 40px -18px rgba(0,0,0,.45)}
+.grid{position:relative;width:100%;height:100%}
+.slot,.tile{position:absolute;left:0;top:0;padding:var(--gap,5px)}
+.slot i{display:block;width:100%;height:100%;border-radius:12%;background:var(--cell)}
+.tile{transition:transform .11s ease-out;will-change:transform;z-index:1}
+.tile .face{width:100%;height:100%;border-radius:12%;display:grid;place-items:center;position:relative;overflow:hidden;
+  font-family:var(--font-display);line-height:1;background:var(--tb);color:var(--tf);font-size:var(--fs);
+  box-shadow:inset 0 calc(var(--cellpx)*-.05) 0 rgba(0,0,0,.16)}
+.tile .face span{position:relative;z-index:1;transform:translateY(-3%);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tile .face sup{font-size:.55em;vertical-align:.75em;margin-left:.04em}
+.tile .paw{position:absolute;right:7%;bottom:7%;width:26%;fill:currentColor;opacity:.28}
+.tile.new .face{animation:appear .18s ease-out .06s both}
+.tile.pop .face{animation:pop .2s ease-out}
+.tile.glow .face{box-shadow:0 0 calc(var(--cellpx)*.18) rgba(255,214,90,.75),inset 0 calc(var(--cellpx)*-.05) 0 rgba(0,0,0,.16)}
+@keyframes appear{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.14)}100%{transform:scale(1)}}
+
+.over{position:absolute;inset:0;display:grid;place-items:center;border-radius:inherit;background:var(--overlay);z-index:5}
+.over-card{background:var(--surface);color:var(--ink);border-radius:20px;padding:clamp(18px,3vw,30px);text-align:center;width:min(86%,380px);box-shadow:0 20px 50px -20px rgba(0,0,0,.6)}
+.over-card h2{margin:0 0 4px;font-family:var(--font-display);font-weight:400;font-size:clamp(28px,4vw,44px);color:var(--accent)}
+.over-card p{margin:0 0 6px;color:var(--muted)}
+.over-card .rec{font-family:var(--font-display);font-size:clamp(20px,2.4vw,28px);margin:10px 0 14px;font-variant-numeric:tabular-nums}
+.over-card .new{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:2px 12px;font-size:13px;margin-bottom:12px}
+.over-card .actions{grid-template-columns:1fr 1fr}
+#confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6}
+
+/* panel */
+.panel{grid-area:panel;min-height:0;min-width:0;display:flex;flex-direction:column;gap:14px}
+@media (min-aspect-ratio:5/4) and (min-width:760px){.panel{overflow:auto;padding-right:2px}}
+.group{display:flex;flex-direction:column;gap:7px;min-width:0}
+.label{font-size:13px;color:var(--muted);letter-spacing:.05em}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px}
+.seg button{border:0;background:transparent;border-radius:10px;min-height:44px;cursor:pointer;font-family:var(--font-display);font-size:clamp(15px,1.5vw,20px);touch-action:manipulation;white-space:nowrap;padding:0 4px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg sup{font-size:.6em}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{min-height:52px;border-radius:14px;border:1px solid var(--line);background:var(--surface);cursor:pointer;white-space:nowrap;min-width:0;
+  font-family:var(--font-display);font-size:clamp(16px,1.6vw,21px);display:flex;align-items:center;justify-content:center;gap:7px;padding:0 8px;touch-action:manipulation}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn:disabled{opacity:.45;cursor:default}
+.btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.ladder{display:flex;flex-wrap:wrap;gap:4px}
+.ladder span{flex:1 0 calc(16.66% - 4px);min-width:0;text-align:center;border-radius:8px;padding:5px 0 4px;font-family:var(--font-display);font-size:14px;line-height:1.1;opacity:.35}
+.ladder span small{display:block;font-family:var(--font-body);font-size:10px;opacity:.85}
+.ladder span.got{opacity:1}
+.tip{font-size:13px;color:var(--muted);line-height:1.55;margin:0}
+
+@media not ((min-aspect-ratio:5/4) and (min-width:760px)){
+  .panel{gap:10px}
+  .setup{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .tip,.ladder-group{display:none}
+  .stat{min-width:66px;padding:4px 10px}
+}
+@media (max-width:560px){
+  .setup{grid-template-columns:1fr !important}
+  .brand-txt small{display:none}
+  .top{gap:8px}
+}
+@media (prefers-reduced-motion:reduce){.tile{transition:none}.tile.new .face,.tile.pop .face,.plus{animation:none}}
+
+/* ---------- 티라노 퍼즐존 모양 ---------- */
+.brand .back{text-decoration:none;font-family:var(--font-display);background:#8E5BD6;color:#fff;border-radius:999px;padding:6px 14px;white-space:nowrap;font-size:15px;flex:none}
+.brand .dino-logo{display:flex;flex:none}
+.brand .dino-logo svg{width:clamp(40px,3.6vw,54px);height:auto}
+.brand-txt b{color:#6C3FB4}
+.icons{align-items:center}
+#startOv.setup:not([hidden]){display:block!important;position:fixed;inset:0;z-index:40}
+#startOv .back{text-decoration:none;font-family:'Jua',sans-serif;background:#8E5BD6;color:#fff;border-radius:999px;padding:6px 14px;white-space:nowrap}
+#startOv .chips button{color:#22314A;cursor:pointer}
+#startOv .chips button[aria-pressed="true"]{color:#fff}
+#startOv .btn.go{border:0;border-radius:18px;padding:8px 30px;background:#4CB963;color:#fff;font-family:'Jua',sans-serif;font-size:clamp(20px,2.4vw,28px);
+  box-shadow:0 5px 0 #2F8A47;min-height:56px;min-width:min(100%,300px)}
+#startOv .btn.go:active{transform:translateY(4px);box-shadow:0 1px 0 #2F8A47}
+#startOv .resume{margin:8px 0 0;color:#5D6C83;font-size:14px}
+@media (max-width:560px){.brand .back{padding:5px 10px;font-size:13px}.brand .dino-logo svg{width:36px}
+  .icon-btn{width:40px;height:40px}.icons .tmr-btn .tmr-t{display:none}.stat{min-width:56px!important;padding:3px 8px!important}.stats{gap:6px}.top{gap:8px 10px!important}}
+</style>
+<link rel="stylesheet" href="puzzle-setup.css">
+</head>
+<body>
+
+
+<div class="overlay setup" id="startOv"><div class="setup-in">
+  <header class="setup-top"><a class="back setup-back" href="../puzzlezone.html" hidden>← 퍼즐존</a><div class="title"><span class="dino-logo"></span>티라노 2048</div></header>
+  <section class="intro-card"><div><h1 style="--n:19.5">크앙! 같은 수를 합쳐 <span class="hl">2048</span>을 만들어요</h1><p>판을 위·아래·왼쪽·오른쪽으로 밀면 타일이 미끄러져요. <b>같은 수가 부딪히면 두 배</b>가 되고 점수가 올라요.</p><div class="howto"><span><b>①</b>판을 밀거나 화살표 키</span><span><b>②</b>같은 수끼리 합치기 (×2)</span><span><b>③</b>목표 수 만들기!</span></div></div>
+    <div class="intro-art" aria-hidden="true"><img src="thumbs/2048.svg" alt=""><span class="spark s1">×2</span><span class="spark s2">+</span></div></section>
+  <section class="opt"><h3>판 크기 <small>작을수록 어려워요</small></h3><div class="chips" id="lvChips"><button data-v="3">3×3<small>아주 빠듯</small></button><button data-v="4">4×4<small>기본</small></button><button data-v="5">5×5<small>넉넉</small></button><button data-v="6">6×6<small>아주 넉넉</small></button></div></section>
+  <p class="best" id="bestTxt"></p>
+  <div class="row start-row"><button class="btn go" id="go">시작하기 🦖</button></div>
+</div></div>
+
+<div class="app">
+  <header class="top">
+    <div class="brand"><a class="back" id="back" href="../puzzlezone.html" hidden>← 퍼즐존</a><span class="dino-logo"></span>
+      <div class="brand-txt"><small>TyranoMath</small><b>티라노 2048</b></div>
+    </div>
+    <div class="stats" aria-live="polite">
+      <div class="stat" id="stScore"><span>점수</span><b id="sScore">0</b></div>
+      <div class="stat"><span>최고</span><b id="sBest">0</b></div>
+      <div class="stat"><span>목표</span><b id="sGoal">2048</b></div>
+    </div>
+    <div class="icons">
+      <button class="icon-btn" id="bSound" aria-pressed="true" aria-label="효과음">
+        <svg class="on" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+        <svg class="off" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>
+      </button>
+      <button class="icon-btn" id="bFull" aria-label="전체 화면" hidden><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="board" id="board" role="application" aria-label="2048 판. 위아래나 좌우로 밀거나 화살표 키를 누르세요.">
+      <div class="grid" id="grid"></div>
+    </div>
+  </main>
+
+  <aside class="panel">
+    <div class="actions">
+      <button class="btn primary" id="bNew"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg><span>새 게임</span></button>
+      <button class="btn" id="bUndo"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg><span id="undoTxt">되돌리기 3</span></button>
+    </div>
+    <div class="setup">
+      <div class="group">
+        <div class="label">판 크기</div>
+        <div class="seg" id="segSize"><button data-v="3">3×3</button><button data-v="4">4×4</button><button data-v="5">5×5</button><button data-v="6">6×6</button></div>
+        <div class="label">목표 수</div>
+        <div class="seg" id="segGoal"><button data-v="128">128</button><button data-v="512">512</button><button data-v="2048">2048</button></div>
+      </div>
+      <div class="group">
+        <div class="label">수 표시</div>
+        <div class="seg" id="segShow"><button data-v="num">숫자 (8)</button><button data-v="pow">거듭제곱 (2<sup>3</sup>)</button></div>
+        <div class="label">되돌리기 횟수</div>
+        <div class="seg" id="segUndo"><button data-v="0">없음</button><button data-v="3">3번</button><button data-v="99">마음껏</button></div>
+      </div>
+    </div>
+    <div class="group ladder-group">
+      <div class="label">만든 수 (같은 수 두 개가 합쳐지면 두 배)</div>
+      <div class="ladder" id="ladder"></div>
+    </div>
+    <p class="tip">판을 <b>위·아래·왼쪽·오른쪽으로 밀면</b> 모든 타일이 그쪽으로 미끄러집니다. 같은 수끼리 부딪히면 합쳐져 두 배가 되고, 그 수만큼 점수가 오릅니다. 한 번 밀 때마다 빈칸에 2나 4가 새로 나옵니다. 키보드 화살표나 W·A·S·D 키로도 움직일 수 있어요.</p>
+  </aside>
+</div>
+
+<script src="puzzle-common.js"></script>
+<script src="../assets/rank.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+    set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  };
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const COLORS = {
+    2:['#eef6e8','#2d3b30'], 4:['#d8efc9','#2d3b30'], 8:['#a9e08a','#1f3a1c'], 16:['#6fcf7a','#12341b'],
+    32:['#2fb38a','#ffffff'], 64:['#1e8fa6','#ffffff'], 128:['#ffd45a','#3b2a04'], 256:['#ffb84a','#3b2a04'],
+    512:['#ff8f3d','#ffffff'], 1024:['#f0653a','#ffffff'], 2048:['#d9363e','#ffffff']
+  };
+  const colorOf = v => COLORS[v] || ['#7b3fa8','#ffffff'];
+  const PAW = '<svg class="paw" viewBox="0 0 48 48"><ellipse cx="24" cy="32" rx="9" ry="8"/><ellipse cx="12" cy="18" rx="4" ry="5.5" transform="rotate(-22 12 18)"/><ellipse cx="24" cy="12" rx="4" ry="5.6"/><ellipse cx="36" cy="18" rx="4" ry="5.5" transform="rotate(22 36 18)"/></svg>';
+
+  /* ---------- state ---------- */
+  const prefs = Object.assign({ n:4, goal:2048, show:'num', undoMax:3, sound:true }, store.get('tm-2048-prefs', {}));
+  let N, grid, tiles, score, undoLeft, history, won, keepGoing, over, nextId = 1, maxTile = 0;
+  /* 랭킹: 판 크기마다 가장 높은 점수 (되돌리기를 마음껏 쓰면 올라가지 않아요) */
+  let rk={ok:true,sent:false}, booting=true;
+  const rkStart=()=>{ if(!over) TMRank.start(String(N), `${N}×${N}`); };
+  TMRank.setup({ game:'2048', title:'티라노 2048', kind:'score', unit:'점', note:'판 크기마다 가장 높은 점수예요 (되돌리기 \'마음껏\'은 빠져요)', levels:[['3','3×3'],['4','4×4'],['5','5×5'],['6','6×6']], level:()=>String(N||prefs.n), mount:['.icons','.setup-top'] });
+  const gridEl=$('grid'), boardEl=$('board'), stage=$('stage');
+
+  /* ---------- sound ---------- */
+  let actx=null;
+  function tone(f,d=.06,type='triangle',vol=.06,when=0){
+    if(!prefs.sound) return;
+    try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+      const o=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime+when;
+      o.type=type; o.frequency.value=f; g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t+d+.02); }catch(e){}
+  }
+
+  /* ---------- sizing ---------- */
+  function fit(){
+    const r=stage.getBoundingClientRect();
+    const side=Math.max(180, Math.floor(Math.min(r.width, r.height-4)));
+    boardEl.style.width=boardEl.style.height=side+'px';
+    const pad=Math.round(side*.025), cell=(side-pad*2)/N;
+    boardEl.style.setProperty('--pad', pad+'px');
+    gridEl.style.setProperty('--gap', Math.max(3, Math.round(cell*.05))+'px');
+    gridEl.style.setProperty('--cellpx', cell+'px');
+    tiles && tiles.forEach(t=>sizeText(t));
+  }
+  new ResizeObserver(fit).observe(stage);
+
+  /* ---------- tiles ---------- */
+  const place = t => { t.el.style.transform = `translate(${t.c*100}%, ${t.r*100}%)`; };
+  function label(v){
+    if(prefs.show==='pow') return `2<sup>${Math.log2(v)}</sup>`;
+    return String(v);
+  }
+  function sizeText(t){
+    const cell=parseFloat(gridEl.style.getPropertyValue('--cellpx'))||80;
+    const len = prefs.show==='pow' ? (Math.log2(t.v)>=10 ? 3 : 2.3) : String(t.v).length;
+    const k = len<=1 ? .52 : len<=2 ? .46 : len<=3 ? .38 : len<=4 ? .3 : .25;
+    t.el.style.setProperty('--fs', Math.round(cell*k)+'px');
+  }
+  function paint(t){
+    const [b,f]=colorOf(t.v);
+    t.el.style.setProperty('--tb', b); t.el.style.setProperty('--tf', f);
+    t.el.querySelector('.face').innerHTML = `<span>${label(t.v)}</span>${t.v>=prefs.goal?PAW:''}`;
+    t.el.classList.toggle('glow', t.v>=prefs.goal);
+    t.el.setAttribute('aria-label', String(t.v));
+    sizeText(t);
+  }
+  function makeTile(r,c,v,isNew){
+    const el=document.createElement('div'); el.className='tile'+(isNew?' new':'');
+    el.style.width=el.style.height=(100/N)+'%';
+    el.innerHTML='<div class="face"></div>';
+    const t={id:nextId++, r, c, v, el};
+    place(t); paint(t); gridEl.appendChild(el);
+    grid[r][c]=t; tiles.set(t.id,t);
+    if(v>maxTile) maxTile=v;
+    return t;
+  }
+  function addRandom(){
+    const empty=[]; for(let r=0;r<N;r++) for(let c=0;c<N;c++) if(!grid[r][c]) empty.push([r,c]);
+    if(!empty.length) return;
+    const [r,c]=empty[Math.floor(Math.random()*empty.length)];
+    makeTile(r,c, Math.random()<.9?2:4, true);
+  }
+
+  function buildBoard(){
+    gridEl.innerHTML='';
+    for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+      const s=document.createElement('div'); s.className='slot'; s.style.width=s.style.height=(100/N)+'%';
+      s.style.transform=`translate(${c*100}%, ${r*100}%)`; s.innerHTML='<i></i>'; gridEl.appendChild(s);
+    }
+    grid=Array.from({length:N},()=>Array(N).fill(null)); tiles=new Map(); maxTile=0;
+    fit();
+  }
+
+  /* ---------- game ---------- */
+  function snapshot(){ return { g:grid.map(row=>row.map(t=>t?t.v:0)), score, maxTile }; }
+  function restore(s){
+    buildBoard();
+    s.g.forEach((row,r)=>row.forEach((v,c)=>{ if(v) makeTile(r,c,v,false); }));
+    score=s.score;
+  }
+  function newGame(){
+    N=prefs.n; score=0; history=[]; won=false; keepGoing=false; over=false;
+    undoLeft=prefs.undoMax;
+    document.querySelector('.over')?.remove();
+    buildBoard(); addRandom(); addRandom();
+    rk={ok:prefs.undoMax<99,sent:false}; if(!booting) rkStart();
+    ui(); save();
+  }
+
+  function lines(dir){
+    const L=[];
+    for(let i=0;i<N;i++){
+      const line=[];
+      for(let j=0;j<N;j++){
+        if(dir==='left') line.push([i,j]);
+        else if(dir==='right') line.push([i,N-1-j]);
+        else if(dir==='up') line.push([j,i]);
+        else line.push([N-1-j,i]);
+      }
+      L.push(line);
+    }
+    return L;
+  }
+
+  function move(dir){
+    if(over || (won && !keepGoing)) return;
+    const before=snapshot();
+    let moved=false, gained=0;
+    const absorbed=[], popped=[];
+    for(const line of lines(dir)){
+      const items=line.map(([r,c])=>grid[r][c]).filter(Boolean);
+      const out=[];
+      for(const t of items){
+        const last=out[out.length-1];
+        if(last && !last.merged && last.t.v===t.v){ last.merged=true; last.eat=t; }
+        else out.push({t, merged:false});
+      }
+      line.forEach(([r,c])=>grid[r][c]=null);
+      out.forEach((o,k)=>{
+        const [r,c]=line[k];
+        if(o.t.r!==r || o.t.c!==c) moved=true;
+        o.t.r=r; o.t.c=c; grid[r][c]=o.t; place(o.t);
+        if(o.merged){
+          moved=true;
+          o.eat.r=r; o.eat.c=c; o.eat.el.style.zIndex=0; place(o.eat);
+          tiles.delete(o.eat.id); absorbed.push(o.eat);
+          o.t.v*=2; gained+=o.t.v; popped.push(o.t);
+          if(o.t.v>maxTile) maxTile=o.t.v;
+        }
+      });
+    }
+    if(!moved){ bump(dir); return; }
+
+    history.push(before); if(history.length>50) history.shift();
+    score+=gained;
+    const delay = reduceMotion ? 0 : 110;
+    setTimeout(()=>absorbed.forEach(t=>t.el.remove()), delay);
+    popped.forEach(t=>{ setTimeout(()=>{ if(!tiles.has(t.id)) return; paint(t); t.el.classList.remove('pop','new'); void t.el.offsetWidth; t.el.classList.add('pop'); }, delay); });
+    addRandom();
+
+    if(gained){ const top=Math.max(...popped.map(t=>t.v)); tone(260+Math.log2(top)*45,.09,'triangle',.07); plus(gained); }
+    else tone(190,.04,'sine',.04);
+
+    ui();
+    if(!won && maxTile>=prefs.goal){ won=true; setTimeout(showWin, delay+180); }
+    else if(!canMove()){ over=true; setTimeout(showOver, delay+250); }
+    save();
+  }
+
+  function canMove(){
+    for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+      const t=grid[r][c]; if(!t) return true;
+      if(c<N-1 && grid[r][c+1] && grid[r][c+1].v===t.v) return true;
+      if(r<N-1 && grid[r+1][c] && grid[r+1][c].v===t.v) return true;
+    }
+    return false;
+  }
+  function bump(dir){
+    if(reduceMotion) return;
+    const d={left:[-6,0],right:[6,0],up:[0,-6],down:[0,6]}[dir];
+    boardEl.animate([{transform:'translate(0,0)'},{transform:`translate(${d[0]}px,${d[1]}px)`},{transform:'translate(0,0)'}],{duration:160});
+  }
+  function plus(n){
+    const p=document.createElement('div'); p.className='plus'; p.textContent='+'+n; $('stScore').appendChild(p); setTimeout(()=>p.remove(),750);
+  }
+  function undo(){
+    if(!history.length || undoLeft<=0) return;
+    restore(history.pop());
+    if(prefs.undoMax<99) undoLeft--;
+    over=false; if(maxTile<prefs.goal){ won=false; keepGoing=false; }
+    document.querySelector('.over')?.remove();
+    tone(250,.07); ui(); save();
+  }
+
+  /* ---------- overlays ---------- */
+  const bestKey = () => `tm-2048-best-${N}`;
+  function saveBest(){ const b=store.get(bestKey(),0); if(score>b){ store.set(bestKey(),score); return true; } return false; }
+  function overlay(html){
+    document.querySelector('.over')?.remove();
+    const w=document.createElement('div'); w.className='over'; w.innerHTML=`<div class="over-card">${html}</div>`; boardEl.appendChild(w); return w;
+  }
+  function showWin(){
+    saveBest(); ui();
+    const w=overlay(`<h2>${prefs.goal} 완성!</h2><p>${N}×${N} 판에서 목표 수를 만들었어요</p>
+      <div class="rec">점수 ${score.toLocaleString()}</div>
+      <div class="actions"><button class="btn" id="oNew">새 게임</button><button class="btn primary" id="oGo">계속하기</button></div>`);
+    $('oGo').onclick=()=>{ keepGoing=true; w.remove(); save(); }; $('oNew').onclick=newGame; $('oGo').focus({preventScroll:true});
+    [523,659,784,1047].forEach((f,i)=>tone(f,.18,'triangle',.08,i*.11));
+    confetti();
+  }
+  function showOver(){
+    const isNew=saveBest(); ui();
+    const canUndo = history.length && undoLeft>0;
+    const w=overlay(`<h2>더 움직일 수 없어요</h2><p>가장 큰 수 ${maxTile}</p>
+      <div class="rec">점수 ${score.toLocaleString()}</div>${isNew?'<div class="new">새 최고 기록</div>':''}
+      <div class="actions"><button class="btn" id="oUndo" ${canUndo?'':'disabled'}>되돌리기</button><button class="btn primary" id="oNew">다시 하기</button></div>`);
+    $('oNew').onclick=newGame; $('oUndo').onclick=undo; $('oNew').focus({preventScroll:true});
+    if(!booting && rk.ok && !rk.sent && score>0){ rk.sent=true; save(); TMRank.finish({ level:String(N), name:`${N}×${N}`, value:score }); }
+    tone(220,.25,'sine',.07); tone(165,.35,'sine',.07,.18);
+  }
+  function confetti(){
+    if(reduceMotion) return;
+    const cv=document.createElement('canvas'); cv.id='confetti'; boardEl.appendChild(cv);
+    const w=cv.width=boardEl.clientWidth, h=cv.height=boardEl.clientHeight, ctx=cv.getContext('2d');
+    const cols=['#ffd45a','#8E5BD6','#ff8f3d','#2fb38a','#d9363e','#a9e08a'];
+    const ps=Array.from({length:130},()=>({x:w/2,y:h*.45,vx:(Math.random()-.5)*w*.025,vy:-Math.random()*h*.025-h*.006,s:4+Math.random()*7,c:cols[Math.floor(Math.random()*cols.length)],a:Math.random()*6}));
+    const t1=performance.now();
+    (function step(t){ ctx.clearRect(0,0,w,h); ps.forEach(p=>{ p.vy+=h*.0007; p.x+=p.vx; p.y+=p.vy; p.a+=.2; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a); ctx.fillStyle=p.c; ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore(); });
+      if(t-t1<2600) requestAnimationFrame(step); else cv.remove(); })(t1);
+  }
+
+  /* ---------- ui ---------- */
+  function ui(){
+    $('sScore').textContent=score.toLocaleString();
+    $('sBest').textContent=Math.max(score, store.get(bestKey(),0)).toLocaleString();
+    $('sGoal').innerHTML = prefs.show==='pow' ? `2<sup style="font-size:.55em">${Math.log2(prefs.goal)}</sup>` : prefs.goal;
+    $('undoTxt').textContent = prefs.undoMax>=99 ? '되돌리기' : `되돌리기 ${undoLeft}`;
+    $('bUndo').disabled = !history.length || undoLeft<=0;
+    const lad=$('ladder'); let h='';
+    for(let v=2; v<=Math.max(2048,prefs.goal); v*=2){
+      const [b,f]=colorOf(v);
+      h+=`<span class="${v<=maxTile?'got':''}" style="background:${b};color:${f}">${v}<small>2<sup>${Math.log2(v)}</sup></small></span>`;
+    }
+    lad.innerHTML=h;
+  }
+  function segSync(){
+    const map={segSize:String(prefs.n), segGoal:String(prefs.goal), segShow:prefs.show, segUndo:String(prefs.undoMax)};
+    for(const id in map) document.querySelectorAll('#'+id+' button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===map[id]));
+    $('bSound').setAttribute('aria-pressed', prefs.sound);
+  }
+  function save(){
+    store.set('tm-2048-prefs', prefs);
+    store.set('tm-2048-game', { n:N, s:snapshot(), history:history.slice(-20), undoLeft, won, keepGoing, over, rk });
+  }
+  function load(){
+    const g=store.get('tm-2048-game',null);
+    if(!g || !g.s || !Array.isArray(g.s.g) || g.n!==prefs.n || g.s.g.length!==g.n) return false;
+    N=g.n; history=g.history||[]; undoLeft=g.undoLeft??prefs.undoMax; won=!!g.won; keepGoing=!!g.keepGoing; over=!!g.over; rk=g.rk||{ok:prefs.undoMax<99,sent:false};
+    restore(g.s); return true;
+  }
+
+  /* ---------- input: swipe (touch, pen, mouse) + keyboard ---------- */
+  const ptrs=new Map();
+  boardEl.addEventListener('pointerdown', e=>{
+    if(e.target.closest('.over')) return;
+    if(e.pointerType==='mouse' && e.button!==0) return;
+    ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,done:false});
+    try{ boardEl.setPointerCapture(e.pointerId); }catch(_){}
+  });
+  function swipeCheck(e, final){
+    const s=ptrs.get(e.pointerId); if(!s || s.done) return;
+    const dx=e.clientX-s.x, dy=e.clientY-s.y;
+    const th=Math.max(22, boardEl.clientWidth*.06);
+    if(Math.max(Math.abs(dx),Math.abs(dy)) < th) return;
+    s.done=true;
+    move(Math.abs(dx)>Math.abs(dy) ? (dx<0?'left':'right') : (dy<0?'up':'down'));
+  }
+  boardEl.addEventListener('pointermove', e=>swipeCheck(e,false));
+  boardEl.addEventListener('pointerup', e=>{ swipeCheck(e,true); ptrs.delete(e.pointerId); });
+  boardEl.addEventListener('pointercancel', e=>ptrs.delete(e.pointerId));
+  document.addEventListener('keydown', e=>{
+    const m={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',a:'left',d:'right',w:'up',s:'down',A:'left',D:'right',W:'up',S:'down'}[e.key];
+    if(m && !e.altKey && !e.ctrlKey && !e.metaKey){ e.preventDefault(); move(m); }
+    if((e.key==='z'||e.key==='Z') && (e.ctrlKey||e.metaKey)){ e.preventDefault(); undo(); }
+  });
+
+  /* ---------- controls ---------- */
+  function gameSetting(fn){ fn(); segSync(); store.set('tm-2048-prefs',prefs); newGame(); }
+  document.querySelectorAll('#segSize button').forEach(b=>b.onclick=()=>{ if(+b.dataset.v!==prefs.n) gameSetting(()=>prefs.n=+b.dataset.v); });
+  document.querySelectorAll('#segGoal button').forEach(b=>b.onclick=()=>{
+    prefs.goal=+b.dataset.v; segSync();
+    if(maxTile>=prefs.goal){ won=true; keepGoing=true; } else { won=false; keepGoing=false; }
+    tiles.forEach(paint); ui(); save();
+  });
+  document.querySelectorAll('#segShow button').forEach(b=>b.onclick=()=>{ prefs.show=b.dataset.v; segSync(); tiles.forEach(paint); ui(); save(); });
+  document.querySelectorAll('#segUndo button').forEach(b=>b.onclick=()=>{ prefs.undoMax=+b.dataset.v; undoLeft=prefs.undoMax; rk.ok = history.length ? false : prefs.undoMax<99; segSync(); ui(); save(); });
+  $('bSound').onclick=()=>{ prefs.sound=!prefs.sound; segSync(); save(); if(prefs.sound) tone(660); };
+  $('bUndo').onclick=undo;
+
+  let armed=null;
+  $('bNew').onclick=()=>{
+    const sp=$('bNew').querySelector('span');
+    if(!history.length || over){ newGame(); return; }
+    if(armed){ clearTimeout(armed); armed=null; sp.textContent='새 게임'; newGame(); return; }
+    sp.textContent='한 번 더 누르기';
+    armed=setTimeout(()=>{ armed=null; sp.textContent='새 게임'; },3000);
+  };
+
+  const fullBtn=$('bFull');
+  if(document.fullscreenEnabled || document.webkitFullscreenEnabled){
+    fullBtn.hidden=false;
+    fullBtn.onclick=()=>{ try{
+      if(document.fullscreenElement||document.webkitFullscreenElement) (document.exitFullscreen||document.webkitExitFullscreen).call(document);
+      else { const el=document.documentElement; const p=(el.requestFullscreen||el.webkitRequestFullscreen).call(el); p&&p.catch&&p.catch(()=>{}); }
+    }catch(_){} };
+  }
+  async function wake(){ try{ if(navigator.wakeLock && document.visibilityState==='visible') await navigator.wakeLock.request('screen'); }catch(_){} }
+  document.addEventListener('visibilitychange', wake); wake();
+
+  /* ---------- start ---------- */
+  segSync();
+  N=prefs.n;
+  if(load()){ ui(); if(over) showOver(); else if(won && !keepGoing) showWin(); }
+  else newGame();
+  document.fonts && document.fonts.ready.then(()=>tiles.forEach(sizeText));
+  booting=false;
+
+  /* ---------- 퍼즐존 시작 화면 ---------- */
+  const ov=document.getElementById('startOv');
+  const pick=g=>{ const b=ov.querySelector('#'+g+' [aria-pressed="true"]'); return b?b.dataset.v:null; };
+  const mark=(g,v)=>ov.querySelectorAll('#'+g+' button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===String(v)));
+  ov.querySelectorAll('.chips').forEach(g=>g.addEventListener('click',e=>{ const b=e.target.closest('button'); if(b){ mark(g.id,b.dataset.v); showPick(); } }));
+  // 시작 화면이 떠 있는 동안에는 키보드가 판을 움직이지 않아요
+  ['keydown','keyup'].forEach(t=>window.addEventListener(t,e=>{ if(!ov.hidden && !(e.key==='Enter' || e.key===' ' || e.key==='Tab') ) e.stopImmediatePropagation(); },true));
+
+  const showPick=()=>{ const n=+pick('lvChips'); const b=store.get(`tm-2048-best-${n}`,0); $('bestTxt').textContent = b ? `🏆 ${n}×${n} 내 최고 점수: ${b.toLocaleString()}점` : ''; };
+  mark('lvChips', prefs.n); showPick();
+  $('go').onclick=()=>{
+    const n=+pick('lvChips'); ov.hidden=true;
+    if(n!==prefs.n){ prefs.n=n; segSync(); store.set('tm-2048-prefs',prefs); newGame(); }
+    else if(over){ newGame(); }
+    else rkStart();
+    fit(); boardEl.focus({preventScroll:true});
+  };
+})();
+</script>
+</body>
+</html>

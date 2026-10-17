@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>티라노 켄켄</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<style>
+/* Layout: one screen, no tabs. Paper-white puzzle grid on the left (or top), number pad + controls in the rail. */
+:root{
+  --bg:#FFF8EC; --surface:#ffffff; --ink:#22314A; --muted:#5D6C83; --line:#ECDFC8;
+  --accent:#8E5BD6; --accent-ink:#ffffff; --accent-soft:#EFE6FF;
+  --paper:#fffdf8; --grid-thin:#D6CDE3; --grid-thick:#22314A; --entry:#6C3FB4; --given:#22314A;
+  --sel:#ffe6a3; --peer:#F4EEFC; --same:#E6DAFA; --bad:#d64045; --bad-soft:#fde3e3;
+  --overlay:rgba(40,28,70,.6);
+  --font-display:"Jua","Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --font-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+
+html,body{height:100%;margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;
+  -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;overflow:hidden}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.app{height:100%;max-width:1680px;margin:0 auto;padding-inline:16px;padding-block:12px;
+  display:grid;gap:12px;grid-template-columns:minmax(0,1fr);
+  grid-template-rows:auto auto auto;grid-template-areas:"top" "stage" "panel";overflow:auto}
+@media (min-aspect-ratio:5/4) and (min-width:760px){
+  .app{grid-template-columns:minmax(0,1fr) clamp(290px,28vw,420px);grid-template-rows:auto minmax(0,1fr);
+    grid-template-areas:"top top" "stage panel";gap:14px clamp(16px,2vw,32px);padding-block:16px}
+}
+@media not ((min-aspect-ratio:5/4) and (min-width:760px)){
+  body{overflow:auto} .app{height:auto;min-height:100%;overflow:visible}
+}
+
+.top{grid-area:top;display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;margin-right:auto}
+.brand svg{width:clamp(34px,3.2vw,48px);height:auto;flex:none}
+.brand-txt{display:flex;flex-direction:column;line-height:1.05}
+.brand-txt small{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.brand-txt b{font-family:var(--font-display);font-weight:400;font-size:clamp(20px,2.2vw,32px)}
+.stats{display:flex;gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:5px 12px;min-width:78px;text-align:center}
+.stat span{display:block;font-size:12px;color:var(--muted);letter-spacing:.04em}
+.stat b{display:block;font-family:var(--font-display);font-weight:400;font-size:clamp(18px,1.9vw,28px);font-variant-numeric:tabular-nums;line-height:1.1}
+.icons{display:flex;gap:6px}
+.icon-btn{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;touch-action:manipulation}
+.icon-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.icon-btn[aria-pressed="false"] .on,.icon-btn[aria-pressed="true"] .off{display:none}
+
+/* board */
+.stage{grid-area:stage;min-height:0;min-width:0;display:grid;place-items:center;position:relative}
+.board{position:relative;background:var(--paper);border:4px solid var(--grid-thick);border-radius:10px;touch-action:manipulation;max-width:100%;overflow:hidden;
+  display:grid;box-shadow:0 18px 40px -20px rgba(0,0,0,.45)}
+.cell{position:relative;border-top:1px solid var(--grid-thin);border-left:1px solid var(--grid-thin);cursor:pointer;display:grid;place-items:center;min-width:0;min-height:0}
+.cell.tt{border-top:3px solid var(--grid-thick)} .cell.tl{border-left:3px solid var(--grid-thick)}
+.cell.r0{border-top:0} .cell.c0{border-left:0}
+.cell.peer{background:var(--peer)} .cell.same{background:var(--same)} .cell.sel{background:var(--sel)}
+.cell.dup{background:var(--bad-soft)}
+.cell .lab{position:absolute;left:6%;top:4%;font-family:var(--font-display);font-size:calc(var(--cell)*.21);line-height:1;color:var(--ink);white-space:nowrap;z-index:1}
+.cell .lab.bad{color:var(--bad)}
+.cell .v{font-family:var(--font-display);font-size:calc(var(--cell)*.52);line-height:1;color:var(--entry);transform:translateY(8%)}
+.cell.fixed .v{color:var(--given)}
+.cell.dup .v{color:var(--bad)}
+.cell.hinted .v{color:var(--accent)}
+.cell .notes{position:absolute;inset:26% 6% 6%;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+  font-size:calc(var(--cell)*.16);line-height:1;color:var(--muted);font-variant-numeric:tabular-nums;font-family:var(--font-body);font-weight:700}
+.cell .notes span{display:grid;place-items:center}
+.board.making::after{content:"퍼즐 만드는 중…";position:absolute;inset:0;display:grid;place-items:center;background:var(--overlay);color:#fff;font-family:var(--font-display);font-size:22px}
+.over{position:absolute;inset:0;display:grid;place-items:center;background:var(--overlay);z-index:5}
+.over-card{background:var(--surface);color:var(--ink);border-radius:20px;padding:clamp(18px,3vw,30px);text-align:center;width:min(86%,360px);box-shadow:0 20px 50px -20px rgba(0,0,0,.6)}
+.over-card h2{margin:0 0 4px;font-family:var(--font-display);font-weight:400;font-size:clamp(28px,4vw,44px);color:var(--accent)}
+.over-card p{margin:0 0 6px;color:var(--muted)}
+.over-card .rec{font-family:var(--font-display);font-size:clamp(20px,2.4vw,28px);margin:10px 0 14px;font-variant-numeric:tabular-nums}
+.over-card .new{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:2px 12px;font-size:13px;margin-bottom:12px}
+#confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6}
+
+/* panel */
+.panel{grid-area:panel;min-height:0;min-width:0;display:flex;flex-direction:column;gap:12px}
+@media (min-aspect-ratio:5/4) and (min-width:760px){.panel{overflow:auto;padding-right:2px}}
+.group{display:flex;flex-direction:column;gap:6px;min-width:0}
+.label{font-size:13px;color:var(--muted);letter-spacing:.05em}
+.pad{display:grid;grid-template-columns:repeat(var(--padcols,3),1fr);gap:8px}
+.pad button{min-height:clamp(52px,7vh,72px);border-radius:14px;border:1px solid var(--line);background:var(--surface);cursor:pointer;
+  font-family:var(--font-display);font-size:clamp(24px,2.6vw,34px);touch-action:manipulation;position:relative}
+.pad button small{position:absolute;right:8px;bottom:5px;font-size:11px;color:var(--muted);font-family:var(--font-body)}
+.pad button.done{opacity:.4}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px}
+.seg button{border:0;background:transparent;border-radius:10px;min-height:42px;cursor:pointer;font-family:var(--font-display);font-size:clamp(15px,1.4vw,19px);touch-action:manipulation;white-space:nowrap;padding:0 4px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.btn{min-height:50px;border-radius:14px;border:1px solid var(--line);background:var(--surface);cursor:pointer;white-space:nowrap;min-width:0;
+  font-family:var(--font-display);font-size:clamp(15px,1.5vw,20px);display:flex;align-items:center;justify-content:center;gap:6px;padding:0 6px;touch-action:manipulation}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 12px;min-height:46px;cursor:pointer}
+.toggle input{width:22px;height:22px;accent-color:var(--accent)}
+.help{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.6}
+.help b{font-family:var(--font-display);font-weight:400;font-size:17px}
+.help .ex{display:inline-block;font-family:var(--font-display);background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:0 6px}
+@media not ((min-aspect-ratio:5/4) and (min-width:760px)){
+  .panel{gap:10px}
+  .setup{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .help{display:none}
+  .stat{min-width:64px;padding:4px 10px}
+}
+@media (max-width:560px){ .setup{grid-template-columns:1fr !important} .brand-txt small{display:none} .top{gap:8px} }
+
+/* ---------- 티라노 퍼즐존 모양 ---------- */
+.brand .back{text-decoration:none;font-family:var(--font-display);background:#8E5BD6;color:#fff;border-radius:999px;padding:6px 14px;white-space:nowrap;font-size:15px;flex:none}
+.brand .dino-logo{display:flex;flex:none}
+.brand .dino-logo svg{width:clamp(40px,3.6vw,54px);height:auto}
+.brand-txt b{color:#6C3FB4}
+.icons{align-items:center}
+#startOv.setup:not([hidden]){display:block!important;position:fixed;inset:0;z-index:40}
+#startOv .back{text-decoration:none;font-family:'Jua',sans-serif;background:#8E5BD6;color:#fff;border-radius:999px;padding:6px 14px;white-space:nowrap}
+#startOv .chips button{color:#22314A;cursor:pointer}
+#startOv .chips button[aria-pressed="true"]{color:#fff}
+#startOv .btn.go{border:0;border-radius:18px;padding:8px 30px;background:#4CB963;color:#fff;font-family:'Jua',sans-serif;font-size:clamp(20px,2.4vw,28px);
+  box-shadow:0 5px 0 #2F8A47;min-height:56px;min-width:min(100%,300px)}
+#startOv .btn.go:active{transform:translateY(4px);box-shadow:0 1px 0 #2F8A47}
+#startOv .resume{margin:8px 0 0;color:#5D6C83;font-size:14px}
+@media (max-width:560px){.brand .back{padding:5px 10px;font-size:13px}.brand .dino-logo svg{width:36px}
+  .icon-btn{width:40px;height:40px}.icons .tmr-btn .tmr-t{display:none}.stat{min-width:56px!important;padding:3px 8px!important}.stats{gap:6px}.top{gap:8px 10px!important}}
+</style>
+<link rel="stylesheet" href="puzzle-setup.css">
+</head>
+<body>
+
+
+<div class="overlay setup" id="startOv"><div class="setup-in">
+  <header class="setup-top"><a class="back setup-back" href="../puzzlezone.html" hidden>← 퍼즐존</a><div class="title"><span class="dino-logo"></span>티라노 켄켄</div></header>
+  <section class="intro-card"><div><h1 style="--n:20">크앙! 칸마다 숫자를 넣어 <span class="hl">계산 퍼즐</span>을 풀어요</h1><p>가로줄과 세로줄에 <b>같은 수가 두 번 나오면 안 돼요</b>. 굵은 선으로 묶인 칸의 수를 계산하면 왼쪽 위에 적힌 결과가 나와야 해요.</p><div class="howto"><span><b>①</b>칸을 고르고 숫자 넣기</span><span><b>②</b>줄마다 수는 한 번씩</span><span><b>③</b>묶음 칸 계산 맞추기</span></div></div>
+    <div class="intro-art" aria-hidden="true"><img src="thumbs/kenken.svg" alt=""><span class="spark s1">+</span><span class="spark s2">÷</span></div></section>
+  <section class="opt"><h3>크기 <small>판이 클수록 어려워요</small></h3><div class="chips" id="lvChips"><button data-v="3">3×3<small>1~3</small></button><button data-v="4">4×4<small>1~4</small></button><button data-v="5">5×5<small>1~5</small></button><button data-v="6">6×6<small>1~6</small></button><button data-v="7">7×7<small>1~7</small></button></div></section><section class="opt"><h3>쓰는 연산 <small></small></h3><div class="chips" id="opChips"><button data-v="1">+<small>덧셈만</small></button><button data-v="2">+ −<small>덧셈·뺄셈</small></button><button data-v="3">+ − × ÷<small>사칙연산</small></button></div></section>
+  <p class="best" id="bestTxt"></p>
+  <div class="row start-row"><button class="btn go" id="go">시작하기 🦖</button></div>
+</div></div>
+
+<div class="app">
+  <header class="top">
+    <div class="brand"><a class="back" id="back" href="../puzzlezone.html" hidden>← 퍼즐존</a><span class="dino-logo"></span>
+      <div class="brand-txt"><small>TyranoMath</small><b>티라노 켄켄</b></div>
+    </div>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><span>시간</span><b id="sTime">0:00</b></div>
+      <div class="stat"><span>최고</span><b id="sBest">–</b></div>
+      <div class="stat"><span>힌트</span><b id="sHint">0</b></div>
+    </div>
+    <div class="icons">
+      <button class="icon-btn" id="bSound" aria-pressed="true" aria-label="효과음">
+        <svg class="on" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+        <svg class="off" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>
+      </button>
+      <button class="icon-btn" id="bFull" aria-label="전체 화면" hidden><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="board" id="board" role="grid" aria-label="켄켄 퍼즐 판"></div>
+  </main>
+
+  <aside class="panel">
+    <div class="group">
+      <div class="pad" id="pad"></div>
+      <div class="tools">
+        <button class="btn" id="bMemo" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg>메모</button>
+        <button class="btn" id="bErase"><svg viewBox="0 0 24 24"><path d="M20 20H9L4 15l9-9 7 7-6 6"/><path d="M8 11l5 5"/></svg>지우기</button>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="bNew"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg><span>새 퍼즐</span></button>
+      <button class="btn" id="bUndo"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>되돌리기</button>
+      <button class="btn" id="bHint"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg>힌트</button>
+    </div>
+    <div class="setup">
+      <div class="group">
+        <div class="label">크기</div>
+        <div class="seg" id="segSize"><button data-v="3">3×3</button><button data-v="4">4×4</button><button data-v="5">5×5</button><button data-v="6">6×6</button><button data-v="7">7×7</button></div>
+        <div class="label">쓰는 연산</div>
+        <div class="seg" id="segOps"><button data-v="1">+</button><button data-v="2">+ −</button><button data-v="3">+ − × ÷</button></div>
+      </div>
+      <div class="group">
+        <label class="toggle" for="chkErr"><span>실수 바로 표시</span><input type="checkbox" id="chkErr"></label>
+        <label class="toggle" for="chkAuto"><span>메모 자동 정리</span><input type="checkbox" id="chkAuto"></label>
+      </div>
+    </div>
+    <div class="help" id="help"></div>
+  </aside>
+</div>
+
+<script src="puzzle-common.js"></script>
+<script src="../assets/rank.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+    set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  };
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const prefs = Object.assign({ n:4, ops:2, err:true, auto:true, sound:true }, store.get('tm-kenken-prefs',{}));
+  /* 랭킹: 크기·연산마다 가장 빨리 푼 시간 (힌트를 써도 올라가요) */
+  const OPN={1:'+',2:'+ −',3:'+ − × ÷'};
+  const lvName=(n,o)=>`${n}×${n} · ${OPN[o]}`;
+  const RK_LV=[]; [3,4,5,6,7].forEach(n=>[1,2,3].forEach(o=>RK_LV.push([`${n}-${o}`, lvName(n,o)])));
+  const rkStart=()=>{ if(P && !done) TMRank.start(`${N}-${prefs.ops}`, lvName(N,prefs.ops)); };
+  TMRank.setup({ game:'kenken', title:'티라노 켄켄', kind:'time', note:'크기와 연산마다 가장 빨리 푼 순위예요', levels:RK_LV, level:()=>`${N||prefs.n}-${prefs.ops}`, mount:['.icons','.setup-top'] });
+  const SYM={'+':'+','-':'−','*':'×','/':'÷'};
+
+  /* ---------------- generator ---------------- */
+  const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+  function latin(n){
+    const rows=shuffle([...Array(n).keys()]), cols=shuffle([...Array(n).keys()]), sym=shuffle([...Array(n)].map((_,i)=>i+1));
+    return rows.map(r=>cols.map(c=>sym[(r+c)%n]));
+  }
+  function makeCages(n, level){
+    const id=Array.from({length:n},()=>Array(n).fill(-1)), cages=[];
+    const order=shuffle([...Array(n*n).keys()]);
+    const maxSize = n<=3 ? 3 : (level>=3 ? 4 : 3);
+    for(const k of order){
+      const r0=Math.floor(k/n), c0=k%n; if(id[r0][c0]>=0) continue;
+      const x=Math.random();
+      let target = x<.07?1 : x<.52?2 : x<.86?3 : 4; target=Math.min(target,maxSize);
+      const cells=[[r0,c0]]; id[r0][c0]=cages.length;
+      while(cells.length<target){
+        const opts=[];
+        for(const [r,c] of cells) for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){ const rr=r+dr, cc=c+dc; if(rr>=0&&rr<n&&cc>=0&&cc<n&&id[rr][cc]<0) opts.push([rr,cc]); }
+        if(!opts.length) break;
+        const [rr,cc]=opts[Math.floor(Math.random()*opts.length)]; id[rr][cc]=cages.length; cells.push([rr,cc]);
+      }
+      cages.push({cells});
+    }
+    // fold lone singles into a neighbour cage when there are too many of them
+    return cages;
+  }
+  function assignOps(cages, sol, level){
+    for(const g of cages){
+      const vals=g.cells.map(([r,c])=>sol[r][c]), k=vals.length;
+      const sum=vals.reduce((a,b)=>a+b,0), prod=vals.reduce((a,b)=>a*b,1);
+      if(k===1){ g.op=''; g.t=vals[0]; continue; }
+      if(level===1){ g.op='+'; g.t=sum; continue; }
+      if(k===2){
+        const hi=Math.max(...vals), lo=Math.min(...vals);
+        if(level===3 && hi%lo===0 && Math.random()<.55){ g.op='/'; g.t=hi/lo; continue; }
+        if(Math.random()<(level===2?.6:.45)){ g.op='-'; g.t=hi-lo; continue; }
+        if(level===3 && Math.random()<.5){ g.op='*'; g.t=prod; continue; }
+        g.op='+'; g.t=sum; continue;
+      }
+      if(level===3 && Math.random()<.4 && prod<=720){ g.op='*'; g.t=prod; continue; }
+      g.op='+'; g.t=sum;
+    }
+  }
+  function combos(g, n){
+    const cells=g.cells, k=cells.length, out=[], cur=[];
+    const ok = arr => {
+      if(g.op===''){ return arr[0]===g.t; }
+      if(g.op==='+') return arr.reduce((a,b)=>a+b,0)===g.t;
+      if(g.op==='*') return arr.reduce((a,b)=>a*b,1)===g.t;
+      if(g.op==='-') return Math.abs(arr[0]-arr[1])===g.t;
+      if(g.op==='/') return Math.max(arr[0],arr[1])===g.t*Math.min(arr[0],arr[1]);
+    };
+    (function rec(i){
+      if(i===k){ if(ok(cur)) out.push(cur.slice()); return; }
+      for(let v=1;v<=n;v++){
+        let bad=false; for(let j=0;j<i;j++) if(cur[j]===v && (cells[j][0]===cells[i][0]||cells[j][1]===cells[i][1])){ bad=true; break; }
+        if(bad) continue; cur[i]=v; rec(i+1);
+      }
+    })(0);
+    return out;
+  }
+  // count solutions (up to limit) given cages and fixed cells; returns {count, sols}
+  function solve(n, cages, fixed, limit=2){
+    const cageOf=Array.from({length:n},()=>Array(n).fill(0)), pos=Array.from({length:n},()=>Array(n).fill(0));
+    cages.forEach((g,gi)=>g.cells.forEach(([r,c],j)=>{ cageOf[r][c]=gi; pos[r][c]=j; }));
+    const cmb=cages.map(g=>combos(g,n));
+    const grid=Array.from({length:n},()=>Array(n).fill(0));
+    const rowU=Array.from({length:n},()=>new Set()), colU=Array.from({length:n},()=>new Set());
+    const sols=[]; let count=0, steps=0;
+    const place=(r,c,v)=>{ grid[r][c]=v; rowU[r].add(v); colU[c].add(v); };
+    const unplace=(r,c,v)=>{ grid[r][c]=0; rowU[r].delete(v); colU[c].delete(v); };
+    for(const [k,v] of Object.entries(fixed||{})){ const r=Math.floor(k/n), c=k%n; place(r,c,v); }
+    function allowed(r,c){
+      const gi=cageOf[r][c], g=cages[gi], p=pos[r][c], res=new Set();
+      for(const cb of cmb[gi]){
+        const v=cb[p]; if(res.has(v) || rowU[r].has(v) || colU[c].has(v)) continue;
+        let fit=true; for(let j=0;j<g.cells.length;j++){ const [rr,cc]=g.cells[j]; const gv=grid[rr][cc]; if(gv && gv!==cb[j]){ fit=false; break; } }
+        if(fit) res.add(v);
+      }
+      return res;
+    }
+    (function rec(){
+      if(count>=limit || ++steps>400000) return;
+      let best=null, bestSet=null;
+      for(let r=0;r<n;r++) for(let c=0;c<n;c++) if(!grid[r][c]){
+        const s=allowed(r,c); if(!s.size) return;
+        if(!best || s.size<bestSet.size){ best=[r,c]; bestSet=s; if(s.size===1) break; }
+      }
+      if(!best){ count++; sols.push(grid.map(row=>row.slice())); return; }
+      const [r,c]=best;
+      for(const v of bestSet){ place(r,c,v); rec(); unplace(r,c,v); if(count>=limit) return; }
+    })();
+    return { count, sols, aborted: steps>400000 };
+  }
+  function generate(n, level){
+    let last=null;
+    for(let attempt=0; attempt<40; attempt++){
+      const sol=latin(n), cages=makeCages(n,level); assignOps(cages,sol,level);
+      const singles=cages.filter(g=>g.cells.length===1).length;
+      if(singles > Math.ceil(n/2)) continue;
+      const r=solve(n,cages,{},2);
+      last={sol,cages};
+      if(r.count===1) return {sol,cages,fixed:{}};
+    }
+    // fallback: pin cells where the two found solutions differ until unique
+    const {sol,cages}=last, fixed={};
+    for(let guard=0; guard<n*n; guard++){
+      const r=solve(n,cages,fixed,2); if(r.count<=1) break;
+      const [a,b]=r.sols; let pin=-1;
+      for(let i=0;i<n*n && pin<0;i++){ const rr=Math.floor(i/n), cc=i%n; if(a[rr][cc]!==b[rr][cc]) pin=i; }
+      if(pin<0) break; fixed[pin]=sol[Math.floor(pin/n)][pin%n];
+    }
+    return {sol,cages,fixed};
+  }
+
+  /* ---------------- state ---------------- */
+  let P, N, vals, notes, sel=0, memo=false, hist=[], hints=0, hinted=new Set(), t0=0, elapsed=0, timer=null, done=false;
+  const boardEl=$('board'), stage=$('stage');
+  const cageIdx = () => { const m=Array(N*N); P.cages.forEach((g,gi)=>g.cells.forEach(([r,c])=>m[r*N+c]=gi)); return m; };
+  let CI=[];
+
+  /* ---------------- sound ---------------- */
+  let actx=null;
+  function tone(f,d=.06,type='triangle',vol=.06,when=0){
+    if(!prefs.sound) return;
+    try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+      const o=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime+when;
+      o.type=type; o.frequency.value=f; g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t+d+.02); }catch(e){}
+  }
+
+  /* ---------------- sizing + drawing ---------------- */
+  function fit(){
+    if(!N) return;
+    const r=stage.getBoundingClientRect();
+    const wide=matchMedia('(min-aspect-ratio:5/4) and (min-width:760px)').matches;
+    const maxH = wide ? r.height-4 : window.innerHeight*0.62;
+    const side=Math.max(220, Math.floor(Math.min(r.width, maxH, 900)));
+    boardEl.style.width=boardEl.style.height=side+'px';
+    boardEl.style.setProperty('--cell', (side/N)+'px');
+  }
+  new ResizeObserver(fit).observe(stage); addEventListener('resize', fit);
+
+  let cellEls=[];
+  function build(){
+    boardEl.innerHTML=''; cellEls=[];
+    boardEl.style.gridTemplateColumns=`repeat(${N},1fr)`; boardEl.style.gridTemplateRows=`repeat(${N},1fr)`;
+    CI=cageIdx();
+    const labelCell = P.cages.map(g=>g.cells.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1])[0]);
+    for(let i=0;i<N*N;i++){
+      const r=Math.floor(i/N), c=i%N, d=document.createElement('div');
+      d.className='cell'+(r===0?' r0':'')+(c===0?' c0':'')+(r>0&&CI[i]!==CI[i-N]?' tt':'')+(c>0&&CI[i]!==CI[i-1]?' tl':'');
+      d.setAttribute('role','gridcell');
+      const g=P.cages[CI[i]], lc=labelCell[CI[i]];
+      d.innerHTML=(lc[0]===r&&lc[1]===c?`<span class="lab">${g.t}${g.op?SYM[g.op]:''}</span>`:'')+'<span class="v"></span><div class="notes"></div>';
+      d.addEventListener('pointerdown', e=>{ if(e.pointerType==='mouse'&&e.button!==0) return; sel=i; render(); });
+      boardEl.appendChild(d); cellEls.push(d);
+    }
+    // number pad
+    const pad=$('pad'); pad.innerHTML='';
+    pad.style.setProperty('--padcols', N<=3?3:(N===4?4:(N===5?5:(N===6?3:4))));
+    for(let v=1;v<=N;v++){ const b=document.createElement('button'); b.dataset.v=v; b.innerHTML=`${v}<small></small>`; b.onclick=()=>input(v); pad.appendChild(b); }
+    fit();
+  }
+  function cageStatus(gi){
+    const g=P.cages[gi], arr=g.cells.map(([r,c])=>vals[r*N+c]);
+    if(arr.some(v=>!v)) return 'open';
+    const s=arr.reduce((a,b)=>a+b,0), p=arr.reduce((a,b)=>a*b,1);
+    const ok = g.op==='' ? arr[0]===g.t : g.op==='+' ? s===g.t : g.op==='*' ? p===g.t
+      : g.op==='-' ? Math.abs(arr[0]-arr[1])===g.t : Math.max(...arr)===g.t*Math.min(...arr);
+    return ok?'ok':'bad';
+  }
+  function render(){
+    const sr=Math.floor(sel/N), sc=sel%N, sv=vals[sel];
+    const dup=new Set();
+    if(prefs.err){
+      for(let i=0;i<N*N;i++){ if(!vals[i]) continue; const r=Math.floor(i/N), c=i%N;
+        for(let j=0;j<N*N;j++){ if(j===i||vals[j]!==vals[i]) continue; if(Math.floor(j/N)===r||j%N===c){ dup.add(i); break; } } }
+    }
+    const badCage=new Set(); if(prefs.err) P.cages.forEach((g,gi)=>{ if(cageStatus(gi)==='bad') badCage.add(gi); });
+    for(let i=0;i<N*N;i++){
+      const el=cellEls[i], r=Math.floor(i/N), c=i%N;
+      el.classList.toggle('sel', i===sel);
+      el.classList.toggle('peer', i!==sel && (r===sr||c===sc||CI[i]===CI[sel]));
+      el.classList.toggle('same', i!==sel && !!sv && vals[i]===sv);
+      el.classList.toggle('dup', dup.has(i));
+      el.classList.toggle('fixed', P.fixed[i]!==undefined);
+      el.classList.toggle('hinted', hinted.has(i));
+      el.querySelector('.v').textContent = vals[i]||'';
+      const nt=el.querySelector('.notes');
+      nt.innerHTML = vals[i] ? '' : [...Array(N)].map((_,k)=>`<span>${notes[i].includes(k+1)?k+1:''}</span>`).join('');
+      nt.style.gridTemplateColumns = `repeat(${N<=4?2:3},1fr)`;
+      const lab=el.querySelector('.lab'); if(lab) lab.classList.toggle('bad', badCage.has(CI[i]));
+      el.setAttribute('aria-label', `${r+1}행 ${c+1}열 ${vals[i]||'빈칸'}`);
+    }
+    const cnt=Array(N+1).fill(0); vals.forEach(v=>v&&cnt[v]++);
+    document.querySelectorAll('#pad button').forEach(b=>{ const v=+b.dataset.v; b.classList.toggle('done', cnt[v]>=N); b.querySelector('small').textContent = N-cnt[v]>0 ? N-cnt[v] : ''; });
+    $('bMemo').setAttribute('aria-pressed', memo);
+    $('bUndo').disabled=!hist.length;
+    $('sHint').textContent=hints;
+    help();
+  }
+  function help(){
+    const g=P.cages[CI[sel]], k=g.cells.length;
+    const opTxt = g.op==='' ? `한 칸짜리 묶음이에요. 여기에는 <b style="font-size:inherit">${g.t}</b>을(를) 쓰면 됩니다.`
+      : g.op==='+' ? `${k}칸의 수를 모두 <b style="font-size:inherit">더하면 ${g.t}</b>`
+      : g.op==='*' ? `${k}칸의 수를 모두 <b style="font-size:inherit">곱하면 ${g.t}</b>`
+      : g.op==='-' ? `두 수의 <b style="font-size:inherit">차가 ${g.t}</b> (큰 수 − 작은 수)`
+      : `큰 수를 작은 수로 <b style="font-size:inherit">나누면 ${g.t}</b>`;
+    $('help').innerHTML=`<b>켄켄 규칙</b><br>· 각 가로줄과 세로줄에 1부터 ${N}까지 한 번씩만 씁니다.<br>· 굵은 선으로 묶인 칸의 수는 왼쪽 위의 수와 연산을 만족해야 해요.<br>
+      <span style="display:block;margin-top:6px">지금 고른 묶음 <span class="ex">${g.t}${g.op?SYM[g.op]:''}</span> : ${opTxt}</span>`;
+  }
+
+  /* ---------------- input ---------------- */
+  function pushHist(){ hist.push({vals:vals.slice(), notes:notes.map(a=>a.slice())}); if(hist.length>200) hist.shift(); }
+  function input(v){
+    if(done || P.fixed[sel]!==undefined) return;
+    startTimer();
+    pushHist();
+    if(memo && !vals[sel]){
+      const a=notes[sel], k=a.indexOf(v); if(k>=0) a.splice(k,1); else a.push(v);
+      tone(520,.03,'sine',.04);
+    } else {
+      vals[sel] = vals[sel]===v ? 0 : v;
+      hinted.delete(sel);
+      if(vals[sel] && prefs.auto){ const r=Math.floor(sel/N), c=sel%N;
+        for(let j=0;j<N*N;j++) if(Math.floor(j/N)===r||j%N===c||CI[j]===CI[sel]){ const k=notes[j].indexOf(v); if(k>=0) notes[j].splice(k,1); } }
+      tone(vals[sel]?420+v*30:250,.05);
+    }
+    render(); checkWin(); save();
+  }
+  function erase(){
+    if(done || P.fixed[sel]!==undefined) return;
+    if(!vals[sel] && !notes[sel].length) return;
+    pushHist(); vals[sel]=0; notes[sel]=[]; hinted.delete(sel); tone(220,.05); render(); save();
+  }
+  function undo(){ if(!hist.length||done) return; const h=hist.pop(); vals=h.vals; notes=h.notes; tone(250,.07); render(); save(); }
+  function hint(){
+    if(done) return;
+    let i=sel;
+    if(vals[i]===P.sol[Math.floor(i/N)][i%N]){ // selected is already right: pick a wrong or empty cell
+      const wrong=[...Array(N*N).keys()].filter(j=>vals[j]!==P.sol[Math.floor(j/N)][j%N]);
+      if(!wrong.length) return; i=wrong[Math.floor(Math.random()*wrong.length)];
+    }
+    startTimer(); pushHist();
+    sel=i; vals[i]=P.sol[Math.floor(i/N)][i%N]; notes[i]=[]; hinted.add(i); hints++;
+    tone(660,.08); tone(880,.1,'triangle',.05,.06);
+    render(); checkWin(); save();
+  }
+
+  /* ---------------- timer + win ---------------- */
+  const fmt = s => Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+  function startTimer(){ if(timer||done) return; t0=performance.now()-elapsed*1000; timer=setInterval(()=>{ elapsed=(performance.now()-t0)/1000; $('sTime').textContent=fmt(elapsed); if(Math.floor(elapsed)%5===0) save(); },500); }
+  function stopTimer(){ clearInterval(timer); timer=null; }
+  const bestKey = () => `tm-kenken-best-${N}-${prefs.ops}`;
+  function showBest(){ const b=store.get(bestKey(),null); $('sBest').textContent = b ? fmt(b) : '–'; }
+  function checkWin(){
+    for(let i=0;i<N*N;i++) if(vals[i]!==P.sol[Math.floor(i/N)][i%N]) return;
+    done=true; stopTimer(); if(timer===null && t0) elapsed=(performance.now()-t0)/1000;
+    const prev=store.get(bestKey(),null), isNew = !hints && (prev===null || elapsed<prev);
+    if(isNew) store.set(bestKey(), Math.round(elapsed));
+    showBest(); save();
+    [523,659,784,1047].forEach((f,i)=>tone(f,.18,'triangle',.08,i*.11));
+    setTimeout(()=>{
+      const w=document.createElement('div'); w.className='over';
+      w.innerHTML=`<div class="over-card"><h2>완성!</h2><p>${N}×${N} 켄켄을 풀었어요</p>
+        <div class="rec">${fmt(elapsed)}${hints?` · 힌트 ${hints}번`:''}</div>${isNew?'<div class="new">새 최고 기록</div>':(hints?'<p>힌트 없이 풀면 최고 기록에 올라가요</p>':'')}
+        <div class="actions" style="grid-template-columns:1fr 1fr"><button class="btn" id="oLook">판 보기</button><button class="btn primary" id="oNew">새 퍼즐</button></div></div>`;
+      boardEl.appendChild(w); $('oNew').onclick=()=>newPuzzle(); $('oLook').onclick=()=>w.remove();
+      TMRank.finish({ level:`${N}-${prefs.ops}`, name:lvName(N,prefs.ops), value:Math.round(elapsed*10)/10 });
+      confetti();
+    }, 300);
+  }
+  function confetti(){
+    if(reduceMotion) return;
+    const cv=document.createElement('canvas'); cv.id='confetti'; boardEl.appendChild(cv);
+    const w=cv.width=boardEl.clientWidth, h=cv.height=boardEl.clientHeight, ctx=cv.getContext('2d');
+    const cols=['#ffd45a','#8E5BD6','#ff8f3d','#2fb38a','#d9363e','#a9e08a'];
+    const ps=Array.from({length:120},()=>({x:w/2,y:h*.45,vx:(Math.random()-.5)*w*.025,vy:-Math.random()*h*.025-h*.006,s:4+Math.random()*7,c:cols[Math.floor(Math.random()*cols.length)],a:Math.random()*6}));
+    const t1=performance.now();
+    (function step(t){ ctx.clearRect(0,0,w,h); ps.forEach(p=>{ p.vy+=h*.0007; p.x+=p.vx; p.y+=p.vy; p.a+=.2; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a); ctx.fillStyle=p.c; ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore(); });
+      if(t-t1<2600) requestAnimationFrame(step); else cv.remove(); })(t1);
+  }
+
+  /* ---------------- lifecycle ---------------- */
+  function newPuzzle(){
+    stopTimer(); done=false;
+    boardEl.classList.add('making');
+    setTimeout(()=>{
+      N=prefs.n; P=generate(N, prefs.ops);
+      vals=Array(N*N).fill(0); notes=Array.from({length:N*N},()=>[]);
+      Object.entries(P.fixed).forEach(([k,v])=>vals[+k]=v);
+      hist=[]; hints=0; hinted=new Set(); elapsed=0; t0=0; sel=0; memo=false;
+      $('sTime').textContent='0:00';
+      boardEl.classList.remove('making');
+      build(); render(); showBest(); save();
+      if(document.getElementById('startOv').hidden) rkStart();
+    }, 30);
+  }
+  function save(){
+    store.set('tm-kenken-prefs', prefs);
+    if(P) store.set('tm-kenken-game', { n:N, ops:prefs.ops, P, vals, notes, hints, hinted:[...hinted], elapsed:Math.round(elapsed), done });
+  }
+  function load(){
+    const g=store.get('tm-kenken-game',null);
+    if(!g || g.n!==prefs.n || g.ops!==prefs.ops || !g.P || !Array.isArray(g.vals) || g.vals.length!==g.n*g.n) return false;
+    N=g.n; P=g.P; vals=g.vals; notes=g.notes||Array.from({length:N*N},()=>[]); hints=g.hints||0; hinted=new Set(g.hinted||[]);
+    elapsed=g.elapsed||0; done=!!g.done; hist=[]; sel=0;
+    $('sTime').textContent=fmt(elapsed);
+    build(); render(); showBest();
+    return true;
+  }
+
+  /* ---------------- controls ---------------- */
+  function segSync(){
+    document.querySelectorAll('#segSize button').forEach(b=>b.setAttribute('aria-pressed', +b.dataset.v===prefs.n));
+    document.querySelectorAll('#segOps button').forEach(b=>b.setAttribute('aria-pressed', +b.dataset.v===prefs.ops));
+    $('chkErr').checked=prefs.err; $('chkAuto').checked=prefs.auto; $('bSound').setAttribute('aria-pressed',prefs.sound);
+  }
+  document.querySelectorAll('#segSize button').forEach(b=>b.onclick=()=>{ if(+b.dataset.v===prefs.n) return; prefs.n=+b.dataset.v; segSync(); newPuzzle(); });
+  document.querySelectorAll('#segOps button').forEach(b=>b.onclick=()=>{ if(+b.dataset.v===prefs.ops) return; prefs.ops=+b.dataset.v; segSync(); newPuzzle(); });
+  $('chkErr').onchange=e=>{ prefs.err=e.target.checked; render(); save(); };
+  $('chkAuto').onchange=e=>{ prefs.auto=e.target.checked; save(); };
+  $('bSound').onclick=()=>{ prefs.sound=!prefs.sound; segSync(); save(); if(prefs.sound) tone(660); };
+  $('bMemo').onclick=()=>{ memo=!memo; render(); };
+  $('bErase').onclick=erase; $('bUndo').onclick=undo; $('bHint').onclick=hint;
+  let armed=null;
+  $('bNew').onclick=()=>{
+    const sp=$('bNew').querySelector('span');
+    const started = vals && vals.some((v,i)=>v && P.fixed[i]===undefined) && !done;
+    if(!started){ newPuzzle(); return; }
+    if(armed){ clearTimeout(armed); armed=null; sp.textContent='새 퍼즐'; newPuzzle(); return; }
+    sp.textContent='한 번 더 누르기';
+    armed=setTimeout(()=>{ armed=null; sp.textContent='새 퍼즐'; },3000);
+  };
+  document.addEventListener('keydown', e=>{
+    if(!P) return;
+    if((e.ctrlKey||e.metaKey) && (e.key==='z'||e.key==='Z')){ e.preventDefault(); undo(); return; }
+    if(e.ctrlKey||e.metaKey||e.altKey) return;
+    const r=Math.floor(sel/N), c=sel%N;
+    if(/^[1-9]$/.test(e.key) && +e.key<=N){ input(+e.key); }
+    else if(e.key==='Backspace'||e.key==='Delete'||e.key==='0'){ e.preventDefault(); erase(); }
+    else if(e.key==='ArrowLeft'){ e.preventDefault(); sel=r*N+(c+N-1)%N; render(); }
+    else if(e.key==='ArrowRight'){ e.preventDefault(); sel=r*N+(c+1)%N; render(); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); sel=((r+N-1)%N)*N+c; render(); }
+    else if(e.key==='ArrowDown'){ e.preventDefault(); sel=((r+1)%N)*N+c; render(); }
+    else if(e.key==='m'||e.key==='M'||e.key==='n'||e.key==='N'){ memo=!memo; render(); }
+  });
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden && timer){ stopTimer(); save(); } });
+  boardEl.addEventListener('pointerdown', ()=>{ if(!done && !timer && P && t0!==0) startTimer(); });
+
+  const fullBtn=$('bFull');
+  if(document.fullscreenEnabled || document.webkitFullscreenEnabled){
+    fullBtn.hidden=false;
+    fullBtn.onclick=()=>{ try{
+      if(document.fullscreenElement||document.webkitFullscreenElement) (document.exitFullscreen||document.webkitExitFullscreen).call(document);
+      else { const el=document.documentElement; const p=(el.requestFullscreen||el.webkitRequestFullscreen).call(el); p&&p.catch&&p.catch(()=>{}); }
+    }catch(_){} };
+  }
+  async function wake(){ try{ if(navigator.wakeLock && document.visibilityState==='visible') await navigator.wakeLock.request('screen'); }catch(_){} }
+  document.addEventListener('visibilitychange', wake); wake();
+
+  /* ---------------- start ---------------- */
+  segSync();
+  if(!load()) newPuzzle();
+  window.__kk = { generate, solve };
+
+  /* ---------- 퍼즐존 시작 화면 ---------- */
+  const ov=document.getElementById('startOv');
+  const pick=g=>{ const b=ov.querySelector('#'+g+' [aria-pressed="true"]'); return b?b.dataset.v:null; };
+  const mark=(g,v)=>ov.querySelectorAll('#'+g+' button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===String(v)));
+  ov.querySelectorAll('.chips').forEach(g=>g.addEventListener('click',e=>{ const b=e.target.closest('button'); if(b){ mark(g.id,b.dataset.v); showPick(); } }));
+  // 시작 화면이 떠 있는 동안에는 키보드가 판을 움직이지 않아요
+  ['keydown','keyup'].forEach(t=>window.addEventListener(t,e=>{ if(!ov.hidden && !(e.key==='Enter' || e.key===' ' || e.key==='Tab') ) e.stopImmediatePropagation(); },true));
+
+  const showPick=()=>{ const n=+pick('lvChips'), o=+pick('opChips'); const b=store.get(`tm-kenken-best-${n}-${o}`,null); $('bestTxt').textContent = b ? `🏆 ${n}×${n} · ${OPN[o]} 내 최고 기록: ${fmt(b)}` : ''; };
+  mark('lvChips', prefs.n); mark('opChips', prefs.ops); showPick();
+  $('go').onclick=()=>{
+    const n=+pick('lvChips'), o=+pick('opChips'); ov.hidden=true;
+    if(n!==prefs.n || o!==prefs.ops){ prefs.n=n; prefs.ops=o; segSync(); newPuzzle(); }
+    else if(done){ newPuzzle(); }
+    else rkStart();
+    fit();
+  };
+})();
+</script>
+</body>
+</html>
