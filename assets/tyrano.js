@@ -455,5 +455,30 @@ if ($('#zoneGrid')){
   }
 })();
 
+
+/* =========================================================
+   👀 방문자 수 (아래쪽 footer) — 구글 시트(statsUrl)에서 세요
+   한 기기는 하루에 한 번만 셉니다.
+   ========================================================= */
+(function visitors(){
+  const ft = document.querySelector('footer .wrap');
+  if (!ft || !CFG.statsUrl) return;
+  const box = document.createElement('div'); box.className = 'visitors'; box.setAttribute('aria-live', 'polite');
+  box.innerHTML = '<span aria-hidden="true">👀</span> 방문자 세는 중…';
+  ft.prepend(box);
+  const d = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);   // 한국 날짜
+  let dev = store.get('tm-rank-dev');
+  if (!dev){ dev = 'd' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4); store.set('tm-rank-dev', dev); }
+  const isNew = store.get('tm-visit-day') !== d;
+  const ctrl = new AbortController(); setTimeout(() => ctrl.abort(), 8000);
+  fetch(CFG.statsUrl + '?action=visit&new=' + (isNew ? 1 : 0) + '&d=' + encodeURIComponent(dev), { signal: ctrl.signal })
+    .then(r => r.json()).then(v => {
+      if (!v || !v.ok) throw 0;
+      if (isNew) store.set('tm-visit-day', d);
+      const f = n => Number(n || 0).toLocaleString();
+      box.innerHTML = `<span aria-hidden="true">👀</span> 오늘 <b>${f(v.today)}</b>명 <i>·</i> 어제 <b>${f(v.yesterday)}</b>명 <i>·</i> 전체 <b>${f(v.total)}</b>명`;
+    }).catch(() => box.remove());
+})();
+
 window.TyranoMath = { toast, openItem, openEntry, closeItem };
 })();

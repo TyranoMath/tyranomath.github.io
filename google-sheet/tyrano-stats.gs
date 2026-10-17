@@ -10,6 +10,7 @@
  *   랭킹_전체  : 게임·단계·닉네임·반 코드별 가장 좋은 기록 (전체 랭킹)
  *   랭킹_일별  : 날짜별 가장 좋은 기록 (오늘 / 이번 주 랭킹, 15일 지나면 자동 정리)
  *   금칙어     : 닉네임에 쓰면 안 되는 말 (A열에 한 줄씩 더 적으면 바로 적용돼요)
+ *   방문자     : 날짜별 방문자 수 (한 기기는 하루에 한 번만 세요)
  *   버그제보   : 🐞 버그 제보 게시판 글 (상태·선생님 답변 칸을 고치면 게시판에 바로 보여요)
  *
  * 👩‍🏫 선생님 도움말
@@ -70,6 +71,7 @@ function doGet(e) {
     if (p.action === 'rank_start') out = rankStart_(p);
     else if (p.action === 'rank_put') out = rankPut_(p);
     else if (p.action === 'rank_get') out = rankGet_(p);
+    else if (p.action === 'visit') out = visit_(p);
     else if (p.action === 'bug_list') out = bugList_(p);
     else if (p.action === 'bug_put') out = bugPut_(p);
     else if (p.action === 'bug_del') out = bugDel_(p);
@@ -322,6 +324,48 @@ function levels_(g) {
 
 
 /* =========================================================
+   👀 방문자 수 (홈페이지 아래쪽에 보여요)
+   - 사이트가 한 기기에서 하루에 한 번만 new=1 로 알려 줘요.
+   - '방문자' 탭: 날짜 | 방문자 수  (숫자를 고치면 화면에도 바뀌어요)
+   ========================================================= */
+const SH_VISIT = '방문자';
+function visitSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(SH_VISIT);
+  if (!sh) {
+    sh = ss.insertSheet(SH_VISIT);
+    sh.appendRow(['날짜', '방문자 수']);
+    sh.setFrozenRows(1);
+    sh.getRange('A1:B1').setFontWeight('bold').setBackground('#DDF0FF');
+  }
+  return sh;
+}
+function visit_(p) {
+  const cache = CacheService.getScriptCache(), day = today_();
+  const yest = Utilities.formatDate(new Date(Date.now() - 86400000), TZ, 'yyyy-MM-dd');
+  const dev = String(p.d || '').slice(0, 40);
+  if (p.new === '1' && dev && !cache.get('vis_' + dev + '_' + day)) {
+    cache.put('vis_' + dev + '_' + day, '1', 21600);
+    const lock = LockService.getScriptLock();
+    lock.waitLock(8000);
+    try {
+      const sh = visitSheet_(), R = rows_(sh, 2), i = R.findIndex(r => str_(r[0]) === day);
+      if (i >= 0) sh.getRange(i + 2, 2).setValue((Number(R[i][1]) || 0) + 1);
+      else sh.appendRow([T_(day), 1]);
+    } finally { lock.releaseLock(); }
+    cache.remove('visit_sum');
+  }
+  const hit = cache.get('visit_sum');
+  if (hit) return JSON.parse(hit);
+  const R = rows_(visitSheet_(), 2);
+  let total = 0, today = 0, yesterday = 0;
+  R.forEach(r => { const n = Number(r[1]) || 0, d = str_(r[0]); total += n; if (d === day) today = n; if (d === yest) yesterday = n; });
+  const out = { ok: true, today: today, yesterday: yesterday, total: total };
+  cache.put('visit_sum', JSON.stringify(out), 30);
+  return out;
+}
+
+/* =========================================================
    🐞 버그 제보 게시판
    - 선생님은 '버그제보' 탭에서 [상태]를 '접수 → 확인 중 → 해결'로 바꾸고 [선생님 답변]을 적어요.
    - [숨김] 칸에 아무 글자(예: O)나 적으면 게시판에서 숨겨져요.
@@ -404,5 +448,5 @@ function bugDel_(p) {
 /** (선택) Apps Script 편집기에서 이 함수를 한 번 실행하면 탭이 미리 만들어지고 권한 승인도 끝나요. */
 function setup() {
   getSheet_();
-  rankSheet_(SH_ALL); rankSheet_(SH_DAY); rankSheet_(SH_BAN); bugSheet_();
+  rankSheet_(SH_ALL); rankSheet_(SH_DAY); rankSheet_(SH_BAN); bugSheet_(); visitSheet_();
 }

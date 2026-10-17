@@ -588,3 +588,11 @@ main[data-list="tools"] .game .play{background:#159A8C}
 html[data-device="phone"] .bb-grid{grid-template-columns:minmax(0,1fr)}
 .bb-card{min-width:0} .bb-fld input,.bb-fld textarea{width:100%; min-width:0; box-sizing:border-box}
 html[data-device="phone"] .bb-write{position:static}
+
+/* 👀 방문자 수 */
+footer .visitors{margin-right:auto; font-family:'Jua',sans-serif; color:var(--ink); background:var(--leaf); border:2px solid #cfe9bb; border-radius:999px; padding:6px 16px; white-space:nowrap}
+footer .visitors b{font-family:'Fredoka',sans-serif; color:var(--green-d)}
+footer .visitors i{font-style:normal; color:var(--muted); margin:0 2px}
+@media (max-width:720px){ footer .wrap{flex-wrap:wrap; justify-content:center} footer .visitors{margin:0 auto; order:3; white-space:normal; text-align:center} }
+html[data-device="phone"] footer .wrap{flex-wrap:wrap; justify-content:center}
+html[data-device="phone"] footer .visitors{margin:0 auto; order:3; white-space:normal; text-align:center}
