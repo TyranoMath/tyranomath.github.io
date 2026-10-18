@@ -146,7 +146,8 @@ const GAMES = [
   { title:'줄다리기 연산 대결',    desc:'문제를 맞힐 때마다 티라노들이 줄을 당겨요! 친구나 컴퓨터와 대결해요.', grade:'1~6학년', area:'수와 연산', icon:'🦖', image:'games/thumbs/tug-of-war.svg', color:'#DDF0FF', date:'2026-10-09', file:'games/tug-of-war.html' },
   { title:'풍선 활쏘기 연산 대결', desc:'문제의 답이 적힌 풍선을 활로 맞혀요! 혼자 기록 도전 또는 친구와 대결.', grade:'1~6학년', area:'수와 연산', icon:'🎈', image:'games/thumbs/balloon-archery.svg', color:'#DDF0FF', date:'2026-10-10', file:'games/balloon-archery.html' },
   { title:'티라노 징검다리',       desc:'더 큰 수(또는 더 작은 수)가 적힌 돌만 밟고 강을 건너요! 혼자 기록 도전 또는 친구와 대결.', grade:'1~4학년', area:'수와 연산', icon:'🪨', image:'games/thumbs/stepping-stones.svg', color:'#CDEBFF', date:'2026-10-18', file:'games/stepping-stones.html' },
-  { title:'티라노 로켓 어림하기',   desc:'올림·버림·반올림한 수를 찾아 로켓을 발사해요! 혼자 기록 도전 또는 친구와 대결.', grade:'4~6학년', area:'수와 연산', icon:'🚀', image:'games/thumbs/rocket-rounding.svg', color:'#2B2F5C', date:'2026-10-18', file:'games/rocket-rounding.html' }
+  { title:'티라노 로켓 어림하기',   desc:'올림·버림·반올림한 수를 찾아 로켓을 발사해요! 혼자 기록 도전 또는 친구와 대결.', grade:'4~6학년', area:'수와 연산', icon:'🚀', image:'games/thumbs/rocket-rounding.svg', color:'#2B2F5C', date:'2026-10-18', file:'games/rocket-rounding.html' },
+  { title:'티라노 코코넛 맞히기',   desc:'짝수·홀수·배수·약수… 조건에 맞는 수가 적힌 코코넛만 골라 맞혀요! 혼자 기록 도전 또는 친구와 대결.', grade:'1~5학년', area:'수와 연산', icon:'🥥', image:'games/thumbs/coconut-shy.svg', color:'#FFF1C9', date:'2026-10-18', file:'games/coconut-shy.html' }
 ];
 
 /* ---------------------------------------------------------
