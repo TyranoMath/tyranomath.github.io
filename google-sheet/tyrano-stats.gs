@@ -38,7 +38,7 @@ const FILE_RULE = /^(games|puzzles|tools)\/[A-Za-z0-9_\-\/]+\.html$/;
    --------------------------------------------------------- */
 const DYN = /^[0-9A-Za-z가-힣+\-−×÷|.,:_ ]{1,60}$/;
 // 배포 확인용 버전: 주소 뒤에 ?action=ver 를 붙여 열면 보여요
-const GS_VER = '2026-10-17b';
+const GS_VER = '2026-10-18';
 const QUIZ = { kind:'score', level:/^[0-2]$/, max:200, rate:1.7 };
 const RULES = {
   // 퍼즐존
@@ -60,10 +60,14 @@ const RULES = {
   'tyrano-plus':       { kind:'score', level:/^(10|20|100)$/, max:200, rate:1.7 },
   'gugudan-volcano':   QUIZ, 'shape-fossil': QUIZ, 'tyrano-clock': QUIZ, 'pattern-footprint': QUIZ, 'egg-graph': QUIZ,
   'balloon-archery':   { kind:'score', level:DYN, max:1000, rate:3 },
-  'tug-of-war':        { kind:'time',  level:DYN, min:() => 3 }
+  'tug-of-war':        { kind:'time',  level:DYN, min:() => 3 },
+  'stepping-stones':   { kind:'score', level:DYN, max:3000, rate:4 },
+  'rocket-rounding':   { kind:'score', level:DYN, max:3000, rate:2 }
 };
 // 게임 엔진(tyrano-quiz.js)으로 새로 만든 게임은 따로 적지 않아도 '문제 맞히기' 규칙을 써요
-const ruleOf_ = g => RULES[g] || (/^[a-z0-9][a-z0-9\-]{2,39}$/.test(g) ? QUIZ : null);
+// 목록에 없는 새 게임도 점수 랭킹은 바로 쓸 수 있어요 (다시 배포하지 않아도 돼요)
+const NEW_GAME = { kind:'score', level:DYN, max:3000, rate:4 };
+const ruleOf_ = g => RULES[g] || (/^[a-z0-9][a-z0-9\-]{2,39}$/.test(g) ? NEW_GAME : null);
 
 // 닉네임 금칙어 (기본) — 띄어쓰기·숫자·기호를 빼고 검사해요
 const BAN_BASE = ['시발','씨발','씨바','시바','씹','쉬발','슈발','십새','십세','병신','븅신','빙신','좆','존나','졸라','개새','개색','개세','새끼','섹스','미친','미쳤','꺼져','닥쳐','지랄',
