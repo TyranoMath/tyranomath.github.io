@@ -230,6 +230,22 @@ section[id]{scroll-margin-top:calc(var(--tap) + 30px)}
 .player-bar .tool{border-color:var(--line); color:var(--ink); text-decoration:none; display:inline-flex; align-items:center}
 .player-bar .close{background:var(--pink); border-color:var(--pink); color:#fff}
 .player iframe{flex:1; width:100%; border:0; background:#fff}
+/* 게임 안의 윗줄 버튼을 합친 한 줄 */
+.player-gtools{display:contents}
+.player-bar .gtool{font:inherit; cursor:pointer; gap:4px}
+.player-bar .gtool[aria-pressed="false"]{color:var(--muted); text-decoration:line-through}
+.player-bar .gtool:disabled{opacity:.45; cursor:default}
+.player-bar .gtool.g-set{background:#FF9F43; border-color:#D97A1F; color:#fff}
+.player-bar .gtool.g-rank{background:#FFD43B; border-color:#E8B500; color:#5A3B00; font-family:'Jua',sans-serif}
+.player-gtools > :last-child{margin-right:10px}
+.player-box:fullscreen{width:100%; height:100%; border-radius:0}
+@media (max-width:760px){
+  .player-bar .gtool .txt, .player-bar .gtool .tmr-t{display:none}
+  .player.merged .player-bar .txt{display:none}
+  .player.merged .player-bar h3{flex:1 1 100%; font-size:1.05rem}
+  .player.merged .player-bar .tool{min-width:42px; justify-content:center; padding-inline:8px}
+  .player.merged .player-gtools > :last-child{margin-right:auto}
+}
 body.no-scroll{overflow:hidden}
 
 /* 버그 제보 탭 */

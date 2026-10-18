@@ -231,26 +231,67 @@ function openEntry(g){
   returnHash = location.hash.startsWith('#game=') ? '' : location.hash;
   $('#playerTitle').innerHTML = `<span aria-hidden="true">${esc(g.icon || '🎮')}</span><span>${esc(g.title)}</span>`;
   $('#playerFrame').src = g.file;
-  if ($('#playerBug')) $('#playerBug').href = 'bugboard.html?from=' + encodeURIComponent(g.file);
-  $('#playerNew').href = g.file;
   $('#player').classList.add('open');
   document.body.classList.add('no-scroll');
   $('#playerClose').focus();
   try { history.replaceState(null, '', '#game=' + encodeURIComponent(g.file)); } catch(e){}
+  goBig();                                       // 고른 순간(누른 동작)에 바로 '크게' 화면으로 시작해요
+}
+// '크게' = 게임 창을 모니터 전체로 (지원하지 않는 기기에서는 화면 가득한 창 그대로)
+function goBig(){
+  const box = $('.player-box');
+  if (!box || document.fullscreenElement || document.webkitFullscreenElement) return;
+  try { const r = (box.requestFullscreen || box.webkitRequestFullscreen)?.call(box); if (r && r.catch) r.catch(() => {}); } catch(e){}
+}
+function toggleBig(){
+  if (document.fullscreenElement || document.webkitFullscreenElement){ (document.exitFullscreen || document.webkitExitFullscreen)?.call(document); return; }
+  const box = $('.player-box'), fn = box && (box.requestFullscreen || box.webkitRequestFullscreen);
+  if (!fn){ toast('이 기기에서는 크게 보기를 지원하지 않아요'); return; }
+  try { const r = fn.call(box); if (r && r.catch) r.catch(() => {}); } catch(e){}
+}
+/* 게임 안의 윗줄 버튼(소리·일시정지·설정·랭킹)을 게임 창 윗줄로 옮겨 한 줄로 합쳐요.
+   진짜 버튼은 게임 안에 그대로 두고, 윗줄 버튼을 누르면 게임 안의 버튼이 눌려요. */
+let mergeObs = null;
+function mergeBar(){
+  const slot = $('#playerTools'); if (!slot) return;
+  if (mergeObs){ mergeObs.disconnect(); mergeObs = null; }
+  slot.innerHTML = ''; $('#player').classList.remove('merged');
+  let doc; try { doc = $('#playerFrame').contentDocument; } catch(e){ return; }
+  const tools = doc && doc.querySelector('.topbar .tools'); if (!tools) return;
+  const st = doc.createElement('style'); st.textContent = '.topbar{display:none!important}'; doc.head.appendChild(st);
+  $('#player').classList.add('merged');
+  const draw = () => {
+    slot.innerHTML = '';
+    [...tools.children].forEach(src => {
+      if (src.id === 'btnZone' || src.id === 'btnFull' || src.hidden) return;
+      const b = document.createElement('button'); b.type = 'button';
+      b.className = 'tool gtool' + (src.classList.contains('set') ? ' g-set' : '') + (src.classList.contains('tmr-btn') ? ' g-rank' : '');
+      b.innerHTML = src.innerHTML; b.disabled = !!src.disabled;
+      if (src.hasAttribute('aria-pressed')) b.setAttribute('aria-pressed', src.getAttribute('aria-pressed'));
+      b.setAttribute('aria-label', src.getAttribute('aria-label') || src.textContent.trim());
+      b.addEventListener('click', () => src.click());
+      slot.appendChild(b);
+    });
+  };
+  draw();
+  mergeObs = new MutationObserver(draw);
+  mergeObs.observe(tools, { subtree: true, childList: true, attributes: true, characterData: true });
 }
 function closeItem(){
   if (!$('#player') || !$('#player').classList.contains('open')) return;
   if (document.fullscreenElement) document.exitFullscreen?.();
   $('#player').classList.remove('open');
   $('#playerFrame').src = 'about:blank';
+  if (mergeObs){ mergeObs.disconnect(); mergeObs = null; }
+  if ($('#playerTools')) $('#playerTools').innerHTML = '';
+  $('#player').classList.remove('merged');
   document.body.classList.remove('no-scroll');
   try { history.replaceState(null, '', location.pathname + location.search + returnHash); } catch(e){}
   lastFocus?.focus();
 }
-if ($('#player') && $('#playerNew') && !$('#playerBug')){
-  // 게임 창에서 바로 버그 제보 (어떤 게임인지 자동으로 채워져요)
-  const a = document.createElement('a'); a.className = 'tool'; a.id = 'playerBug'; a.href = 'bugboard.html'; a.textContent = '🐞 제보'; a.title = '이 화면의 버그 제보하기';
-  $('#playerNew').after(a);
+if ($('#player') && !$('#playerTools')){
+  const slot = document.createElement('div'); slot.id = 'playerTools'; slot.className = 'player-gtools';
+  $('#playerReload').before(slot);
 }
 if ($('#player')){
   $('#playerClose').addEventListener('click', closeItem);
@@ -259,13 +300,10 @@ if ($('#player')){
   // 게임 화면 안에서 Esc 를 눌러도 닫히게 (같은 사이트의 게임일 때)
   $('#playerFrame').addEventListener('load', () => {
     try { $('#playerFrame').contentWindow.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.defaultPrevented) closeItem(); }); } catch(e){}
+    mergeBar();
   });
   $('#playerReload').addEventListener('click', () => { const f = $('#playerFrame'); const src = f.src; f.src = 'about:blank'; setTimeout(() => f.src = src, 50); });
-  $('#playerFull').addEventListener('click', () => {
-    const box = $('.player-box');
-    if (!document.fullscreenElement) (box.requestFullscreen || box.webkitRequestFullscreen || (()=>toast('이 기기에서는 크게 보기를 지원하지 않아요'))).call(box);
-    else document.exitFullscreen();
-  });
+  $('#playerFull').addEventListener('click', toggleBig);
 }
 
 /* =========================================================
