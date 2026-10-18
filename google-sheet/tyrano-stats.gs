@@ -62,7 +62,8 @@ const RULES = {
   'balloon-archery':   { kind:'score', level:DYN, max:1000, rate:3 },
   'tug-of-war':        { kind:'time',  level:DYN, min:() => 3 },
   'stepping-stones':   { kind:'score', level:DYN, max:3000, rate:4 },
-  'rocket-rounding':   { kind:'score', level:DYN, max:3000, rate:2 }
+  'rocket-rounding':   { kind:'score', level:DYN, max:3000, rate:2 },
+  'coconut-shy':       { kind:'score', level:DYN, max:3000, rate:3 }
 };
 // 게임 엔진(tyrano-quiz.js)으로 새로 만든 게임은 따로 적지 않아도 '문제 맞히기' 규칙을 써요
 // 목록에 없는 새 게임도 점수 랭킹은 바로 쓸 수 있어요 (다시 배포하지 않아도 돼요)
