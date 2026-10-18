@@ -142,6 +142,16 @@ button{font:inherit;color:inherit}
 #startOv .resume{margin:8px 0 0;color:#5D6C83;font-size:14px}
 @media (max-width:560px){.brand .back{padding:5px 10px;font-size:13px}.brand .dino-logo svg{width:36px}
   .icon-btn{width:40px;height:40px}.icons .tmr-btn .tmr-t{display:none}.stat{min-width:56px!important;padding:3px 8px!important}.stats{gap:6px}.top{gap:8px 10px!important}}
+
+/* ---------- 스마트폰·세로 화면: 설정은 ⚙️ 버튼을 눌렀을 때만 ---------- */
+#bSet{display:none}
+@media not ((min-aspect-ratio:5/4) and (min-width:760px)){
+  #bSet{display:grid}
+  body:not(.show-set) .panel .setup, body:not(.show-set) .panel .tip, body:not(.show-set) .panel .help,
+  body:not(.show-set) .panel .ladder-group, body:not(.show-set) .panel .rules-group, body:not(.show-set) .panel .moves-group{display:none!important}
+  body.show-set #bSet{background:#EFE6FF;border-color:#8E5BD6}
+  .app{grid-template-rows:auto minmax(0,1fr) auto}
+}
 </style>
 <link rel="stylesheet" href="puzzle-setup.css">
 </head>
@@ -168,6 +178,7 @@ button{font:inherit;color:inherit}
       <div class="stat"><span>다음</span><div class="chip" id="sNext">4</div></div>
     </div>
     <div class="icons">
+      <button class="icon-btn" id="bSet" aria-pressed="false" aria-label="설정 보기" title="설정"><span style="font-size:20px;line-height:1">⚙️</span></button>
       <button class="icon-btn" id="bSound" aria-pressed="true" aria-label="효과음">
         <svg class="on" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
         <svg class="off" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>
@@ -563,6 +574,14 @@ button{font:inherit;color:inherit}
     else rkStart();
     fit();
   };
+})();
+</script>
+<script>
+(function(){ const b = document.getElementById('bSet'); if (!b) return;
+  b.addEventListener('click', () => { const on = document.body.classList.toggle('show-set'); b.setAttribute('aria-pressed', on);
+    if (on){ const s = document.querySelector('.panel .setup'); s && setTimeout(() => s.scrollIntoView({ behavior:'smooth', block:'nearest' }), 30); }
+    else document.querySelector('.app').scrollTo({ top:0, behavior:'smooth' });
+    window.dispatchEvent(new Event('resize')); });
 })();
 </script>
 </body>
