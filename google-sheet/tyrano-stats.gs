@@ -38,7 +38,7 @@ const FILE_RULE = /^(games|puzzles|tools)\/[A-Za-z0-9_\-\/]+\.html$/;
    --------------------------------------------------------- */
 const DYN = /^[0-9A-Za-z가-힣+\-−×÷|.,:_ ]{1,60}$/;
 // 배포 확인용 버전: 주소 뒤에 ?action=ver 를 붙여 열면 보여요
-const GS_VER = '2026-10-20';
+const GS_VER = '2026-10-20b';
 const QUIZ = { kind:'score', level:/^[0-2]$/, max:200, rate:1.7 };
 const RULES = {
   // 퍼즐존
@@ -65,7 +65,10 @@ const RULES = {
   'rocket-rounding':   { kind:'score', level:DYN, max:3000, rate:2 },
   'coconut-shy':       { kind:'score', level:DYN, max:3000, rate:3 },
   'tyrano-race':       { kind:'time',  level:DYN, min:l => Math.max(5, (Number(String(l).split('|')[4]) || 10) * 0.6) },
-  'fraction-tug':      { kind:'time',  level:DYN, min:l => Math.max(2, (Number(String(l).split('|')[3]) || 5) * 0.4) }
+  'fraction-tug':      { kind:'time',  level:DYN, min:l => Math.max(2, (Number(String(l).split('|')[3]) || 5) * 0.4) },
+  'compare-archery':   { kind:'score', level:DYN, max:200, rate:6 },
+  'digit-rocket':      { kind:'time',  level:DYN, min:l => Math.max(3, (Number(String(l).split('|')[4]) || 5) * 1.5) },
+  'rounding-skate':    { kind:'time',  level:DYN, min:l => Math.max(5, (Number(String(l).split('|')[3]) || 10) * 0.6) }
 };
 // 게임 엔진(tyrano-quiz.js)으로 새로 만든 게임은 따로 적지 않아도 '문제 맞히기' 규칙을 써요
 // 목록에 없는 새 게임도 점수 랭킹은 바로 쓸 수 있어요 (다시 배포하지 않아도 돼요)
