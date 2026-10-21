@@ -174,7 +174,8 @@ const TOOLS = [
   { title:'기하판',        desc:'못에 고무줄을 걸어 여러 가지 도형을 만들고 넓이를 세어 봐요.',       grade:'2~6학년', area:'도형과 측정', icon:'🔷', color:'#EFE6FF', date:'2026-10-16', file:'tools/geoboard.html' },
   { title:'쌓기나무',      desc:'쌓기나무를 쌓고 위·앞·옆에서 본 모양을 알아봐요.',                  grade:'2~6학년', area:'도형과 측정', icon:'🧱', color:'#F3E6D3', date:'2026-10-16', file:'tools/cubes.html' },
   { title:'그래프 만들기', desc:'자료를 넣으면 그림그래프·막대그래프·꺾은선그래프·띠그래프·원그래프로 바꿔 줘요.',      grade:'2~6학년', area:'자료와 가능성', icon:'📊', color:'#FFF3C4', date:'2026-10-16', file:'tools/graph-maker.html' },
-  { title:'주사위와 회전판', desc:'주사위를 던지고 회전판을 돌려 일이 일어날 가능성을 알아봐요.',     grade:'5~6학년', area:'자료와 가능성', icon:'🎲', color:'#FFE3EA', date:'2026-10-16', file:'tools/chance.html' }
+  { title:'주사위와 회전판', desc:'주사위를 던지고 회전판을 돌려 일이 일어날 가능성을 알아봐요.',     grade:'5~6학년', area:'자료와 가능성', icon:'🎲', color:'#FFE3EA', date:'2026-10-16', file:'tools/chance.html' },
+  { title:'분수 수학 도구', desc:'분수 막대와 분수 원을 꺼내 색칠하고, 겹치고, 비교 자로 재며 분수의 크기와 계산을 함께 알아봐요. 수업 활동도 바로 꺼낼 수 있어요.', grade:'3~6학년', area:'수와 연산', icon:'🥧', color:'#FFE3EA', date:'2026-10-21', file:'tools/fraction-tools.html' }
 ];
 
 const PUZZLES = [
