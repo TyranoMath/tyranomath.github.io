@@ -255,10 +255,17 @@ let mergeObs = null;
 function mergeBar(){
   const slot = $('#playerTools'); if (!slot) return;
   if (mergeObs){ mergeObs.disconnect(); mergeObs = null; }
-  slot.innerHTML = ''; $('#player').classList.remove('merged');
+  slot.innerHTML = ''; $('#player').classList.remove('merged'); unmirror();
   let doc; try { doc = $('#playerFrame').contentDocument; } catch(e){ return; }
   const tools = doc && doc.querySelector('.topbar .tools'); if (!tools) return;
-  const st = doc.createElement('style'); st.textContent = '.topbar{display:none!important}'; doc.head.appendChild(st);
+  // 게임 이름(브랜드)과 버튼 줄만 숨기고, 다른 것(도구 막대 등)이 같은 줄에 있으면 그 줄은 남겨요
+  const bar = tools.closest('.topbar');
+  const tbar = bar.querySelector(':scope > .toolbar');      // 도구 막대(펜·지우개 등)도 창 윗줄로 옮겨요
+  const others = [...bar.children].filter(el => el !== tools && el !== tbar && !el.classList.contains('brand'));
+  const st = doc.createElement('style');
+  st.textContent = others.length ? '.topbar > .brand, .topbar > .tools, .topbar > .toolbar{display:none!important}' : '.topbar{display:none!important}';
+  doc.head.appendChild(st);
+  if (tbar) mirrorToolbar(tbar);
   $('#player').classList.add('merged');
   const draw = () => {
     slot.innerHTML = '';
@@ -277,6 +284,30 @@ function mergeBar(){
   mergeObs = new MutationObserver(draw);
   mergeObs.observe(tools, { subtree: true, childList: true, attributes: true, characterData: true });
 }
+// 도구 막대를 똑같이 그려 두고, 누르면 게임 안의 진짜 버튼이 눌려요
+let tbarObs = null;
+function mirrorToolbar(src){
+  let slot = $('#playerTbar');
+  if (!slot){ slot = document.createElement('div'); slot.id = 'playerTbar'; slot.className = 'player-tbar'; $('#playerTitle').after(slot); }
+  const path = el => { const p = []; while (el && el !== slot){ p.unshift([...el.parentNode.children].indexOf(el)); el = el.parentNode; } return p; };
+  const draw = () => {
+    slot.innerHTML = src.innerHTML.replace(/\sid="/g, ' data-src-id="');
+    slot.hidden = false; $('#player').classList.add('has-tbar');
+  };
+  slot.onclick = e => {
+    const b = e.target.closest('button'); if (!b || !slot.contains(b)) return;
+    let node = src; for (const i of path(b)) node = node && node.children[i];
+    if (node) node.click();
+  };
+  draw();
+  tbarObs = new MutationObserver(draw);
+  tbarObs.observe(src, { subtree: true, childList: true, attributes: true, characterData: true });
+}
+function unmirror(){
+  if (tbarObs){ tbarObs.disconnect(); tbarObs = null; }
+  const slot = $('#playerTbar'); if (slot){ slot.innerHTML = ''; slot.hidden = true; }
+  $('#player') && $('#player').classList.remove('has-tbar');
+}
 function closeItem(){
   if (!$('#player') || !$('#player').classList.contains('open')) return;
   if (document.fullscreenElement) document.exitFullscreen?.();
@@ -284,6 +315,7 @@ function closeItem(){
   $('#playerFrame').src = 'about:blank';
   if (mergeObs){ mergeObs.disconnect(); mergeObs = null; }
   if ($('#playerTools')) $('#playerTools').innerHTML = '';
+  unmirror();
   $('#player').classList.remove('merged');
   document.body.classList.remove('no-scroll');
   try { history.replaceState(null, '', location.pathname + location.search + returnHash); } catch(e){}

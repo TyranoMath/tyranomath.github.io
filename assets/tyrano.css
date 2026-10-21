@@ -238,6 +238,21 @@ section[id]{scroll-margin-top:calc(var(--tap) + 30px)}
 .player-bar .gtool.g-set{background:#FF9F43; border-color:#D97A1F; color:#fff}
 .player-bar .gtool.g-rank{background:#FFD43B; border-color:#E8B500; color:#5A3B00; font-family:'Jua',sans-serif}
 .player-gtools > :last-child{margin-right:10px}
+/* 도구(예: 분수 수학 도구)의 도구 막대를 창 이름 옆으로 */
+.player.has-tbar .player-bar h3{margin-right:0}
+.player-tbar{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:0 auto 0 12px}
+.player-tbar[hidden]{display:none}
+.player-tbar .grp{display:flex; align-items:center; gap:2px; background:#fff; border:3px solid var(--line); border-radius:14px; padding:2px}
+.player-tbar .tb{border:0; background:none; border-radius:10px; min-width:36px; height:36px; padding:0 6px; font:inherit; color:var(--ink); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px; white-space:nowrap}
+.player-tbar .tb .tx{display:none}
+.player-tbar .tb[aria-pressed="true"]{background:#4CB963; color:#fff}
+.player-tbar .tb.pen[aria-pressed="true"]{background:#3B8FD9}
+.player-tbar .tb:disabled{opacity:.35; cursor:default}
+.player-tbar .pencols{display:none; gap:4px; align-items:center; padding:0 4px}
+.player-tbar .pencols.on{display:flex}
+.player-tbar .pencols button{width:22px; height:22px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 0 2px var(--line); cursor:pointer; padding:0}
+.player-tbar .pencols button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink)}
+@media (max-width:760px){ .player-tbar{order:5; flex-basis:100%; margin:4px 0 0} .player-tbar .tb{min-width:32px; height:32px; padding:0 4px} }
 .player-box:fullscreen{width:100%; height:100%; border-radius:0}
 @media (max-width:760px){
   .player-bar .gtool .txt, .player-bar .gtool .tmr-t{display:none}
