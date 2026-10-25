@@ -56,6 +56,8 @@ function gradeRange(g){
   return [Math.min(a, b), Math.max(a, b)];
 }
 const byLatest = (a, b) => (b.item.date || '').localeCompare(a.item.date || '') || b.i - a.i;
+// data.js 에서 pin: 1, 2 … 를 붙인 항목은 '최신순'에서 늘 맨 앞 (번호 순서대로), 나머지는 그 뒤에 최신순
+const byPinLatest = (a, b) => ((a.item.pin || 999) - (b.item.pin || 999)) || byLatest(a, b);
 
 /* =========================================================
    1. 번역 기능 (Google 번역)
@@ -396,7 +398,7 @@ document.addEventListener('click', e => {
 // data-latest="games" 또는 "puzzles" 인 칸에 최신 항목을 보여 줘요
 $$('[data-latest]').forEach(el => {
   const key = el.dataset.latest, list = LISTS[key] || [];
-  let latest = list.map((item, i) => ({ item, i })).filter(x => x.item.file).sort(byLatest).slice(0, CFG.latestCount).map(x => x.i);
+  let latest = list.map((item, i) => ({ item, i })).filter(x => x.item.file).sort(byPinLatest).slice(0, CFG.latestCount).map(x => x.i);
   // 아직 열린 것이 적으면 '준비 중'인 것도 함께 보여 줘요 (수학 도구존)
   if (key === 'tools' && latest.length < CFG.latestCount)
     latest = latest.concat(list.map((item, i) => ({ item, i })).filter(x => !x.item.file).slice(0, CFG.latestCount - latest.length).map(x => x.i));
@@ -497,7 +499,7 @@ if ($('#zoneGrid')){
     if (state.q) rows = rows.filter(r => [r.item.title, r.item.desc, r.item.area, r.item.grade].join(' ').toLowerCase().includes(state.q));
     if (state.sort === 'name') rows.sort((a, b) => a.item.title.localeCompare(b.item.title, 'ko'));
     else if (state.sort === 'grade') rows.sort((a, b) => gradeRange(a.item.grade)[0] - gradeRange(b.item.grade)[0] || byLatest(a, b));
-    else rows.sort(byLatest);
+    else rows.sort(byPinLatest);
     // 준비 중인 게임은 항상 뒤로
     rows.sort((a, b) => (!a.item.file) - (!b.item.file));
 
