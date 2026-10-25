@@ -8,7 +8,7 @@
 <title>티라노 도형퍼즐 · TyranoMath</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#fff8ec; --card:#ffffff; --border:#ecdcc2; --ink:#3a2e4f; --muted:#8b7f99;
@@ -132,6 +132,11 @@ button.on{background:var(--purple-soft);border-color:var(--purple);color:var(--p
 #board.k-heart .piece .face,#board.k-circle .piece .face,#board.k-magic .piece .face,#board.k-stoma .piece .face,#board.k-pento .piece .face{stroke:rgba(70,35,95,.55)}
 #board.k-heart .piece.sel .face,#board.k-circle .piece.sel .face,#board.k-magic .piece.sel .face,#board.k-stoma .piece.sel .face,#board.k-pento .piece.sel .face{stroke:var(--purple)}
 .src-count{fill:var(--muted);font-weight:700;text-anchor:middle}
+.ctrl{cursor:pointer}
+.ctrl-sh{fill:rgba(60,30,100,.25)}
+.ctrl-bg{fill:var(--card);stroke:var(--purple)}
+.ctrl-ic{fill:var(--purple);font-weight:800;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.ctrl:active .ctrl-bg{fill:var(--purple-soft)}
 .src-count.ok{fill:var(--green)}
 .ghost{fill:none;stroke-dasharray:.3 .18;stroke-linejoin:round;pointer-events:none;animation:blink .7s ease-in-out infinite alternate}
 @keyframes blink{from{opacity:.3}to{opacity:1}}
@@ -150,8 +155,44 @@ button.on{background:var(--purple-soft);border-color:var(--purple);color:var(--p
 .modal .actions button{flex:1}
 .bounce{animation:bounce .9s ease-in-out infinite}
 @keyframes bounce{50%{transform:translateY(-8%)}}
-.zone-back{text-decoration:none;font-family:var(--title);background:var(--purple);color:#fff;border-radius:999px;padding:6px 14px;white-space:nowrap;flex:none}
-.head .tmr-btn{flex:none}
+
+/* ---------- TyranoMath 퍼즐존 스타일 ---------- */
+:root{--bg:#FFF8EC; --card:#fff; --border:#ECDFC8; --ink:#22314A; --muted:#5D6C83;
+  --purple:#8E5BD6; --purple-d:#6C3FB4; --purple-ink:#fff; --purple-soft:#EFE6FF; --green:#4CB963; --green-d:#2F8A47; --green-soft:#E4F5D6;
+  --title:'Jua','Gowun Dodum',system-ui,sans-serif}
+html,body{font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif}
+.rail{border-right:3px solid var(--border)}
+.tab{font-family:var(--title); font-weight:400; font-size:calc(var(--ui)*.82); border-width:3px}
+.tab.on{background:var(--purple-soft); border-color:var(--purple); color:var(--purple-d); box-shadow:0 3px 0 var(--purple)}
+.head{gap:.6em}
+.brand{display:block; margin-right:auto; min-width:0}
+.blogo svg{width:calc(var(--ui)*2.6); height:auto; display:block}
+.brand h1{color:var(--purple-d)}
+.zone-back{text-decoration:none; font-family:var(--title); background:var(--purple); color:#fff; border-radius:999px; padding:.35em .9em; white-space:nowrap; flex:none; font-size:calc(var(--ui)*.85)}
+button{font-family:var(--title); border-width:3px; box-shadow:0 4px 0 var(--border); transition:transform .06s, box-shadow .06s}
+button:active{transform:translateY(3px); box-shadow:0 1px 0 var(--border)}
+button.primary{background:var(--green); border-color:var(--green-d); color:#fff; box-shadow:0 4px 0 var(--green-d); font-weight:400}
+button.on{background:var(--purple); border-color:var(--purple-d); color:#fff; box-shadow:0 4px 0 var(--purple-d); font-weight:400}
+.tab,.cats button,.thumb{box-shadow:none}
+.tab:active{transform:scale(.95)}
+.label{font-family:var(--title); font-weight:400; font-size:calc(var(--ui)*.9); color:var(--purple-d)}
+.cats button{font-weight:400; border-width:2px}
+.cats button.on{box-shadow:0 3px 0 var(--purple-d)}
+.thumb{border-width:3px}
+.thumb.on{border-color:var(--purple); box-shadow:0 3px 0 var(--purple)}
+.status{border-width:3px; box-shadow:0 4px 0 var(--border)}
+.status.win{border-color:var(--green); box-shadow:0 4px 0 var(--green)}
+.chip{font-family:var(--title); font-weight:400}
+.board-wrap{border:4px solid var(--border); border-radius:calc(var(--ui)*1.3); box-shadow:0 6px 0 var(--border)}
+.modal{border:4px solid var(--border); border-radius:calc(var(--ui)*1.6); box-shadow:0 8px 0 var(--border)}
+.modal h2{color:var(--purple-d)}
+.head{flex-wrap:nowrap; gap:.4em}
+.brand h1{white-space:nowrap; font-size:calc(var(--ui)*1.35)}
+.blogo svg{width:calc(var(--ui)*2.2)}
+.zone-back{order:-1}
+.head .tmr-btn{flex:none; height:max(44px,calc(var(--ui)*2.6)); min-height:0; font-size:calc(var(--ui)*.95); padding:0 .9em; border-radius:calc(var(--ui)*.75); background:#FFD43B; border-color:#E8B500; color:#5A3B00; box-shadow:0 4px 0 #C99A00}
+.head .tmr-btn .tmr-t{display:none}
+#fsBtn{flex:none}
 </style>
 </head>
 <body>
@@ -199,7 +240,7 @@ button.on{background:var(--purple-soft);border-color:var(--purple);color:var(--p
     <div class="board-wrap" id="boardWrap">
       <svg id="board" aria-label="작업판">
         <defs></defs>
-        <g id="dots"></g><g id="trayG"></g><g id="sil" class="sil"></g><g id="ghosts"></g><g id="srcG"></g><g id="pieceG"></g>
+        <g id="dots"></g><g id="trayG"></g><g id="sil" class="sil"></g><g id="ghosts"></g><g id="srcG"></g><g id="pieceG"></g><g id="ctrlG"></g>
       </svg>
     </div>
     <div class="tools">
@@ -384,7 +425,10 @@ try{if(window.top===window)document.getElementById('back').hidden=false;}catch(e
 const work=()=>ks.work>0?WORKS[kit][ks.work-1]:null;
 
 // ---------- 도형 계산 ----------
-const polyOf=p=>GEO.xform(K.shapes[p.k],p.x,p.y,p.a,p.f);
+// 조각 상자 속 조각은 작게(TS배) 보여서 작업판을 넓게 씀
+const TS=0.55;
+const polyOf=p=>{const P=GEO.xform(K.shapes[p.k],p.x,p.y,p.a,p.f);return p.tray?P.map(([x,y])=>[p.x+(x-p.x)*TS,p.y+(y-p.y)*TS]):P;};
+const smallPoly=(k,x,y,f)=>GEO.xform(K.shapes[k],0,0,0,f||0).map(([u,v])=>[x+u*TS,y+v*TS]);
 const cornersOf=p=>{const P=polyOf(p);return K.shapes[p.k].corners.map(i=>P[i]);};
 const ptsStr=P=>P.map(q=>q[0].toFixed(3)+','+q[1].toFixed(3)).join(' ');
 const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
@@ -393,16 +437,16 @@ function bboxOf(P){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const[x,y]of P){if(x<x0
 const normA=a=>((a%360)+360)%360;
 
 // ---------- 조각 상자 배치(선반 쌓기) ----------
-function packItems(items,width){ // items:{key,k,f} -> positions relative (0,0) top-left
-  const g=C.gap;let x=0,y=0,rowH=0;const out=[];let maxW=0;
+function packItems(items,width){ // items:{key,k,f} -> positions relative (0,0) top-left (상자용: TS배 크기)
+  const g=C.gap*Math.max(TS,.7);let x=0,y=0,rowH=0;const out=[];let maxW=0;
   for(const it of items){
-    const P=GEO.xform(K.shapes[it.k],0,0,0,it.f||0);const b=bboxOf(P);const w=b.x1-b.x0,h=b.y1-b.y0;
+    const P=smallPoly(it.k,0,0,it.f);const b=bboxOf(P);const w=b.x1-b.x0,h=b.y1-b.y0+(K.unlimited?C.font*1.05:0); // 패턴블록: 개수 글자 자리
     if(x>0&&x+w>width){y+=rowH+g;x=0;rowH=0;}
     out.push({...it,cx:x-b.x0,cy:y-b.y0,w,h,row:y});x+=w+g;rowH=Math.max(rowH,h);maxW=Math.max(maxW,x-g);
   }
   // 각 줄 가운데 정렬
   const rows={};out.forEach(o=>{(rows[o.row]=rows[o.row]||[]).push(o);});
-  for(const r in rows){const L=rows[r];const right=Math.max(...L.map(o=>o.cx+bboxOf(GEO.xform(K.shapes[o.k],0,0,0,o.f||0)).x1));const sh=(width-right)/2;L.forEach(o=>o.cx+=sh);}
+  for(const r in rows){const L=rows[r];const right=Math.max(...L.map(o=>o.cx+bboxOf(smallPoly(o.k,0,0,o.f)).x1));const sh=(width-right)/2;L.forEach(o=>o.cx+=sh);}
   return {pos:out,h:y+rowH};
 }
 function trayItems(){
@@ -413,21 +457,22 @@ function trayItems(){
 // ---------- 화면 배치 계산 ----------
 function computeView(){
   const bw=wrap.clientWidth,bh=wrap.clientHeight;if(bw<10||bh<10)return null;
-  const items=trayItems(), pad=C.pad;
+  const items=trayItems(), pad=C.pad*.75, D=(C.D-2*C.pad)*TS+2*pad+C.font*1.2;
   const wb=work();const wbb=wb?bboxOf(wb.slots.flatMap(s=>GEO.xform(K.shapes[s.k],s.x,s.y,s.a,s.f))):null;
   const needW=Math.max(C.S,wbb?wbb.x1-wbb.x0+1.2:0), needH=Math.max(C.S*.82,wbb?wbb.y1-wbb.y0+1.2:0);
-  const pr=packItems(items,C.D-2*pad), pb=packItems(items,needW-2*pad);
+  const pr=packItems(items,D-2*pad), pb=packItems(items,needW-2*pad);
   const LH=C.font*1.5; // '조각 상자' 글자 자리
-  const R={side:'right',W:needW+C.D,H:Math.max(needH,pr.h+2*pad+LH),pack:pr};
+  const R={side:'right',W:needW+D,H:Math.max(needH,pr.h+2*pad+LH),pack:pr};
   const B={side:'bottom',W:needW,H:needH+pb.h+2*pad+LH,pack:pb};
   const sc=o=>Math.min(bw/o.W,bh/o.H);
   const o=sc(R)>=sc(B)?R:B;const s=sc(o);
   const W=bw/s,H=bh/s;
   const v={W,H,side:o.side,scale:s,pack:o.pack};
-  if(o.side==='right'){v.tray={x:W-C.D,y:0,w:C.D,h:H};v.target={x:0,y:0,w:W-C.D,h:H};}
+  v.pad=pad;
+  if(o.side==='right'){v.tray={x:W-D,y:0,w:D,h:H};v.target={x:0,y:0,w:W-D,h:H};}
   else{const th=o.pack.h+2*pad+LH;v.tray={x:0,y:H-th,w:W,h:th};v.target={x:0,y:0,w:W,h:H-th};}
   // 상자 안 위치
-  const pw=o.side==='right'?C.D-2*pad:needW-2*pad;
+  const pw=o.side==='right'?D-2*pad:needW-2*pad;
   const offX=v.tray.x+pad+(v.tray.w-2*pad-pw)/2, offY=v.tray.y+pad+LH+(v.tray.h-2*pad-LH-o.pack.h)/2;
   v.home={};o.pack.pos.forEach(p=>{v.home[p.key]={x:p.cx+offX,y:p.cy+offY,f:p.f};});
   // 작품 위치(가운데)
@@ -444,7 +489,7 @@ function drawStatic(){
   // 상자
   const tg=$('trayG');tg.innerHTML='';const t=view.tray,m=.12;
   mk('rect',{x:t.x+m,y:t.y+m,width:t.w-2*m,height:t.h-2*m,rx:C.pad*.8,class:'tray-bg','stroke-width':C.stroke},tg);
-  const lab=mk('text',{x:t.x+m+C.pad*.5,y:t.y+m+C.font*1.25,class:'tray-label','font-size':C.font},tg);lab.textContent='조각 상자';
+  const lab=mk('text',{x:t.x+m+view.pad*.6,y:t.y+m+C.font*1.25,class:'tray-label','font-size':C.font},tg);lab.textContent='조각 상자';
   // 자유 만들기 점 격자
   const dg=$('dots');dg.innerHTML='';
   if(!work()){const step=kit==='pattern'?1:1;const r=C.stroke*.9;const T=view.target;
@@ -456,11 +501,11 @@ function drawStatic(){
   // 패턴블록 원본 조각
   const srcG=$('srcG');srcG.innerHTML='';
   if(K.unlimited){
-    for(const k in K.shapes){const h=view.home[k];const P=GEO.xform(K.shapes[k],h.x,h.y,0,0);
+    for(const k in K.shapes){const h=view.home[k];const P=smallPoly(k,h.x,h.y,0);
       const g=mk('g',{class:'src piece','data-src':k},srcG);
       mk('polygon',{points:ptsStr(P),class:'hit','stroke-width':C.hit},g);
       mk('polygon',{points:ptsStr(P),class:'face',fill:K.colors[k],'stroke-width':C.stroke},g);
-      const b=bboxOf(P);const tx=mk('text',{x:(b.x0+b.x1)/2,y:b.y1+C.font*1.05,class:'src-count','font-size':C.font*.85},g);tx.dataset.k=k;
+      const b=bboxOf(P);const tx=mk('text',{x:(b.x0+b.x1)/2,y:b.y1+C.font*.95,class:'src-count','font-size':C.font*.8},g);tx.dataset.k=k;
       g.addEventListener('pointerdown',e=>startDrag(e,null,k));
     }
   }
@@ -479,6 +524,29 @@ function drawPieces(){
     g.children[1].setAttribute('stroke-width',p.id===sel?C.selW:C.stroke);
     g.classList.toggle('sel',p.id===sel);
   }
+  drawCtrl();
+}
+// 고른 조각 바로 옆에 돌리기·뒤집기 버튼 (손가락 크기에 맞춰 화면 크기 고정)
+function drawCtrl(){
+  const cg=$('ctrlG');cg.innerHTML='';
+  const p=pieces.find(q=>q.id===sel);
+  if(!p||p.tray||[...drags.values()].some(d=>d.id===p.id&&d.moved))return;
+  const r=Math.min(24/view.scale,C.S*.09),gap=r*.45;
+  const btns=[['↺',()=>rotate(p.id,-1),'왼쪽으로 돌리기'],['↻',()=>rotate(p.id,1),'오른쪽으로 돌리기']];
+  if(kit!=='pattern')btns.push(['⇋',()=>flip(p.id),'뒤집기']);
+  const b=bboxOf(polyOf(p)),T=view.target;
+  const w=btns.length*2*r+(btns.length-1)*gap;
+  let cx=Math.min(T.x+T.w-w/2-r*.3,Math.max(T.x+w/2+r*.3,(b.x0+b.x1)/2));
+  let cy=b.y0-r*1.35;if(cy-r<T.y+.05)cy=b.y1+r*1.35;
+  if(cy+r>T.y+T.h-.05)cy=Math.max(T.y+r+.05,b.y0-r*1.35);
+  btns.forEach(([ic,fn,lab],i)=>{
+    const x=cx-w/2+r+i*(2*r+gap);
+    const g=mk('g',{class:'ctrl',role:'button','aria-label':lab},cg);
+    mk('circle',{cx:x,cy:cy+r*.12,r,class:'ctrl-sh'},g);
+    mk('circle',{cx:x,cy,r,class:'ctrl-bg','stroke-width':r*.12},g);
+    const t=mk('text',{x,y:cy,class:'ctrl-ic','font-size':r*1.25},g);t.textContent=ic;
+    g.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();fn();});
+  });
 }
 function updateCounts(){
   if(!K.unlimited)return;const wb=work();
@@ -627,6 +695,7 @@ function startDrag(e,id,srcKind){
 board.addEventListener('pointermove',e=>{
   const d=drags.get(e.pointerId);if(!d)return;
   if(!d.moved&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)<7)return;
+  if(!d.moved)$('ctrlG').innerHTML='';
   d.moved=true;const p=pieces.find(q=>q.id===d.id);if(!p)return;
   const w=toWorld(e.clientX,e.clientY);p.x=Math.min(view.W-.1,Math.max(.1,w.x+d.dx));p.y=Math.min(view.H-.1,Math.max(.1,w.y+d.dy));p.tray=false;
   const g=pieceEls.get(p.id);const s=ptsStr(polyOf(p));g.children[0].setAttribute('points',s);g.children[1].setAttribute('points',s);
@@ -655,7 +724,7 @@ function drop(p){
   changed();
 }
 board.addEventListener('pointerup',endDrag);board.addEventListener('pointercancel',endDrag);
-board.addEventListener('pointerdown',e=>{if(!e.target.closest('.piece')){sel=-1;render();}});
+board.addEventListener('pointerdown',e=>{if(!e.target.closest('.piece')&&!e.target.closest('.ctrl')){sel=-1;render();}});
 
 function rotate(id,dir,fromTap){
   const p=pieces.find(q=>q.id===id);if(!p)return;sel=id;
@@ -742,6 +811,7 @@ function restart(){
   clearGhost();sel=-1;ks.won=false;ks.shown=false;ks.hints=0;startTime=Date.now();
   if(K.unlimited)pieces=[];else pieces.forEach(toHome);
   render();save();
+  rkStart();
 }
 function chooseWork(i){
   if(drags.size)return;
