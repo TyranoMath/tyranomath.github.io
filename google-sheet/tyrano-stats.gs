@@ -38,7 +38,7 @@ const FILE_RULE = /^(games|puzzles|tools)\/[A-Za-z0-9_\-\/]+\.html$/;
    --------------------------------------------------------- */
 const DYN = /^[0-9A-Za-z가-힣+\-−×÷|.,:_ ]{1,60}$/;
 // 배포 확인용 버전: 주소 뒤에 ?action=ver 를 붙여 열면 보여요
-const GS_VER = '2026-10-20b';
+const GS_VER = '2026-10-25';
 const QUIZ = { kind:'score', level:/^[0-2]$/, max:200, rate:1.7 };
 const RULES = {
   // 퍼즐존
@@ -56,6 +56,7 @@ const RULES = {
   'kenken':         { kind:'time',  level:/^[3-7]-[1-3]$/, min:l => ({ 3:3, 4:6, 5:12, 6:20, 7:35 })[l.split('-')[0]], resume:true },
   'janggi':         { kind:'low',   level:/^[1-3]$/, min:() => 3, max:400 },
   'chess':          { kind:'low',   level:/^[1-3]$/, min:() => 2, max:300 },
+  'shape-puzzle':   { kind:'time',  level:DYN, min:() => 3, resume:true },
   // 게임존
   'tyrano-plus':       { kind:'score', level:/^(10|20|100)$/, max:200, rate:1.7 },
   'gugudan-volcano':   QUIZ, 'shape-fossil': QUIZ, 'tyrano-clock': QUIZ, 'pattern-footprint': QUIZ, 'egg-graph': QUIZ,
