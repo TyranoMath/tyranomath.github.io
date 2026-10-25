@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>빙고 · TyranoMath 수학 도구존</title>
+<style>
+:root{
+  --bg:#f5f8f3; --panel:#ffffff; --ink:#1d2a22; --muted:#6b7a70;
+  --accent:#2f9e5b; --accent-ink:#ffffff; --accent-soft:#dff3e6;
+  --line:#c9d3cc; --cell:#ffffff; --cell-edit:#fbfdfb;
+  --mark:#f07f2e; --mark-ink:#ffffff; --win:#c9ecd5; --win-line:#2f9e5b;
+  --error:#d64545; --error-bg:#fde4e4;
+  --shadow:0 6px 24px rgba(30,60,40,.12);
+  --ui:16px; --gap:10px; --bs:300px; --panelW:300px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  overscroll-behavior:none;-webkit-text-size-adjust:100%;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+input{-webkit-user-select:text;user-select:text}
+
+/* ---------- 자동 레이아웃 ---------- */
+.app{height:100vh;height:100dvh;overflow:auto;display:flex;font-size:var(--ui);
+  padding:max(var(--gap),env(safe-area-inset-top)) max(var(--gap),env(safe-area-inset-right))
+          max(var(--gap),env(safe-area-inset-bottom)) max(var(--gap),env(safe-area-inset-left))}
+.stage{margin:auto;display:flex;gap:var(--gap)}
+.side{display:flex;flex-direction:column;gap:var(--gap)}
+.portrait .stage{flex-direction:column;align-items:center}
+.portrait .board-wrap{order:2}
+.portrait .side{display:contents}
+.portrait .top{order:0} .portrait .modeSeg{order:1} .portrait .panel{order:3}
+.portrait .side>*{width:min(calc(100vw - 2*var(--gap)), max(var(--bs), calc(var(--ui)*22)))}
+.landscape .stage{flex-direction:row;align-items:center;gap:calc(var(--gap)*2)}
+.landscape .side{width:var(--panelW)}
+.panel{display:flex;flex-direction:column;gap:calc(var(--ui)*.55)}
+.panel[hidden]{display:none!important}
+
+/* ---------- 공통 버튼 ---------- */
+button{font:inherit;font-size:calc(var(--ui)*.95);border-radius:calc(var(--ui)*.7);border:1px solid var(--line);
+  background:var(--panel);color:var(--ink);cursor:pointer;min-height:max(44px,calc(var(--ui)*2.7));
+  padding:0 calc(var(--ui)*.7);touch-action:manipulation;transition:transform .06s,background .1s;white-space:nowrap}
+button:active{transform:scale(.95)}
+button:disabled{opacity:.45}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+@media (hover:hover) and (pointer:fine){button:hover:not(:disabled){border-color:var(--accent)}}
+.icon-btn{padding:0;width:max(44px,calc(var(--ui)*2.7));flex:none}
+.row{display:flex;gap:calc(var(--ui)*.45)}
+.row>button{flex:1;min-width:0;padding:0 .3em;white-space:normal;line-height:1.15;word-break:keep-all}
+#fillBtn{flex:1.45}
+.seg{display:flex;border:1px solid var(--line);border-radius:calc(var(--ui)*.7);overflow:hidden;background:var(--panel)}
+.seg button{flex:1;border:0;border-radius:0;min-width:0;padding:0 .2em}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{border-color:var(--line)}
+.label{font-size:calc(var(--ui)*.78);font-weight:700;color:var(--muted);margin:calc(var(--ui)*.2) 0 calc(var(--ui)*-.25)}
+
+/* ---------- 상단 ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--ui)*.5)}
+.brand{display:flex;align-items:center;gap:calc(var(--ui)*.55);margin-right:auto}
+.zone-back{text-decoration:none;font-weight:700;font-size:calc(var(--ui)*.85);background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:.45em .9em;white-space:nowrap}
+.logo{font-size:calc(var(--ui)*1.9);line-height:1}
+.kicker{font-size:calc(var(--ui)*.7);font-weight:700;letter-spacing:.08em;color:var(--accent);text-transform:uppercase}
+h1{margin:0;font-size:calc(var(--ui)*1.3);font-weight:800;line-height:1.2}
+.modeSeg button{font-weight:600}
+
+/* ---------- 판 ---------- */
+.board-wrap{display:flex;justify-content:center}
+.board{--n:5;width:var(--bs);height:var(--bs);display:grid;
+  grid-template-columns:repeat(var(--n),1fr);grid-template-rows:repeat(var(--n),1fr);
+  gap:max(3px,calc(var(--bs)*.012));padding:max(4px,calc(var(--bs)*.016));
+  background:var(--panel);border-radius:calc(var(--bs)*.03);box-shadow:var(--shadow)}
+.cell{position:relative;background:var(--cell);border:max(1px,calc(var(--bs)*.003)) solid var(--line);
+  border-radius:calc(var(--bs)/var(--n)*.14);display:flex;align-items:center;justify-content:center;
+  font-size:calc(var(--bs)/var(--n)*var(--f,.44));font-weight:800;line-height:1.05;text-align:center;
+  overflow:hidden;cursor:pointer;transition:background .15s,transform .08s;word-break:keep-all}
+.play .cell:active{transform:scale(.96)}
+.cell span{position:relative;padding:0 .08em;z-index:1}
+.cell.marked::before{content:'';position:absolute;inset:11%;border-radius:50%;background:var(--mark);
+  animation:stamp .22s ease-out}
+.cell.marked span{color:var(--mark-ink)}
+.cell.lined{background:var(--win);border-color:var(--win-line)}
+.cell.last{box-shadow:0 0 0 max(2px,calc(var(--bs)*.007)) var(--mark) inset}
+@keyframes stamp{from{transform:scale(1.5);opacity:0}to{transform:scale(1);opacity:1}}
+.make .cell{background:var(--cell-edit);border-style:dashed;cursor:text}
+.make .cell.dup{background:var(--error-bg);border-color:var(--error);border-style:solid}
+.cell input{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;color:var(--ink);
+  font:inherit;font-size:max(16px,1em);text-align:center;outline:none;padding:0;border-radius:inherit}
+.make .cell:focus-within{border-color:var(--accent);border-style:solid;box-shadow:0 0 0 2px var(--accent-soft)}
+
+/* ---------- 판 만들기 ---------- */
+.range{display:flex;align-items:center;gap:calc(var(--ui)*.45)}
+.range label{flex:1;display:flex;align-items:center;gap:.4em;border:1px solid var(--line);border-radius:calc(var(--ui)*.7);
+  background:var(--panel);padding:0 .7em;min-height:max(44px,calc(var(--ui)*2.7));color:var(--muted);font-size:calc(var(--ui)*.85)}
+.range input{flex:1;min-width:0;width:100%;border:0;background:transparent;color:var(--ink);font:inherit;
+  font-size:max(16px,calc(var(--ui)*1.05));font-weight:700;text-align:right;outline:none}
+.tip{margin:0;font-size:calc(var(--ui)*.8);color:var(--muted);line-height:1.45;min-height:2.9em}
+.tip.err{color:var(--error);font-weight:600}
+
+/* ---------- 빙고 하기 ---------- */
+.score{display:flex;align-items:center;justify-content:space-between;gap:.6em;background:var(--panel);
+  border:1px solid var(--line);border-radius:calc(var(--ui)*.8);padding:calc(var(--ui)*.5) calc(var(--ui)*.8)}
+.count{font-size:calc(var(--ui)*1.05);font-weight:700;white-space:nowrap}
+.count b{font-size:calc(var(--ui)*2);color:var(--accent);font-variant-numeric:tabular-nums;margin-right:.1em}
+.dots{display:flex;flex-wrap:wrap;gap:calc(var(--ui)*.25);flex:1;justify-content:center}
+.dots i{width:calc(var(--ui)*.75);height:calc(var(--ui)*.75);border-radius:50%;border:2px solid var(--accent)}
+.dots i.f{background:var(--accent)}
+.goal{display:flex;align-items:center;gap:.35em;color:var(--muted);font-size:calc(var(--ui)*.85);white-space:nowrap}
+.goal b{color:var(--ink);font-size:calc(var(--ui)*1.1);min-width:1.1em;text-align:center}
+.goal button{min-height:max(36px,calc(var(--ui)*2.1));width:max(36px,calc(var(--ui)*2.1));padding:0;font-size:calc(var(--ui)*1.1)}
+.caller{display:flex;gap:calc(var(--ui)*.55);align-items:stretch}
+.drawn{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--panel);border:2px solid var(--mark);border-radius:calc(var(--ui)*.8);padding:calc(var(--ui)*.3)}
+.drawn b{font-size:calc(var(--ui)*2.7);line-height:1.05;font-variant-numeric:tabular-nums;color:var(--mark)}
+.drawn small{font-size:calc(var(--ui)*.72);color:var(--muted)}
+.drawn.rolling b{opacity:.55}
+.drawn.pop b{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(1.5)}100%{transform:scale(1)}}
+.drawbtns{display:flex;flex-direction:column;gap:calc(var(--ui)*.45);flex:1.15}
+.drawbtns button{flex:1}
+.history{display:flex;gap:calc(var(--ui)*.3);overflow-x:auto;height:calc(var(--ui)*2.3);align-items:center;
+  scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.history:empty::before{content:'뽑은 번호가 여기에 나와요';color:var(--muted);font-size:calc(var(--ui)*.8)}
+.history span{flex:none;min-width:calc(var(--ui)*1.9);height:calc(var(--ui)*1.9);padding:0 .45em;border-radius:99px;
+  display:flex;align-items:center;justify-content:center;background:var(--accent-soft);color:var(--accent);
+  font-weight:700;font-size:calc(var(--ui)*.85);font-variant-numeric:tabular-nums}
+.history span:first-child{background:var(--mark);color:var(--mark-ink)}
+.help{display:none;text-align:center;color:var(--muted);font-size:calc(var(--ui)*.72);margin:0}
+@media (hover:hover) and (pointer:fine){.help{display:block}}
+
+/* ---------- 모달 ---------- */
+.overlay{position:fixed;inset:0;background:rgba(10,20,14,.5);display:none;align-items:center;justify-content:center;
+  padding:16px;z-index:10;font-size:var(--ui)}
+.overlay.show{display:flex}
+.modal{background:var(--panel);border-radius:var(--ui);padding:calc(var(--ui)*1.5);width:min(100%,calc(var(--ui)*22));
+  text-align:center;box-shadow:var(--shadow)}
+.modal .big{font-size:calc(var(--ui)*2.6)}
+.modal h2{margin:.3em 0 .4em;font-size:calc(var(--ui)*1.4)}
+.modal p{margin:.25em 0;color:var(--muted)}
+.modal .actions{margin-top:1em;display:flex;gap:.5em}
+.modal .actions button{flex:1}
+#winOverlay .modal{animation:pop .4s ease-out}
+#winOverlay h2{font-size:calc(var(--ui)*2.4);color:var(--accent);letter-spacing:.06em}
+</style>
+</head>
+<body>
+<div class="app portrait" id="app">
+  <div class="stage">
+    <div class="board-wrap"><div class="board" id="board"></div></div>
+    <div class="side" id="side">
+      <header class="top">
+        <div class="brand">
+          <span class="logo">🦖</span>
+          <div><div class="kicker">TyranoMath</div><h1>빙고</h1></div>
+        </div>
+        <a class="zone-back" id="btnZone" href="../toolzone.html" hidden>← 도구존</a>
+        <button id="fsBtn" class="icon-btn" title="전체 화면" aria-label="전체 화면">⛶</button>
+      </header>
+      <div class="seg modeSeg" id="modeSeg">
+        <button data-m="make">✎ 판 만들기</button><button data-m="play">● 빙고 하기</button>
+      </div>
+
+      <section class="panel" id="makePanel">
+        <div class="label">판 크기</div>
+        <div class="seg" id="sizeSeg">
+          <button data-s="3">3×3</button><button data-s="4">4×4</button><button data-s="5">5×5</button>
+        </div>
+        <div class="label">숫자 범위</div>
+        <div class="range">
+          <label>부터<input id="minIn" type="number" inputmode="numeric" enterkeyhint="done"></label>
+          <label>까지<input id="maxIn" type="number" inputmode="numeric" enterkeyhint="done"></label>
+        </div>
+        <div class="row">
+          <button id="fillBtn" class="primary">🎲 자동 채우기</button>
+          <button id="shuffleBtn">🔀 섞기</button>
+          <button id="clearBtn">🗑 비우기</button>
+        </div>
+        <p class="tip" id="makeTip"></p>
+      </section>
+
+      <section class="panel" id="playPanel" hidden>
+        <div class="score">
+          <div class="count"><b id="lines">0</b>빙고</div>
+          <div class="dots" id="dots"></div>
+          <div class="goal">목표<button id="goalMinus" aria-label="목표 줄이기">−</button><b id="goal">3</b><button id="goalPlus" aria-label="목표 늘리기">+</button></div>
+        </div>
+        <div class="caller">
+          <div class="drawn" id="drawn"><b id="drawnNum">?</b><small id="drawnInfo"></small></div>
+          <div class="drawbtns">
+            <button id="drawBtn" class="primary">🎲 번호 뽑기</button>
+            <button id="autoBtn">자동 표시</button>
+          </div>
+        </div>
+        <div class="history" id="history"></div>
+        <div class="row">
+          <button id="clearMarks">표시 지우기</button>
+          <button id="resetDraw">뽑기 초기화</button>
+        </div>
+      </section>
+      <p class="help" id="help">키보드: Enter 다음 칸 · Space 번호 뽑기</p>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="askOverlay">
+  <div class="modal">
+    <div class="big">🤔</div>
+    <h2 id="askTitle"></h2>
+    <p id="askMsg"></p>
+    <div class="actions"><button id="askNo">아니요</button><button class="primary" id="askYes">네</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="winOverlay">
+  <div class="modal">
+    <div class="big">🎉🦖🎉</div>
+    <h2>빙고!</h2>
+    <p id="winInfo"></p>
+    <div class="actions"><button class="primary" id="winClose">계속하기</button></div>
+  </div>
+</div>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const app=$('app'), side=$('side'), boardEl=$('board');
+const KEY='tyranomath-bingo-v1';
+try{if(window.top===window)$('btnZone').hidden=false;}catch(e){}
+const DEFAULT_GOAL={3:1,4:2,5:3};
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+let st=null, prevLines=0, rolling=false, tipMsg='', tipErr=false;
+
+function fresh(size){
+  return {size,cells:new Array(size*size).fill(''),marks:new Array(size*size).fill(false),
+    mode:'make',min:1,max:size*size,goal:DEFAULT_GOAL[size],drawn:[],auto:true,last:null};
+}
+
+// ---------- 저장 ----------
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+function load(){
+  try{
+    const o=JSON.parse(localStorage.getItem(KEY)||'null');
+    if(o&&[3,4,5].includes(o.size)&&o.cells&&o.cells.length===o.size*o.size)return o;
+  }catch(e){}
+  return null;
+}
+
+// ---------- 줄 계산 ----------
+function allLines(n){
+  const L=[];
+  for(let r=0;r<n;r++)L.push([...Array(n)].map((_,c)=>r*n+c));
+  for(let c=0;c<n;c++)L.push([...Array(n)].map((_,r)=>r*n+c));
+  L.push([...Array(n)].map((_,k)=>k*n+k));
+  L.push([...Array(n)].map((_,k)=>k*n+(n-1-k)));
+  return L;
+}
+const doneLines=()=>allLines(st.size).filter(l=>l.every(i=>st.marks[i]));
+
+// ---------- 판 만들기 ----------
+const cellEls=[];
+function fontRatio(t){
+  const len=[...t].reduce((s,ch)=>s+(/[ㄱ-힝]/.test(ch)?1.6:1),0);
+  return len<=1?.5:len<=2?.44:len<=3?.34:len<=4?.27:len<=6?.2:.15;
+}
+function buildBoard(){
+  const n=st.size;
+  boardEl.style.setProperty('--n',n);
+  boardEl.className='board '+st.mode;
+  boardEl.innerHTML='';cellEls.length=0;
+  for(let i=0;i<n*n;i++){
+    const el=document.createElement('div');el.className='cell';el.dataset.i=i;
+    if(st.mode==='make'){
+      const inp=document.createElement('input');
+      inp.value=st.cells[i];inp.maxLength=8;inp.autocomplete='off';inp.enterKeyHint=i<n*n-1?'next':'done';
+      inp.setAttribute('aria-label',`${Math.floor(i/n)+1}행 ${i%n+1}열`);
+      inp.addEventListener('input',()=>{st.cells[i]=inp.value.trim();save();render();});
+      inp.addEventListener('keydown',e=>{
+        if(e.key==='Enter'){e.preventDefault();const nx=cellEls[i+1];if(nx)nx.querySelector('input').focus();else inp.blur();}
+      });
+      inp.addEventListener('blur',()=>setTimeout(()=>{if(!isEditing())relayout();},50));
+      el.appendChild(inp);
+    }else{
+      el.appendChild(document.createElement('span'));
+      el.addEventListener('click',()=>toggleMark(i));
+    }
+    boardEl.appendChild(el);cellEls.push(el);
+  }
+}
+function syncInputs(){if(st.mode==='make')cellEls.forEach((el,i)=>{el.querySelector('input').value=st.cells[i];});}
+function setTip(msg,err){tipMsg=msg;tipErr=!!err;render();}
+function rangeOK(){
+  const span=st.max-st.min+1;
+  if(span<st.size*st.size){setTip(`범위 안의 숫자(${span}개)가 칸 수(${st.size*st.size}칸)보다 적어요. 범위를 넓혀 주세요.`,true);return false;}
+  return true;
+}
+function autoFill(){
+  if(!rangeOK())return false;
+  const need=st.size*st.size, span=st.max-st.min+1, picked=new Set();
+  if(span<=5000){
+    const all=[...Array(span)].map((_,k)=>st.min+k);
+    shuffle(all).slice(0,need).forEach(v=>picked.add(v));
+  }else while(picked.size<need)picked.add(st.min+Math.floor(Math.random()*span));
+  st.cells=shuffle([...picked]).map(String);
+  st.marks=st.marks.map(()=>false);st.last=null;
+  syncInputs();save();setTip('자동으로 채웠어요. 칸을 눌러 고칠 수도 있어요.');
+  return true;
+}
+function hasContent(){return st.cells.some(c=>c);}
+async function setSize(n){
+  if(n===st.size)return;
+  if(hasContent()&&!(await ask('판 크기를 바꿀까요?','지금 판에 쓴 내용이 지워져요.')))return;
+  const tied=st.min===1&&st.max===st.size*st.size;
+  const keep={mode:st.mode,auto:st.auto,min:st.min,max:tied?n*n:st.max};
+  st={...fresh(n),...keep,mode:'make'};
+  prevLines=0;
+  if(st.max-st.min+1>=n*n)autoFill();else setTip('');
+  buildBoard();save();render();layout();
+}
+function readRange(){
+  const a=parseInt($('minIn').value,10), b=parseInt($('maxIn').value,10);
+  if(Number.isNaN(a)||Number.isNaN(b)||b<=a||b-a>99999){
+    setTip('범위를 다시 확인해 주세요. "까지"가 "부터"보다 커야 해요.',true);
+    $('minIn').value=st.min;$('maxIn').value=st.max;return;
+  }
+  if(a!==st.min||b!==st.max){st.min=a;st.max=b;st.drawn=[];st.last=null;save();setTip(`범위를 ${a}~${b}(으)로 바꿨어요.`);}
+}
+
+// ---------- 빙고 하기 ----------
+function toggleMark(i){
+  if(st.mode!=='play')return;
+  st.marks[i]=!st.marks[i];
+  afterMark();
+}
+function afterMark(){
+  const L=doneLines().length;
+  const hit=L>=st.goal&&prevLines<st.goal;
+  prevLines=L;save();render();
+  if(hit)showWin(L);
+}
+function showWin(L){
+  $('winInfo').textContent=`${L}줄 빙고를 완성했어요!`;
+  $('winOverlay').classList.add('show');
+  const detail={type:'tyranomath:bingo',lines:L,goal:st.goal,size:st.size,drawn:st.drawn.length};
+  try{window.dispatchEvent(new CustomEvent('bingo',{detail}));}catch(e){}
+  try{if(window.parent!==window)window.parent.postMessage(detail,'*');}catch(e){}
+}
+async function draw(){
+  if(rolling)return;
+  const span=st.max-st.min+1;
+  if(st.drawn.length>=span){flashInfo('모든 번호를 다 뽑았어요');return;}
+  const used=new Set(st.drawn);let v;
+  if(span-used.size<200){const left=[];for(let k=st.min;k<=st.max;k++)if(!used.has(k))left.push(k);v=left[Math.random()*left.length|0];}
+  else do{v=st.min+Math.floor(Math.random()*span);}while(used.has(v));
+  rolling=true;$('drawBtn').disabled=true;
+  const box=$('drawn'), num=$('drawnNum');
+  box.classList.remove('pop');box.classList.add('rolling');
+  for(let k=0;k<10;k++){num.textContent=st.min+Math.floor(Math.random()*span);await new Promise(r=>setTimeout(r,45+k*6));}
+  box.classList.remove('rolling');void box.offsetWidth;box.classList.add('pop');
+  st.drawn.push(v);st.last=v;
+  if(st.auto)st.cells.forEach((c,i)=>{if(c===String(v))st.marks[i]=true;});
+  rolling=false;$('drawBtn').disabled=false;
+  afterMark();
+}
+let infoTimer=0;
+function flashInfo(msg){$('drawnInfo').textContent=msg;clearTimeout(infoTimer);infoTimer=setTimeout(render,1800);}
+async function setMode(m){
+  if(m===st.mode)return;
+  if(m==='play'){
+    if(document.activeElement)document.activeElement.blur();
+    readRange();
+    const empty=st.cells.filter(c=>!c).length, dups=dupSet().size;
+    const probs=[];
+    if(empty)probs.push(`빈 칸이 ${empty}개`);
+    if(dups)probs.push(`겹치는 칸이 ${dups}개`);
+    if(probs.length&&!(await ask('그래도 시작할까요?',probs.join(', ')+' 있어요.')))return;
+  }
+  st.mode=m;buildBoard();save();render();layout();
+}
+
+// ---------- 확인 창 ----------
+function ask(title,msg){
+  return new Promise(res=>{
+    $('askTitle').textContent=title;$('askMsg').textContent=msg;
+    $('askOverlay').classList.add('show');
+    const done=v=>{$('askOverlay').classList.remove('show');$('askYes').onclick=$('askNo').onclick=null;res(v);};
+    $('askYes').onclick=()=>done(true);$('askNo').onclick=()=>done(false);
+  });
+}
+
+// ---------- 화면 그리기 ----------
+function dupSet(){
+  const seen=new Map(), d=new Set();
+  st.cells.forEach((c,i)=>{if(!c)return;if(seen.has(c)){d.add(i);d.add(seen.get(c));}else seen.set(c,i);});
+  return d;
+}
+function render(){
+  const make=st.mode==='make';
+  const lined=new Set(); doneLines().forEach(l=>l.forEach(i=>lined.add(i)));
+  const dups=make?dupSet():new Set();
+  cellEls.forEach((el,i)=>{
+    const t=st.cells[i];
+    let cls='cell';
+    if(make){if(dups.has(i))cls+=' dup';}
+    else{
+      if(st.marks[i])cls+=' marked';
+      if(lined.has(i))cls+=' lined';
+      if(st.last!=null&&t===String(st.last))cls+=' last';
+      const sp=el.firstChild;if(sp.textContent!==t)sp.textContent=t;
+    }
+    if(el.className!==cls)el.className=cls;
+    el.style.setProperty('--f',fontRatio(t||'0'));
+  });
+  $('makePanel').hidden=!make;$('playPanel').hidden=make;
+  document.querySelectorAll('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===st.mode));
+  document.querySelectorAll('#sizeSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.s===st.size));
+  if(document.activeElement!==$('minIn'))$('minIn').value=st.min;
+  if(document.activeElement!==$('maxIn'))$('maxIn').value=st.max;
+  const tip=$('makeTip');
+  const dn=dups.size;
+  tip.textContent=tipMsg||(dn?`겹치는 칸이 ${dn}개 있어요(빨간 칸).`:'칸을 눌러 숫자나 낱말을 직접 쓸 수 있어요.');
+  tip.classList.toggle('err',tipErr||(!tipMsg&&dn>0));
+  $('help').textContent=make?'키보드: 칸에서 Enter → 다음 칸':'키보드: Space 번호 뽑기';
+  // 빙고 하기
+  const L=doneLines().length;
+  $('lines').textContent=L;$('goal').textContent=st.goal;
+  const dots=$('dots');let h='';for(let k=0;k<st.goal;k++)h+=`<i class="${k<L?'f':''}"></i>`;
+  if(dots.innerHTML!==h)dots.innerHTML=h;
+  $('goalMinus').disabled=st.goal<=1;$('goalPlus').disabled=st.goal>=st.size*2+2;
+  if(!rolling)$('drawnNum').textContent=st.last??'?';
+  $('drawnInfo').textContent=`${st.min}~${st.max} · ${st.drawn.length}개 뽑음`;
+  $('autoBtn').textContent=st.auto?'✓ 자동 표시':'자동 표시 끔';
+  $('autoBtn').classList.toggle('on',st.auto);
+  const hist=st.drawn.slice().reverse().map(v=>`<span>${v}</span>`).join('');
+  if($('history').innerHTML!==hist)$('history').innerHTML=hist;
+  tipMsg='';tipErr=false;
+}
+
+// ---------- 자동 레이아웃 (전자칠판·패드·폰·PC) ----------
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const setVar=(k,v)=>document.documentElement.style.setProperty(k,v);
+const isEditing=()=>{const a=document.activeElement;return a&&a.tagName==='INPUT';};
+function inner(){
+  const cs=getComputedStyle(app);
+  return {w:app.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight),
+          h:app.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)};
+}
+function sideHeightPortrait(gap){
+  return [...side.children].filter(e=>getComputedStyle(e).display!=='none')
+    .reduce((s,e)=>s+e.getBoundingClientRect().height+gap,0);
+}
+function layout(){
+  const W=window.innerWidth,H=window.innerHeight;
+  let best=null;
+  for(let ui=clamp(Math.min(W,H)/36,13,30);ui>=11;ui*=0.9){
+    const gap=Math.round(clamp(ui*0.6,6,20));
+    setVar('--ui',ui.toFixed(2)+'px');setVar('--gap',gap+'px');setVar('--bs','10px');
+    app.className='app portrait';
+    let {w,h}=inner();
+    const p={mode:'portrait',ui,gap,bs:Math.floor(Math.min(w,h-sideHeightPortrait(gap)))};
+    const panelW=Math.round(clamp(W*0.32,ui*16,ui*23));
+    setVar('--panelW',panelW+'px');app.className='app landscape';
+    ({w,h}=inner());
+    const fits=side.getBoundingClientRect().height<=h+1;
+    const l={mode:'landscape',ui,gap,panelW,bs:Math.floor(Math.min(w-panelW-gap*2,h))};
+    const pick=(fits&&l.bs>p.bs)?l:p;
+    if(!best||pick.bs>best.bs)best=pick;
+    if(fits||p.bs>=ui*16)break;
+  }
+  setVar('--ui',best.ui.toFixed(2)+'px');setVar('--gap',best.gap+'px');
+  if(best.panelW)setVar('--panelW',best.panelW+'px');
+  setVar('--bs',Math.max(best.bs,Math.min(window.innerWidth-best.gap*2,best.ui*16))+'px');
+  app.className='app '+best.mode;
+}
+let rafId=0;
+function relayout(){if(isEditing())return;cancelAnimationFrame(rafId);rafId=requestAnimationFrame(layout);}
+window.addEventListener('resize',relayout);
+window.addEventListener('orientationchange',()=>setTimeout(layout,250));
+if(window.visualViewport)visualViewport.addEventListener('resize',relayout);
+document.addEventListener('fullscreenchange',relayout);
+document.addEventListener('webkitfullscreenchange',relayout);
+document.addEventListener('contextmenu',e=>{if(e.target.tagName!=='INPUT')e.preventDefault();});
+document.addEventListener('dblclick',e=>e.preventDefault());
+document.addEventListener('gesturestart',e=>e.preventDefault());
+
+// ---------- 전체 화면 ----------
+const root=document.documentElement;
+const fsOK=!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
+const fsOn=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+if(!fsOK)$('fsBtn').style.display='none';
+$('fsBtn').onclick=()=>{try{
+  if(fsOn())(document.exitFullscreen||document.webkitExitFullscreen).call(document);
+  else (root.requestFullscreen||root.webkitRequestFullscreen).call(root);
+}catch(e){}};
+
+// ---------- 이벤트 ----------
+document.querySelectorAll('#modeSeg button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+document.querySelectorAll('#sizeSeg button').forEach(b=>b.onclick=()=>setSize(+b.dataset.s));
+['minIn','maxIn'].forEach(id=>{
+  $(id).addEventListener('change',readRange);
+  $(id).addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur();});
+  $(id).addEventListener('blur',()=>setTimeout(()=>{if(!isEditing())relayout();},50));
+});
+$('fillBtn').onclick=async()=>{
+  readRange();
+  if(hasContent()&&!(await ask('자동으로 채울까요?','지금 판에 쓴 내용이 바뀌어요.')))return;
+  if(autoFill())render();
+};
+$('shuffleBtn').onclick=()=>{
+  if(!hasContent()){setTip('먼저 칸을 채워 주세요.',true);return;}
+  shuffle(st.cells);st.marks=st.marks.map(()=>false);syncInputs();save();setTip('칸을 섞었어요.');
+};
+$('clearBtn').onclick=async()=>{
+  if(!hasContent())return;
+  if(!(await ask('판을 비울까요?','쓴 내용이 모두 지워져요.')))return;
+  st.cells=st.cells.map(()=>'');st.marks=st.marks.map(()=>false);st.last=null;prevLines=0;
+  syncInputs();save();setTip('판을 비웠어요. 칸을 눌러 직접 써 보세요.');
+};
+$('goalMinus').onclick=()=>{st.goal=Math.max(1,st.goal-1);prevLines=doneLines().length;save();render();};
+$('goalPlus').onclick=()=>{st.goal=Math.min(st.size*2+2,st.goal+1);prevLines=doneLines().length;save();render();};
+$('drawBtn').onclick=draw;
+$('autoBtn').onclick=()=>{st.auto=!st.auto;save();render();};
+$('clearMarks').onclick=async()=>{
+  if(!st.marks.some(Boolean))return;
+  if(!(await ask('표시를 지울까요?','판에 표시한 동그라미가 모두 지워져요.')))return;
+  st.marks=st.marks.map(()=>false);prevLines=0;save();render();
+};
+$('resetDraw').onclick=async()=>{
+  if(!st.drawn.length)return;
+  if(!(await ask('뽑기를 초기화할까요?','뽑은 번호 기록이 지워지고 처음부터 다시 뽑아요.')))return;
+  st.drawn=[];st.last=null;save();render();
+};
+$('winClose').onclick=()=>$('winOverlay').classList.remove('show');
+document.addEventListener('keydown',e=>{
+  if($('askOverlay').classList.contains('show')){
+    if(e.key==='Enter'){e.preventDefault();$('askYes').click();}else if(e.key==='Escape')$('askNo').click();
+    return;
+  }
+  if($('winOverlay').classList.contains('show')){if(e.key==='Enter'||e.key==='Escape'||e.key===' '){e.preventDefault();$('winClose').click();}return;}
+  if(isEditing())return;
+  if(st.mode==='play'&&(e.key===' '||e.key==='Enter')){e.preventDefault();draw();}
+});
+
+// ---------- 시작 ----------
+st=load();
+if(!st){st=fresh(5);autoFill();}
+prevLines=doneLines().length;
+buildBoard();render();layout();
+})();
+</script>
+</body>
+</html>

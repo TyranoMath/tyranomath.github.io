@@ -9,9 +9,10 @@
 <style>
 .stage{justify-content:flex-start; gap:8px}
 .play{flex:1 1 55%; min-height:0; width:100%; display:flex; align-items:center; justify-content:center; gap:20px}
-.die{width:min(30vmin,170px); aspect-ratio:1}
-.die.roll{animation:roll .5s ease-out}
-@keyframes roll{0%{transform:rotate(-200deg) scale(.6)}60%{transform:rotate(20deg) scale(1.1)}100%{transform:none}}
+.dicebox{width:100%; height:100%; display:flex; align-items:center; justify-content:center; gap:clamp(10px,4vw,60px); border-radius:22px;
+  background:radial-gradient(120% 90% at 50% 30%, #EAF7FF, #CFEAFF); cursor:pointer; -webkit-tap-highlight-color:transparent}
+.dwrap{width:min(36vmin,250px); aspect-ratio:1}
+.dwrap svg{width:100%; height:100%; overflow:visible}
 .spin-wrap{position:relative; height:100%; max-height:340px; aspect-ratio:1}
 #wheel{width:100%; height:100%; transition:transform 2.6s cubic-bezier(.15,.8,.2,1)}
 .pointer{position:absolute; left:50%; top:-6px; transform:translateX(-50%); width:0; height:0; border-left:16px solid transparent; border-right:16px solid transparent; border-top:30px solid #22314A; filter:drop-shadow(0 2px 0 #fff)}
@@ -58,6 +59,8 @@
     <div class="box" id="diceOpt">
       <h3>주사위 개수</h3>
       <div class="grid2" id="nd"><button class="tool" data-n="1">1개</button><button class="tool" data-n="2">2개 (합)</button></div>
+      <h3>주사위 모양</h3>
+      <div class="grid2" id="dface"><button class="tool" data-f="d6">⚀ 점 주사위</button><button class="tool" data-f="n6">🔢 숫자 주사위</button></div>
     </div>
     <div class="box" id="spinOpt" hidden>
       <h3>회전판 꾸미기 <small>칸 수를 늘리고 줄여요</small></h3>
@@ -80,7 +83,131 @@ let tab = store.get('tm-ch-tab', 'dice'), nd = 1, spin = store.get('tm-ch-spin',
 const WORDS = ['불가능하다', '~아닐 것 같다', '반반이다', '~일 것 같다', '확실하다'];
 const wordOf = p => p === 0 ? 0 : p === 1 ? 4 : Math.abs(p - .5) < 1e-9 ? 2 : p < .5 ? 1 : 3;
 const pipPos = { 1:[[50,50]], 2:[[28,28],[72,72]], 3:[[26,26],[50,50],[74,74]], 4:[[28,28],[72,28],[28,72],[72,72]], 5:[[26,26],[74,26],[50,50],[26,74],[74,74]], 6:[[28,24],[72,24],[28,50],[72,50],[28,76],[72,76]] };
-const dieSVG = (v, cls = '') => `<svg class="die ${cls}" viewBox="0 0 100 100"><rect x="4" y="4" width="92" height="92" rx="18" fill="#fff" stroke="#22314A" stroke-width="4"/>${pipPos[v].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="9" fill="${v === 1 ? '#E5546B' : '#22314A'}"/>`).join('')}</svg>`;
+/* ---------- 🎲 입체 주사위 (TyranoMath 기하 도구와 같은 엔진) ---------- */
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const f1 = v => (+v).toFixed(1);
+const DCOL = [['#E5546B', '빨강'], ['#FF9F43', '주황'], ['#F2C230', '노랑'], ['#4CB963', '초록'], ['#3B8FD9', '파랑'], ['#8E5BD6', '보라']];
+const DOPS = ['+', '−', '×', '÷'];
+/* 🎲 입체 주사위 — 다면체를 직접 계산해 돌리고 그려요 */
+const Q3 = {
+  mul: (a, b) => [a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3], a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2], a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1], a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]],
+  axis: (ax, th) => { const l = Math.hypot(...ax) || 1, s = Math.sin(th / 2); return [Math.cos(th / 2), ax[0] / l * s, ax[1] / l * s, ax[2] / l * s]; },
+  rot: (q, v) => { const p = Q3.mul(Q3.mul(q, [0, v[0], v[1], v[2]]), [q[0], -q[1], -q[2], -q[3]]); return [p[1], p[2], p[3]]; }
+};
+const vN = a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; }, vD = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], vX = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], vS = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+function polyFaces(V, N) {
+  // 면의 방향(N)마다 가장 바깥 꼭짓점들을 모아 면을 만들어요
+  return N.map(n0 => {
+    const n = vN(n0), m = Math.max(...V.map(v => vD(v, n))), vs = V.filter(v => vD(v, n) > m - 1e-6);
+    const c = vs.reduce((s, v) => [s[0] + v[0] / vs.length, s[1] + v[1] / vs.length, s[2] + v[2] / vs.length], [0, 0, 0]);
+    const e1 = vN(vS(vs[0], c)), e2 = vX(n, e1);
+    vs.sort((a, b) => Math.atan2(vD(vS(a, c), e2), vD(vS(a, c), e1)) - Math.atan2(vD(vS(b, c), e2), vD(vS(b, c), e1)));
+    return { n, c, vs, up: e1 };
+  });
+}
+const PHI = (1 + Math.sqrt(5)) / 2;
+const DMESH = {};
+function dieMesh(kind) {
+  if (DMESH[kind]) return DMESH[kind];
+  let F;
+  const cube = [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]];
+  const ico = [[0, 1, PHI], [0, -1, PHI], [0, 1, -PHI], [0, -1, -PHI], [1, PHI, 0], [-1, PHI, 0], [1, -PHI, 0], [-1, -PHI, 0], [PHI, 0, 1], [-PHI, 0, 1], [PHI, 0, -1], [-PHI, 0, -1]];
+  if (kind === 6) F = polyFaces(cube, [[0, 0, 1], [0, 1, 0], [1, 0, 0], [-1, 0, 0], [0, -1, 0], [0, 0, -1]]);
+  else if (kind === 4) { const t = [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]]; F = polyFaces(t, t.map(v => v.map(x => -x))); }
+  else if (kind === 8) F = polyFaces([[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]], cube);
+  else if (kind === 12 || kind === 20) {
+    const tri = [], dd = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+    for (let i = 0; i < 12; i++) for (let j = i + 1; j < 12; j++) for (let k = j + 1; k < 12; k++) if ([dd(ico[i], ico[j]), dd(ico[j], ico[k]), dd(ico[i], ico[k])].every(x => Math.abs(x - 2) < 1e-6)) tri.push([0, 1, 2].map(m => (ico[i][m] + ico[j][m] + ico[k][m]) / 3));
+    F = kind === 20 ? polyFaces(ico, tri) : polyFaces(tri, ico);
+  }
+  else { // 10면: 오각 엇각뿔(연 모양 면)
+    const a = .1056, ring = Array.from({ length: 10 }, (_, k) => [Math.cos(k * Math.PI / 5), Math.sin(k * Math.PI / 5), k % 2 ? -a : a]);
+    const planarH = () => { const A = ring[0], B = ring[1], C = ring[2]; let lo = .2, hi = 3; for (let i = 0; i < 60; i++) { const H = (lo + hi) / 2, T = [0, 0, H], d = vD(vX(vS(A, T), vS(B, T)), vS(C, T)); if (d > 0) lo = H; else hi = H; } return (lo + hi) / 2; };
+    const H = planarH(), top = [0, 0, H], bot = [0, 0, -H];
+    F = [];
+    for (let i = 0; i < 5; i++) { const vs = [top, ring[2 * i], ring[2 * i + 1], ring[(2 * i + 2) % 10]]; F.push(vs); }
+    for (let i = 0; i < 5; i++) { const vs = [bot, ring[2 * i + 1], ring[(2 * i + 2) % 10], ring[(2 * i + 3) % 10]]; F.push(vs); }
+    F = F.map(vs => { let n = vN(vX(vS(vs[1], vs[0]), vS(vs[2], vs[0]))); const c = vs.reduce((s, v) => [s[0] + v[0] / 4, s[1] + v[1] / 4, s[2] + v[2] / 4], [0, 0, 0]); if (vD(n, c) < 0) n = n.map(x => -x); const cc = [c[0] * .2 + vs[0][0] * .0, c[1] * .2, c[2] * .55 + vs[0][2] * .45]; return { n, c: [c[0], c[1], c[2] * .7 + vs[0][2] * .3 * 0 + c[2] * .3], vs, up: vN(vS(vs[0], c)) }; });
+  }
+  // 크기 맞추기 (가장 먼 꼭짓점 = 1)
+  const R = Math.max(...F.flatMap(f => f.vs.map(v => Math.hypot(...v))));
+  F.forEach(f => { f.vs = f.vs.map(v => v.map(x => x / R)); f.c = f.c.map(x => x / R); });
+  // 마주 보는 면의 합이 같도록 번호 붙이기
+  const n = F.length, lab = new Array(n).fill(0); let k = 1;
+  for (let i = 0; i < n; i++) { if (lab[i]) continue; lab[i] = k; const j = F.findIndex((g, jj) => !lab[jj] && vD(g.n, F[i].n) < -.98); if (j >= 0) lab[j] = n + 1 - k; k++; }
+  F.forEach((f, i) => f.lab = lab[i]);
+  if (kind === 6) { const L = [1, 2, 3, 4, 5, 6]; F.forEach((f, i) => f.lab = L[i]); }
+  return (DMESH[kind] = F);
+}
+const DKIND = { d6: 6, n6: 6, col: 6, shp: 6, d4: 4, op: 4, d8: 8, d10: 10, d12: 12, d20: 20 };
+const DIEC = ['#FFD43B', '#B45CD6', '#4DABF7', '#69DB7C', '#FF8787', '#FFA94D'];
+const shadeC = (hex, k) => { const n = parseInt(hex.slice(1), 16), f = x => Math.round(clamp(x * k, 0, 255)); return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`; };
+function faceLabelIdx(t, f) { return t === 'd10' ? f.lab - 1 : f.lab; }
+function dieOrient(t, v, rnd) {
+  // 결과 면이 보는 사람 쪽(약간 위)으로 오고, 글자가 바로 서도록 돌린 자세
+  const F = dieMesh(DKIND[t]), f = F.find(g => faceLabelIdx(t, g) === v) || F[0], T = DKIND[t] === 4 ? vN([.8, .95, 1]) : vN([.42, .52, 1]);
+  const ax = vX(f.n, T), d = clamp(vD(f.n, T), -1, 1); let q = Math.hypot(...ax) < 1e-6 ? (d > 0 ? [1, 0, 0, 0] : Q3.axis([1, 0, 0], Math.PI)) : Q3.axis(ax, Math.acos(d));
+  const up = Q3.rot(q, f.up), wantUp = vN(vS([0, 1, 0], T.map(x => x * T[1]))), cur = vN(vS(up, T.map(x => x * vD(up, T))));
+  let ang = Math.atan2(vD(vX(cur, wantUp), T), vD(cur, wantUp));
+  q = Q3.mul(Q3.axis(T, ang + (rnd || 0)), q);
+  return q;
+}
+function die3D(t, v, q, i, lift) {
+  const F = dieMesh(DKIND[t]), col = t === 'col' ? '#FFFFFF' : DIEC[i % DIEC.length], S = 34, cx = 50, cy = 46 - (lift || 0) * 26, L = vN([-.45, .6, .75]);
+  let s = `<ellipse cx="${50 + (lift || 0) * 6}" cy="88" rx="${f1(30 - (lift || 0) * 10)}" ry="${f1(7 - (lift || 0) * 2.5)}" fill="#22314A" opacity="${f1(.22 - (lift || 0) * .1)}" filter="url(#dsh)"/>`;
+  F.forEach(f => {
+    const n = Q3.rot(q, f.n); if (n[2] <= 0.02) return;
+    const P = f.vs.map(v3 => { const r = Q3.rot(q, v3); return [cx + r[0] * S, cy - r[1] * S]; });
+    const lit = .5 + .5 * Math.max(0, vD(n, L)), base = t === 'col' ? DCOL[(f.lab - 1) % 6][0] : col;
+    s += `<polygon points="${P.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="${shadeC(base, lit + .12)}" stroke="${shadeC(base, .55)}" stroke-width="1.6" stroke-linejoin="round"/>`;
+    // 면 위에 글자: 면의 평면을 화면으로 옮기는 변환(아핀)
+    const c = Q3.rot(q, f.c), u = Q3.rot(q, f.up), w = vX(n, u), inr = Math.min(...f.vs.map((a, k) => { const b = f.vs[(k + 1) % f.vs.length], e = vS(b, a), ap = vS(f.c, a), tt = vD(ap, e) / vD(e, e); return Math.hypot(...vS(ap, e.map(x => x * tt))); }));
+    const sc = inr * S, m = `matrix(${f1(-w[0] * sc)} ${f1(w[1] * sc)} ${f1(-u[0] * sc)} ${f1(u[1] * sc)} ${f1(cx + c[0] * S)} ${f1(cy - c[1] * S)})`;
+    const lab = faceLabelIdx(t, f), dark = shadeC(base, .25 + lit * .1);
+    let g = '';
+    if (t === 'd6') {
+      const pp = { 1: [[0, 0]], 2: [[-.45, -.45], [.45, .45]], 3: [[-.5, -.5], [0, 0], [.5, .5]], 4: [[-.45, -.45], [.45, -.45], [-.45, .45], [.45, .45]], 5: [[-.5, -.5], [.5, -.5], [0, 0], [-.5, .5], [.5, .5]], 6: [[-.45, -.55], [.45, -.55], [-.45, 0], [.45, 0], [-.45, .55], [.45, .55]] }[lab];
+      g = pp.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${lab === 1 ? .26 : .17}" fill="${lab === 1 ? '#C92A2A' : '#22314A'}"/>`).join('');
+    } else if (t === 'shp') {
+      const sh = { 1: '<polygon points="0,-.6 .55,.38 -.55,.38"/>', 2: '<rect x="-.48" y="-.48" width=".96" height=".96"/>', 3: `<polygon points="${ngonPts(5, .58)}"/>`, 4: `<polygon points="${ngonPts(6, .58, 0)}"/>`, 5: '<circle r=".52"/>', 6: `<polygon points="${Array.from({ length: 10 }, (_, k) => { const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? .26 : .6; return f1(r * Math.cos(a)) + ',' + f1(r * Math.sin(a)); }).join(' ')}"/>` }[lab];
+      g = `<g fill="${['#FF9F43', '#3B8FD9', '#4CB963', '#8E5BD6', '#E5546B', '#F2C230'][lab - 1]}" stroke="#22314A" stroke-width=".07">${sh}</g>`;
+    } else if (t === 'col') g = '';
+    else {
+      const txt = t === 'op' ? DOPS[lab - 1] : String(lab), fs = txt.length > 1 ? .78 : 1.05;
+      g = `<text x="0" y="${f1(fs * .05)}" text-anchor="middle" dominant-baseline="central" font-family="Fredoka, Jua, sans-serif" font-weight="700" font-size="${fs}" fill="${dark}">${esc(txt)}</text>` + ((lab === 6 || lab === 9) && t !== 'op' && DKIND[t] > 6 ? `<rect x="-.22" y="${f1(fs * .45)}" width=".44" height=".07" fill="${dark}"/>` : '');
+    }
+    if (g) s += `<g transform="${m}">${g}</g>`;
+  });
+  return `<svg viewBox="0 0 100 100" class="die"><defs><filter id="dsh" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.5"/></filter></defs>${s}</svg>`;
+}
+const ngonPts = (n, r, rot = -90) => Array.from({ length: n }, (_, i) => { const a = (rot + i * 360 / n) * Math.PI / 180; return f1(r * Math.cos(a)) + ',' + f1(r * Math.sin(a)); }).join(' ');
+
+
+let dface = store.get('tm-ch-face', 'd6'), dvals = [6], dq = [], rolling = false;
+let actx = null;
+function tick(f){ try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime; o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(.04, t); g.gain.exponentialRampToValueAtTime(.0001, t + .05); o.connect(g).connect(actx.destination); o.start(t); o.stop(t + .06); } catch(e){} }
+function diceHTML(){ return `<div class="dicebox" id="dicebox" title="눌러서 던지기">${dvals.map((v, i) => `<div class="dwrap">${die3D(dface, v, dq[i] || (dq[i] = dieOrient(dface, v, i % 2 ? -.25 : .2)), i, 0)}</div>`).join('')}</div>`; }
+function rollAnim(vals, fast, done){
+  rolling = true; busy = true; dvals = vals;
+  const end = vals.map(v => dieOrient(dface, v, (Math.random() - .5) * .7));
+  const spin = vals.map(() => ({ ax: [Math.random() - .5, Math.random() - .5, Math.random() - .5], ang: Math.PI * (fast ? 2 + Math.random() : 5 + Math.random() * 3), dur: fast ? 380 : 1100 + Math.random() * 500 }));
+  if (!$('#dicebox') || $('#dicebox').children.length !== vals.length) $('#play').innerHTML = diceHTML();
+  const wraps = [...$('#play').querySelectorAll('.dwrap')];
+  const t0 = performance.now(); let lastTick = 0;
+  const step = now => {
+    let fin = true;
+    spin.forEach((sp, i) => {
+      const p = Math.min(1, (now - t0) / sp.dur), e = 1 - Math.pow(1 - p, 3), lift = Math.abs(Math.sin(p * Math.PI * 2.5)) * Math.pow(1 - p, 1.6);
+      const q = Q3.mul(end[i], Q3.axis(sp.ax, sp.ang * (1 - e)));
+      if (wraps[i]) wraps[i].innerHTML = die3D(dface, vals[i], q, i, fast ? lift * .4 : lift);
+      if (p < 1) fin = false;
+    });
+    if (!fast && now - lastTick > 90 && now - t0 < 1200){ lastTick = now; tick(380 + Math.random() * 300); }
+    if (!fin){ requestAnimationFrame(step); return; }
+    dq = end; rolling = false; busy = false; done && done();
+  };
+  requestAnimationFrame(step);
+}
 function outcomes(){
   if (tab === 'dice') return nd === 1 ? [1, 2, 3, 4, 5, 6].map(String) : Array.from({ length: 11 }, (_, i) => String(i + 2));
   if (tab === 'coin') return ['앞면', '뒷면'];
@@ -105,7 +232,7 @@ function drawWheel(){
 }
 function renderPlay(last){
   const P = $('#play');
-  if (tab === 'dice') P.innerHTML = (last || (nd === 1 ? [6] : [3, 4])).map(v => dieSVG(v, last ? 'roll' : '')).join('');
+  if (tab === 'dice'){ if (dvals.length !== nd){ dvals = nd === 1 ? [6] : [3, 4]; dq = []; } P.innerHTML = diceHTML(); }
   else if (tab === 'coin') P.innerHTML = `<div class="coin ${last ? 'flip' : ''}">${last ? (last[0] === '앞면' ? '🦖 앞' : '123 뒤') : '🦖 앞'}</div>`;
   else { const w = drawWheel(); P.innerHTML = `<div class="spin-wrap"><div class="pointer"></div><svg id="wheel" viewBox="0 0 200 200" style="transform:rotate(${wheelRot}deg)">${w.svg}</svg></div>`; }
 }
@@ -151,8 +278,9 @@ function go(times){
     if (times > 1) $('#wheel').style.transition = 'transform .4s'; else $('#wheel').style.transition = '';
     return;
   }
-  renderPlay(r.faces);
-  $('#last').innerHTML = (times > 1 ? `${times}번 던졌어요 · 마지막: ` : '') + (tab === 'dice' ? (nd === 1 ? `<b>${r.key}</b>${'이가이가가이'[+r.key - 1]} 나왔어요` : `${r.faces[0]} + ${r.faces[1]} = <b>${r.key}</b>`) : `<b>${r.key}</b>이 나왔어요`);
+  const msg = () => $('#last').innerHTML = (times > 1 ? `${times}번 던졌어요 · 마지막: ` : '') + (tab === 'dice' ? (nd === 1 ? `<b>${r.key}</b>${'이가이가가이'[+r.key - 1]} 나왔어요` : `${r.faces[0]} + ${r.faces[1]} = <b>${r.key}</b>`) : `<b>${r.key}</b>이 나왔어요`);
+  if (tab === 'dice'){ $('#last').textContent = '데굴데굴…'; rollAnim(r.faces, times > 1, () => { msg(); renderChart(); }); return; }
+  renderPlay(r.faces); msg();
   renderChart();
 }
 function renderSecs(){
@@ -163,12 +291,15 @@ function render(){
   $('#diceOpt').hidden = tab !== 'dice'; $('#spinOpt').hidden = tab !== 'spin';
   $('#go').textContent = tab === 'dice' ? '🎲 던지기' : tab === 'coin' ? '🪙 던지기' : '🎯 돌리기';
   TT.press($('#nd'), $(`#nd [data-n="${nd}"]`));
+  TT.press($('#dface'), $(`#dface [data-f="${dface}"]`));
   renderPlay(); renderSecs(); renderChart();
   store.set('tm-ch-tab', tab); store.set('tm-ch-spin', spin);
 }
 const reset = () => { rec = {}; total = 0; $('#last').textContent = '버튼을 눌러 시작해요!'; };
 $('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !busy){ tab = b.dataset.t; reset(); render(); } });
-$('#nd').addEventListener('click', e => { const b = e.target.closest('button'); if (b){ nd = +b.dataset.n; reset(); render(); } });
+$('#nd').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !busy){ nd = +b.dataset.n; reset(); render(); } });
+$('#dface').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !busy){ dface = b.dataset.f; store.set('tm-ch-face', dface); dq = []; render(); } });
+$('#play').addEventListener('click', e => { if (tab === 'dice' && e.target.closest('#dicebox')) go(1); });
 $('#go').addEventListener('click', () => go(1));
 $('#go10').addEventListener('click', () => go(10));
 $('#go100').addEventListener('click', () => go(100));

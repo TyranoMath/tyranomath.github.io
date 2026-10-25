@@ -175,7 +175,9 @@ const TOOLS = [
   { title:'쌓기나무',      desc:'쌓기나무를 쌓고 위·앞·옆에서 본 모양을 알아봐요.',                  grade:'2~6학년', area:'도형과 측정', icon:'🧱', color:'#F3E6D3', date:'2026-10-16', file:'tools/cubes.html' },
   { title:'그래프 만들기', desc:'자료를 넣으면 그림그래프·막대그래프·꺾은선그래프·띠그래프·원그래프로 바꿔 줘요.',      grade:'2~6학년', area:'자료와 가능성', icon:'📊', color:'#FFF3C4', date:'2026-10-16', file:'tools/graph-maker.html' },
   { title:'주사위와 회전판', desc:'주사위를 던지고 회전판을 돌려 일이 일어날 가능성을 알아봐요.',     grade:'5~6학년', area:'자료와 가능성', icon:'🎲', color:'#FFE3EA', date:'2026-10-16', file:'tools/chance.html' },
-  { title:'분수 수학 도구', desc:'분수 막대와 분수 원을 꺼내 색칠하고, 겹치고, 비교 자로 재며 분수의 크기와 계산을 함께 알아봐요. 수업 활동도 바로 꺼낼 수 있어요.', grade:'3~6학년', area:'수와 연산', icon:'🥧', color:'#FFE3EA', date:'2026-10-21', file:'tools/fraction-tools.html' }
+  { title:'분수 수학 도구', desc:'분수 막대와 분수 원을 꺼내 색칠하고, 겹치고, 비교 자로 재며 분수의 크기와 계산을 함께 알아봐요. 수업 활동도 바로 꺼낼 수 있어요.', grade:'3~6학년', area:'수와 연산', icon:'🥧', color:'#FFE3EA', date:'2026-10-21', file:'tools/fraction-tools.html' },
+  { title:'2D 기하도구', desc:'모눈 위에 점·선·도형을 그리고, 각도기·자·컴퍼스로 재고, 넓이를 자르고 붙여 봐요. 주사위·모래시계 같은 수업 도구도 함께 있어요.', grade:'1~6학년', area:'도형과 측정', icon:'🔺', color:'#E4F5D6', date:'2026-10-25', file:'tools/geometry-2d.html' },
+  { title:'빙고', desc:'숫자나 낱말로 빙고판을 만들고, 번호를 뽑아 표시하며 반 친구들과 함께 빙고 놀이를 해요.', grade:'1~6학년', area:'수와 연산', icon:'🎱', color:'#FFF3C4', date:'2026-10-25', file:'tools/bingo.html' }
 ];
 
 const PUZZLES = [
@@ -193,5 +195,6 @@ const PUZZLES = [
   { title:'티라노 드랍더넘버', desc:'숫자 블록을 떨어뜨려 같은 수끼리 합쳐요! 연달아 합치면 콤보 점수가 쑥쑥.', grade:'1~6학년', area:'수 퍼즐', icon:'⬇️', image:'puzzles/thumbs/drop-number.svg', color:'#DDF0FF', date:'2026-10-17', file:'puzzles/drop-number.html' },
   { title:'티라노 켄켄', desc:'줄마다 같은 수 없이, 묶음 칸의 계산 결과를 맞춰 칸을 채워요. 3×3부터 7×7까지.', grade:'2~6학년', area:'수 퍼즐', icon:'🧮', image:'puzzles/thumbs/kenken.svg', color:'#E4F5D6', date:'2026-10-17', file:'puzzles/kenken.html' },
   { title:'티라노 장기', desc:'친구와 둘이서, 또는 컴퓨터 티라노와 장기를 둬요. 외통수로 왕을 잡으면 승리!', grade:'3~6학년', area:'전략 퍼즐', icon:'🀄', image:'puzzles/thumbs/janggi.svg', color:'#F6E3C6', date:'2026-10-17', file:'puzzles/janggi.html' },
-  { title:'티라노 체스', desc:'친구와 둘이서, 또는 컴퓨터 티라노와 체스를 둬요. 체크메이트로 킹을 잡으면 승리!', grade:'3~6학년', area:'전략 퍼즐', icon:'♟️', image:'puzzles/thumbs/chess.svg', color:'#EFE6FF', date:'2026-10-17', file:'puzzles/chess.html' }
+  { title:'티라노 체스', desc:'친구와 둘이서, 또는 컴퓨터 티라노와 체스를 둬요. 체크메이트로 킹을 잡으면 승리!', grade:'3~6학년', area:'전략 퍼즐', icon:'♟️', image:'puzzles/thumbs/chess.svg', color:'#EFE6FF', date:'2026-10-17', file:'puzzles/chess.html' },
+  { title:'티라노 도형퍼즐', desc:'칠교판·패턴블록·펜토미노 등 여러 조각으로 그림자 모양을 맞춰요! 돌리고 뒤집어 작품을 완성해요.', grade:'1~6학년', area:'도형 퍼즐', icon:'🧩', image:'puzzles/thumbs/shape-puzzle.svg', color:'#EFE6FF', date:'2026-10-25', file:'puzzles/shape-puzzle.html' }
 ];
