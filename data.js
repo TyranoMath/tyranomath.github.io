@@ -175,8 +175,8 @@ const TOOLS = [
   { title:'쌓기나무',      desc:'쌓기나무를 쌓고 위·앞·옆에서 본 모양을 알아봐요.',                  grade:'2~6학년', area:'도형과 측정', icon:'🧱', color:'#F3E6D3', date:'2026-10-16', file:'tools/cubes.html' },
   { title:'그래프 만들기', desc:'자료를 넣으면 그림그래프·막대그래프·꺾은선그래프·띠그래프·원그래프로 바꿔 줘요.',      grade:'2~6학년', area:'자료와 가능성', icon:'📊', color:'#FFF3C4', date:'2026-10-16', file:'tools/graph-maker.html' },
   { title:'주사위와 회전판', desc:'주사위를 던지고 회전판을 돌려 일이 일어날 가능성을 알아봐요.',     grade:'5~6학년', area:'자료와 가능성', icon:'🎲', color:'#FFE3EA', date:'2026-10-16', file:'tools/chance.html' },
-  { title:'분수 수학 도구', desc:'분수 막대와 분수 원을 꺼내 색칠하고, 겹치고, 비교 자로 재며 분수의 크기와 계산을 함께 알아봐요. 수업 활동도 바로 꺼낼 수 있어요.', grade:'3~6학년', area:'수와 연산', icon:'🥧', color:'#FFE3EA', date:'2026-10-21', file:'tools/fraction-tools.html' },
-  { title:'2D 기하도구', desc:'모눈 위에 점·선·도형을 그리고, 각도기·자·컴퍼스로 재고, 넓이를 자르고 붙여 봐요. 주사위·모래시계 같은 수업 도구도 함께 있어요.', grade:'1~6학년', area:'도형과 측정', icon:'🔺', color:'#E4F5D6', date:'2026-10-25', file:'tools/geometry-2d.html' },
+  { title:'분수 수학 도구', pin:2, desc:'분수 막대와 분수 원을 꺼내 색칠하고, 겹치고, 비교 자로 재며 분수의 크기와 계산을 함께 알아봐요. 수업 활동도 바로 꺼낼 수 있어요.', grade:'3~6학년', area:'수와 연산', icon:'🥧', color:'#FFE3EA', date:'2026-10-21', file:'tools/fraction-tools.html' },
+  { title:'2D 기하도구', pin:1, desc:'모눈 위에 점·선·도형을 그리고, 각도기·자·컴퍼스로 재고, 넓이를 자르고 붙여 봐요. 주사위·모래시계 같은 수업 도구도 함께 있어요.', grade:'1~6학년', area:'도형과 측정', icon:'🔺', color:'#E4F5D6', date:'2026-10-25', file:'tools/geometry-2d.html' },
   { title:'빙고', desc:'숫자나 낱말로 빙고판을 만들고, 번호를 뽑아 표시하며 반 친구들과 함께 빙고 놀이를 해요.', grade:'1~6학년', area:'수와 연산', icon:'🎱', color:'#FFF3C4', date:'2026-10-25', file:'tools/bingo.html' }
 ];
 
