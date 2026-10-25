@@ -57,6 +57,9 @@ button.on{background:var(--accent);border-color:var(--accent-d);color:#fff;box-s
 .row{display:flex;gap:calc(var(--ui)*.45)}
 .row>button{flex:1;min-width:0;padding:0 .3em;white-space:normal;word-break:keep-all}
 #fillBtn{flex:1.45}
+.sizes{display:grid;grid-template-columns:repeat(4,1fr);gap:calc(var(--ui)*.35)}
+.sizes button{padding:0;min-width:0;font-family:var(--num);font-weight:700;font-size:calc(var(--ui)*.95);font-variant-numeric:tabular-nums;
+  min-height:max(40px,calc(var(--ui)*2.4))}
 .seg{display:flex;gap:calc(var(--ui)*.35)}
 .seg button{flex:1;min-width:0;padding:0 .2em}
 .label{font-family:var(--title);font-size:calc(var(--ui)*.95);color:var(--accent-d);margin:calc(var(--ui)*.15) 0 calc(var(--ui)*-.15)}
@@ -173,8 +176,9 @@ h1{margin:0;font-family:var(--title);font-weight:400;font-size:calc(var(--ui)*1.
 
       <section class="panel" id="makePanel">
         <div class="label">판 크기</div>
-        <div class="seg" id="sizeSeg">
-          <button data-s="3">3×3</button><button data-s="4">4×4</button><button data-s="5">5×5</button>
+        <div class="sizes" id="sizeSeg">
+          <button data-s="3">3×3</button><button data-s="4">4×4</button><button data-s="5">5×5</button><button data-s="6">6×6</button>
+          <button data-s="7">7×7</button><button data-s="8">8×8</button><button data-s="9">9×9</button><button data-s="10">10×10</button>
         </div>
         <div class="label">숫자 범위</div>
         <div class="range">
@@ -237,7 +241,8 @@ const $=id=>document.getElementById(id);
 const app=$('app'), side=$('side'), boardEl=$('board');
 const KEY='tyranomath-bingo-v1';
 try{if(window.top===window)$('btnZone').hidden=false;}catch(e){}
-const DEFAULT_GOAL={3:1,4:2,5:3};
+const MIN_SIZE=3, MAX_SIZE=10;
+const DEFAULT_GOAL={3:1,4:2,5:3,6:4,7:5,8:5,9:5,10:5};
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
 
 let st=null, prevLines=0, rolling=false, tipMsg='', tipErr=false;
@@ -252,7 +257,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
 function load(){
   try{
     const o=JSON.parse(localStorage.getItem(KEY)||'null');
-    if(o&&[3,4,5].includes(o.size)&&o.cells&&o.cells.length===o.size*o.size)return o;
+    if(o&&o.size>=MIN_SIZE&&o.size<=MAX_SIZE&&o.cells&&o.cells.length===o.size*o.size)return o;
   }catch(e){}
   return null;
 }
