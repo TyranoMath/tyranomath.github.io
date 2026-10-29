@@ -191,9 +191,8 @@ button:disabled{opacity:.45}
     </section>
     <section class="card">
       <div class="label">몇 명이 할까요? <small>한 화면을 나눠서 함께 해요</small></div>
-      <div class="grid g4 cnt" id="cntSeg">
-        <button data-n="1">👤<span>1인</span></button><button data-n="2">👥<span>2인</span></button>
-        <button data-n="3">👥👤<span>3인</span></button><button data-n="4">👥👥<span>4인</span></button>
+      <div class="grid g3 cnt" id="cntSeg">
+        <button data-n="1">👤<span>1인</span></button><button data-n="2">👥<span>2인</span></button><button data-n="3">👥👤<span>3인</span></button>
       </div>
       <div class="players" id="plList"></div>
     </section>
@@ -432,6 +431,7 @@ document.querySelectorAll('img.dino').forEach(i=>i.src=DINO);
 // ---------- 설정 ----------
 let cfg={n:1,names:PNAME_DEF.slice(),dans:[2,3,4,5,6,7,8,9],num:10,spd:'mid',map:'ocean',sound:true};
 try{const o=JSON.parse(localStorage.getItem(KEY)||'null');if(o&&o.n)cfg={...cfg,...o};}catch(e){}
+cfg.n=clamp(+cfg.n||1,1,3);
 const saveCfg=()=>{try{localStorage.setItem(KEY,JSON.stringify(cfg));}catch(e){}};
 
 function buildLobby(){
@@ -441,7 +441,7 @@ function buildLobby(){
   $('danAll').onclick=()=>{cfg.dans=[2,3,4,5,6,7,8,9];syncLobby();};
   $('danEasy').onclick=()=>{cfg.dans=[2,3,4,5];syncLobby();};
   $('danHard').onclick=()=>{cfg.dans=[6,7,8,9];syncLobby();};
-  document.querySelectorAll('#cntSeg button').forEach(b=>b.onclick=()=>{cfg.n=+b.dataset.n;syncLobby();});
+  document.querySelectorAll('#cntSeg button').forEach(b=>b.onclick=()=>{cfg.n=clamp(+b.dataset.n,1,3);syncLobby();});
   document.querySelectorAll('#numSeg button').forEach(b=>b.onclick=()=>{cfg.num=+b.dataset.v;syncLobby();});
   const setNum=v=>{cfg.num=clamp(Math.round(v)||1,1,100);syncLobby();};
   document.querySelectorAll('.numrow .nb').forEach(b=>b.onclick=()=>setNum(cfg.num+ +b.dataset.d));

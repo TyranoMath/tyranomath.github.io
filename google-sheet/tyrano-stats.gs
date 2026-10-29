@@ -70,7 +70,8 @@ const RULES = {
   'compare-archery':   { kind:'score', level:DYN, max:200, rate:6 },
   'digit-rocket':      { kind:'time',  level:DYN, min:l => Math.max(3, (Number(String(l).split('|')[4]) || 5) * 1.5) },
   'rounding-skate':    { kind:'time',  level:DYN, min:l => Math.max(5, (Number(String(l).split('|')[3]) || 10) * 0.6) },
-  'multiply-race':     { kind:'score', level:DYN, max:20000, rate:60 }
+  'multiply-race':     { kind:'score', level:DYN, max:20000, rate:60 },
+  'place-factory':     { kind:'score', level:DYN, max:15000, rate:90 }
 };
 // 게임 엔진(tyrano-quiz.js)으로 새로 만든 게임은 따로 적지 않아도 '문제 맞히기' 규칙을 써요
 // 목록에 없는 새 게임도 점수 랭킹은 바로 쓸 수 있어요 (다시 배포하지 않아도 돼요)
