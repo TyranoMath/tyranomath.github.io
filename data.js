@@ -154,7 +154,8 @@ const GAMES = [
   { title:'티라노 숫자 카드 로켓',   desc:'숫자 카드로 미션에 맞는 수(가장 큰 수, 가장 작은 짝수…)를 만들어 로켓을 달까지 쏘아 올려요!', grade:'1~4학년', area:'수와 연산', icon:'🚀', image:'games/thumbs/digit-rocket.svg', color:'#1F2552', date:'2026-10-20', file:'games/digit-rocket.html' },
   { title:'티라노 스케이트보드 어림하기 레이스', desc:'올림·버림·반올림한 수를 골라 스케이트보드를 달려요! 컴퓨터 티라노와 경주하거나 친구와 대결해요.', grade:'4~6학년', area:'수와 연산', icon:'🛹', image:'games/thumbs/rounding-skate.svg', color:'#DDF0FF', date:'2026-10-20', file:'games/rounding-skate.html' },
   { title:'곱셈 비행 레이스',       desc:'곱셈 문제의 정답이 적힌 문으로 비행기를 몰아 통과해요! 바다와 도시 하늘을 3D로 날며 혼자 기록 도전 또는 최대 3명이 한 화면에서 대결.', grade:'2~3학년', area:'수와 연산', icon:'✈️', image:'games/thumbs/multiply-race.svg', color:'#CDEBFF', date:'2026-10-29', file:'games/multiply-race.html' },
-  { title:'자릿값 공장',            desc:'천·백·십·일 모형을 모아 화면에 나온 수를 만들어요! 숫자나 읽는 말을 보고 자릿값을 익혀요. 혼자 기록 도전 또는 최대 3명이 한 화면에서 대결.', grade:'1~3학년', area:'수와 연산', icon:'🏭', image:'games/thumbs/place-factory.svg', color:'#D5F3EE', date:'2026-10-29', file:'games/place-factory.html' }
+  { title:'자릿값 공장',            desc:'천·백·십·일 모형을 모아 화면에 나온 수를 만들어요! 숫자나 읽는 말을 보고 자릿값을 익혀요. 혼자 기록 도전 또는 최대 3명이 한 화면에서 대결.', grade:'1~3학년', area:'수와 연산', icon:'🏭', image:'games/thumbs/place-factory.svg', color:'#D5F3EE', date:'2026-10-29', file:'games/place-factory.html' },
+  { title:'분수 몬스터 배틀',       desc:'분수 문제를 풀고 티라노 파이터의 필살기로 몬스터를 물리쳐요! 혼자 챔피언에 도전하거나 둘이 한 화면에서 대결해요.', grade:'3~6학년', area:'수와 연산', icon:'⚔️', image:'games/thumbs/fraction-battle.svg', color:'#DCE4FF', date:'2026-10-29', file:'games/fraction-battle.html' }
 ];
 
 /* ---------------------------------------------------------
