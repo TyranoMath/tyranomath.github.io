@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="tm-keep-esc" content="1"><!-- Esc 는 전체 화면·게임 창을 닫지 않고 '선택 도구'로 바꾸는 데 써요 -->
 <title>2D 기하도구 · TyranoMath 수학 도구존</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3637,6 +3638,12 @@ $('#btnFull').onclick = () => { try { if (document.fullscreenElement) document.e
 new ResizeObserver(() => setView()).observe($('#work'));
 
 /* ---------------- ⌨️ 키보드 ---------------- */
+/* Esc = 선택 도구. 전체 화면·게임 창이 Esc 로 닫히지 않게 해요
+   (크롬·엣지: 키보드 잠금으로 짧게 누른 Esc 를 도구가 받아요. 전체 화면은 '크게' 버튼이나 Esc 길게 누르기로 끝내요) */
+document.addEventListener('keydown', e => { if (e.key === 'Escape') e.preventDefault(); }, true);
+const escLock = () => { try { if (window.top !== window || !navigator.keyboard || !navigator.keyboard.lock) return;
+  if (document.fullscreenElement) navigator.keyboard.lock(['Escape']).catch(() => {}); else navigator.keyboard.unlock(); } catch (e) {} };
+document.addEventListener('fullscreenchange', escLock);
 const KEYS = { KeyW: 'pline', KeyF: 'symL', KeyC: 'symP', KeyH: 'xform', KeyV: 'move', KeyA: 'pt', KeyS: 'seg', KeyR: 'ray', KeyL: 'line', KeyT: 'tri', KeyQ: 'quad', KeyJ: 'rect', KeyG: 'reg', KeyP: 'poly', KeyO: 'circle', KeyM: 'mlen', KeyK: 'mang', KeyX: 'text', KeyD: 'pen', KeyE: 'eraser' };
 document.addEventListener('keydown', e => {
   const ctrl = e.ctrlKey || e.metaKey, c = e.code, overlay = !$('#setup').hidden || !$('#helpOv').hidden || !$('#storeOv').hidden;
