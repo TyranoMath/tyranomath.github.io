@@ -253,6 +253,16 @@ function toggleBig(){
 }
 /* 게임 안의 윗줄 버튼(소리·일시정지·설정·랭킹)을 게임 창 윗줄로 옮겨 한 줄로 합쳐요.
    진짜 버튼은 게임 안에 그대로 두고, 윗줄 버튼을 누르면 게임 안의 버튼이 눌려요. */
+/* Esc 를 스스로 쓰는 도구(<meta name="tm-keep-esc">)가 열려 있는지 */
+function keepEsc(){
+  try { const p = $('#player'), d = $('#playerFrame').contentDocument;
+    return !!(p && p.classList.contains('open') && d && d.querySelector('meta[name="tm-keep-esc"]')); } catch(e){ return false; }
+}
+/* 크롬·엣지: 전체 화면에서 짧게 누른 Esc 가 전체 화면을 끄지 않고 도구로 가게 해요 (Esc 길게 누르기·'크게' 버튼으로 끝내요) */
+function escLock(){
+  try { const k = navigator.keyboard; if (!k || !k.lock) return;
+    if ((document.fullscreenElement || document.webkitFullscreenElement) && keepEsc()) k.lock(['Escape']).catch(() => {}); else k.unlock(); } catch(e){}
+}
 let mergeObs = null;
 function mergeBar(){
   const slot = $('#playerTools'); if (!slot) return;
@@ -312,6 +322,7 @@ function unmirror(){
 }
 function closeItem(){
   if (!$('#player') || !$('#player').classList.contains('open')) return;
+  try { navigator.keyboard?.unlock?.(); } catch(e){}
   if (document.fullscreenElement) document.exitFullscreen?.();
   $('#player').classList.remove('open');
   $('#playerFrame').src = 'about:blank';
@@ -330,11 +341,16 @@ if ($('#player') && !$('#playerTools')){
 if ($('#player')){
   $('#playerClose').addEventListener('click', closeItem);
   $('#player').addEventListener('click', e => { if (e.target.id === 'player') closeItem(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeItem(); });
+  document.addEventListener('keydown', e => { if (e.key !== 'Escape') return;
+    if (keepEsc()){ // 2D 기하도구처럼 Esc 를 스스로 쓰는 도구: 창을 닫지 않고 도구에 Esc 를 넘겨요
+      try { const f = $('#playerFrame'); f.contentWindow.focus(); f.contentDocument.dispatchEvent(new KeyboardEvent('keydown', { key:'Escape', code:'Escape', bubbles:true, cancelable:true })); } catch(err){}
+      return; }
+    closeItem(); });
+  document.addEventListener('fullscreenchange', escLock);
   // 게임 화면 안에서 Esc 를 눌러도 닫히게 (같은 사이트의 게임일 때)
   $('#playerFrame').addEventListener('load', () => {
     try { $('#playerFrame').contentWindow.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.defaultPrevented) closeItem(); }); } catch(e){}
-    mergeBar();
+    mergeBar(); escLock();
   });
   $('#playerReload').addEventListener('click', () => { const f = $('#playerFrame'); const src = f.src; f.src = 'about:blank'; setTimeout(() => f.src = src, 50); });
   $('#playerFull').addEventListener('click', toggleBig);
