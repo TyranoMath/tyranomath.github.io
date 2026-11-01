@@ -155,7 +155,11 @@ const GAMES = [
   { title:'티라노 스케이트보드 어림하기 레이스', desc:'올림·버림·반올림한 수를 골라 스케이트보드를 달려요! 컴퓨터 티라노와 경주하거나 친구와 대결해요.', grade:'4~6학년', area:'수와 연산', icon:'🛹', image:'games/thumbs/rounding-skate.svg', color:'#DDF0FF', date:'2026-10-20', file:'games/rounding-skate.html' },
   { title:'곱셈 비행 레이스',       desc:'곱셈 문제의 정답이 적힌 문으로 비행기를 몰아 통과해요! 바다와 도시 하늘을 3D로 날며 혼자 기록 도전 또는 최대 3명이 한 화면에서 대결.', grade:'2~3학년', area:'수와 연산', icon:'✈️', image:'games/thumbs/multiply-race.svg', color:'#CDEBFF', date:'2026-10-29', file:'games/multiply-race.html' },
   { title:'자릿값 공장',            desc:'천·백·십·일 모형을 모아 화면에 나온 수를 만들어요! 숫자나 읽는 말을 보고 자릿값을 익혀요. 혼자 기록 도전 또는 최대 3명이 한 화면에서 대결.', grade:'1~3학년', area:'수와 연산', icon:'🏭', image:'games/thumbs/place-factory.svg', color:'#D5F3EE', date:'2026-10-29', file:'games/place-factory.html' },
-  { title:'분수 몬스터 배틀',       desc:'분수 문제를 풀고 티라노 파이터의 필살기로 몬스터를 물리쳐요! 혼자 챔피언에 도전하거나 둘이 한 화면에서 대결해요.', grade:'3~6학년', area:'수와 연산', icon:'⚔️', image:'games/thumbs/fraction-battle.svg', color:'#DCE4FF', date:'2026-10-29', file:'games/fraction-battle.html' }
+  { title:'분수 몬스터 배틀',       desc:'분수 문제를 풀고 티라노 파이터의 필살기로 몬스터를 물리쳐요! 혼자 챔피언에 도전하거나 둘이 한 화면에서 대결해요.', grade:'3~6학년', area:'수와 연산', icon:'⚔️', image:'games/thumbs/fraction-battle.svg', color:'#DCE4FF', date:'2026-10-29', file:'games/fraction-battle.html' },
+  { title:'세로셈 대결',            desc:'받아올림·받아내림이 있는 세로셈을 일의 자리부터 풀어요! 혼자 기록 도전 또는 최대 4명이 한 화면에서 먼저 맞히기 대결.', grade:'2~3학년', area:'수와 연산', icon:'✏️', image:'games/thumbs/column-duel.svg', color:'#DDF5EF', date:'2026-11-02', file:'games/column-duel.html' },
+  { title:'수영장 분수 채우기',     desc:'수영장을 똑같이 나누고 분수만큼 물을 채워요! 밸브를 돌려 물이 차오르면 티라노가 풍덩~', grade:'3~4학년', area:'수와 연산', icon:'🏊', image:'games/thumbs/fraction-pool.svg', color:'#D6F0FF', date:'2026-11-02', file:'games/fraction-pool.html' },
+  { title:'분수 그림 퍼즐',         desc:'분수와 같은 크기의 막대·수직선·원 카드를 찾아 숨은 야생화와 동물 그림을 완성해요!', grade:'3~4학년', area:'수와 연산', icon:'🧩', image:'games/thumbs/fraction-picture.svg', color:'#FFEBD6', date:'2026-11-02', file:'games/fraction-picture.html' },
+  { title:'분수 페널티킥',          desc:'힘 게이지를 분수만큼 채우고 슛! 혼자 골인 도전 또는 두 팀으로 나눠 승부차기 대결.', grade:'3~4학년', area:'수와 연산', icon:'⚽', image:'games/thumbs/fraction-kick.svg', color:'#DDF5E0', date:'2026-11-02', file:'games/fraction-kick.html' }
 ];
 
 /* ---------------------------------------------------------
