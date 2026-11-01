@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>수영장 분수 채우기 · TyranoMath</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2faf7; --panel:#ffffff; --ink:#22303f; --muted:#6f7d88;
+  --accent:#1f9d8f; --accent-dark:#167a6f; --accent-ink:#ffffff; --accent-soft:#e1f5f0; --accent-line:#bfe6dd;
+  --green:#4cb662; --green-dark:#36924b; --orange:#ff9f43; --orange-dark:#e9852a;
+  --line:#dfe9e6; --navy:#1f2f6b;
+  --shadow:0 8px 28px rgba(31,110,100,.14);
+  --title:"Jua","Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  --ui:clamp(13px, calc(1.1vmin + 7px), 26px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  overscroll-behavior:none;-webkit-text-size-adjust:100%;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;touch-action:none}
+input{-webkit-user-select:text;user-select:text;touch-action:manipulation}
+button{font:inherit;font-weight:700;border-radius:calc(var(--ui)*.85);border:2px solid var(--line);border-bottom-width:4px;
+  background:var(--panel);color:var(--ink);cursor:pointer;min-height:max(44px,calc(var(--ui)*2.7));padding:0 calc(var(--ui)*.8);
+  touch-action:manipulation;transition:transform .06s,background .12s,border-color .12s;white-space:nowrap}
+button:active{transform:translateY(2px);border-bottom-width:2px;margin-bottom:2px}
+button.on,button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent-dark)}
+button.go{background:var(--orange);color:#fff;border-color:var(--orange-dark)}
+button:disabled{opacity:.45}
+@media (hover:hover) and (pointer:fine){button:hover:not(.on):not(.primary):not(.go):not(:disabled){background:var(--accent-soft);border-color:var(--accent-line)}}
+.hide{display:none!important}
+
+/* ---------- 설정 화면 ---------- */
+#lobby{position:fixed;inset:0;overflow:auto;font-size:var(--ui);
+  padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));
+  background:radial-gradient(ellipse at 20% 0%,#dff6ef 0,transparent 55%),radial-gradient(ellipse at 100% 100%,#e6f0ff 0,transparent 50%),var(--bg)}
+.lwrap{max-width:calc(var(--ui)*48);margin:0 auto;display:flex;flex-direction:column;gap:calc(var(--ui)*.8)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:.5em}
+.brand{display:flex;align-items:center;gap:.6em;min-width:0}
+.brand img{width:calc(var(--ui)*3);height:auto}
+.kicker{font-size:.72em;font-weight:600;color:var(--muted)}
+.brand h1{margin:0;font-family:var(--title);font-weight:400;font-size:1.75em;line-height:1.1;color:var(--accent-dark)}
+.top-btns{display:flex;gap:.45em;align-items:center}
+.zone{display:inline-flex;align-items:center;text-decoration:none;font-weight:700;font-size:.9em;background:var(--accent);color:#fff;
+  border-radius:99px;padding:0 1em;min-height:max(40px,calc(var(--ui)*2.3));white-space:nowrap}
+.icon-btn{width:max(44px,calc(var(--ui)*2.7));padding:0;flex:none}
+.hero{display:flex;align-items:center;gap:1em;background:linear-gradient(120deg,#3a8dff,#37c3d6);color:#fff;border-radius:calc(var(--ui)*1.2);
+  padding:calc(var(--ui)*.9) calc(var(--ui)*1.2);box-shadow:var(--shadow);overflow:hidden;position:relative}
+.hero h2{margin:0;font-family:var(--title);font-weight:400;font-size:1.6em}
+.hero p{margin:.25em 0 0;font-size:.88em;opacity:.95;line-height:1.45}
+.hero .plane{font-size:3em;flex:none;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
+.card{background:var(--panel);border:2px solid var(--accent-line);border-radius:calc(var(--ui)*1.1);padding:calc(var(--ui)*.9);
+  display:flex;flex-direction:column;gap:calc(var(--ui)*.55)}
+.label{font-size:.9em;font-weight:800;color:var(--accent-dark);display:flex;justify-content:space-between;align-items:center;gap:.5em}
+.label small{font-weight:600;color:var(--muted);font-size:.85em}
+.grid{display:grid;gap:calc(var(--ui)*.45)}
+.g4{grid-template-columns:repeat(4,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g5{grid-template-columns:repeat(5,1fr)}
+.cnt button{min-height:max(54px,calc(var(--ui)*3.4));font-size:1.05em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1em;line-height:1.1}
+.cnt button small{font-size:.7em;opacity:.85;font-weight:600}
+.players{display:grid;grid-template-columns:repeat(auto-fit,minmax(calc(var(--ui)*10),1fr));gap:calc(var(--ui)*.5)}
+.pl{display:flex;align-items:center;gap:.5em;border:2px solid var(--line);border-radius:calc(var(--ui)*.85);padding:.35em .6em;background:var(--panel)}
+.pl i{width:1.5em;height:1.5em;border-radius:50%;flex:none;background:var(--pc);box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.pl input{flex:1;min-width:0;border:0;outline:none;background:transparent;font:inherit;font-weight:700;color:var(--ink);font-size:max(16px,1em)}
+.pl kbd{font-family:inherit;font-size:.68em;color:var(--muted);background:var(--accent-soft);border-radius:6px;padding:.15em .4em;white-space:nowrap}
+.dans button{font-size:1em;padding:0}
+.dans{grid-template-columns:repeat(8,1fr)}
+.numrow{display:flex;gap:calc(var(--ui)*.45);align-items:stretch}
+.numrow .nb{flex:1;min-width:0;padding:0;font-size:1.1em}
+.numbox{flex:2.2;display:flex;align-items:center;justify-content:center;gap:.35em;border:2px solid var(--accent-line);border-radius:calc(var(--ui)*.85);
+  background:var(--accent-soft);padding:0 .6em;min-height:max(48px,calc(var(--ui)*2.9))}
+.numbox:focus-within{border-color:var(--accent)}
+.numbox input{width:3.2em;min-width:0;border:0;outline:none;background:transparent;font:inherit;font-family:var(--title);font-size:max(20px,1.6em);
+  color:var(--accent-dark);text-align:center;-moz-appearance:textfield}
+.numbox input::-webkit-inner-spin-button,.numbox input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.numbox span{font-weight:800;color:var(--accent-dark)}
+#numSeg button{min-height:max(38px,calc(var(--ui)*2.3))}
+#numSeg{grid-template-columns:repeat(5,1fr)!important}
+.grid.g3 button{white-space:normal;line-height:1.15;word-break:keep-all;padding:.2em .3em}
+.help{font-size:.82em;color:var(--muted);line-height:1.5;margin:0}
+.startrow{display:flex;gap:.6em}
+.startrow button{flex:1;min-height:max(60px,calc(var(--ui)*3.6));font-size:1.25em;font-family:var(--title);font-weight:400}
+@media (max-width:560px){.dans{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(3,1fr)}}
+
+.g2{grid-template-columns:repeat(2,1fr)}
+.grid button small{display:block;font-size:.72em;font-weight:600;opacity:.85}
+.grid button{white-space:normal;line-height:1.2;padding:.3em .3em}
+
+#game{position:fixed;inset:0;display:flex;flex-direction:column;
+  background:radial-gradient(ellipse at 50% 0,#d8f3ec 0,transparent 60%),linear-gradient(rgba(31,157,143,.06) 1px,transparent 1px) 0 0/28px 28px,linear-gradient(90deg,rgba(31,157,143,.06) 1px,transparent 1px) 0 0/28px 28px,#eef9f5}
+.gbar{flex:none;display:flex;align-items:center;gap:10px;padding:max(8px,env(safe-area-inset-top)) 12px 6px;font-size:clamp(12px,1.6vmin,20px)}
+.gbar .ttl{display:flex;align-items:center;gap:.45em;font-family:var(--title);color:var(--accent-dark);font-size:1.25em;white-space:nowrap;min-width:0}
+.gbar .ttl img{width:1.9em;height:auto}
+.gbar .mid{flex:1;display:flex;justify-content:center;min-width:0}
+.rnd{display:flex;flex-direction:column;align-items:center;background:linear-gradient(180deg,#26387f,#1b2862);color:#fff;border:3px solid #fff;border-radius:.9em;padding:.2em 1.4em .3em;box-shadow:0 .25em 0 #a8b9d6}
+.rnd b{font-family:var(--title);font-weight:400;font-size:1.25em;color:#ffd23f;white-space:nowrap}.rnd small{font-size:.75em;white-space:nowrap}
+.tbs{display:flex;gap:6px}
+.tbs .tb{width:54px;height:50px;min-height:0;padding:0;border-radius:14px;font-size:18px;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.tbs .tb small{font-size:9.5px;font-weight:800;color:var(--muted)}
+.tbs .tb.home{background:var(--orange);border-color:var(--orange-dark)}.tbs .tb.home small{color:#fff}
+.tbs .tb.on{background:#fff3c4;border-color:#f0cf86}
+@media (max-width:600px){.gbar .ttl span{display:none}.tbs .tb{width:42px;height:42px;font-size:15px}.tbs .tb small{display:none}.rnd{padding:.15em .7em}.gbar{gap:6px;padding-left:8px;padding-right:8px}}
+
+.main{flex:1;min-height:0;display:flex;padding:4px 12px max(12px,env(safe-area-inset-bottom))}
+.bwrap{flex:1;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center}
+.frame{position:relative;flex:none;border:6px solid #fff;border-radius:18px;overflow:hidden;box-shadow:0 0 0 3px var(--accent-line),0 10px 28px rgba(31,110,100,.18);background:#cfeefb}
+#pool{display:block;width:100%;height:100%;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#pool text{font-family:var(--title)}
+#pool .hit{cursor:pointer}
+#pool .btn{cursor:pointer}
+#pool .btn:active .face{transform:translateY(3px)}
+#pool .btn .face{transition:transform .08s}
+#pool .btn.dis{opacity:.45;cursor:default}
+.sel{fill:#ffd23f;fill-opacity:.16;stroke:#ffd23f;stroke-width:5;stroke-dasharray:14 10;animation:ants 1s linear infinite}
+@keyframes ants{to{stroke-dashoffset:-24}}
+.knob{transition:fill .2s}
+.fau.on .knob{fill:#ff4f5e}
+.fau.on .glow{opacity:1}
+.fau .glow{opacity:0;transition:opacity .2s}
+.stream{stroke-dasharray:10 8;animation:flow .25s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-18}}
+.wv{animation:wv 1.6s ease-in-out infinite alternate}
+@keyframes wv{to{transform:translateX(-24px)}}
+#valveG{transform-box:fill-box;transform-origin:center}
+#valveG.spin{animation:spin 1.6s cubic-bezier(.4,0,.3,1)}
+@keyframes spin{to{transform:rotate(720deg)}}
+#leverG{transform-box:fill-box;transform-origin:50% 98%}
+#leverG.pull{animation:pull 1s ease-in-out}
+#leverG.nudge{animation:nudge .5s ease-in-out 3}
+@keyframes pull{30%,70%{transform:rotate(-55deg)}}
+@keyframes nudge{50%{transform:rotate(-14deg)}}
+.lab{fill:#fff;font-size:24px;text-anchor:middle;opacity:.95}
+.secl{font-size:30px;text-anchor:middle;fill:#fff;stroke:#1b4f78;stroke-width:6px;paint-order:stroke;pointer-events:none}
+.bob{animation:bob 1s ease-in-out infinite alternate}
+@keyframes bob{to{transform:translateY(-10px) rotate(-4deg)}}
+.splash{fill:none;stroke:#fff;stroke-width:5;transform-box:fill-box;transform-origin:center;animation:spl 1s ease-out forwards}
+@keyframes spl{from{transform:scale(.2);opacity:1}to{transform:scale(2.4);opacity:0}}
+.bub{fill:#fff;opacity:.7;animation:bub 1.8s ease-in infinite}
+@keyframes bub{to{transform:translateY(-120px);opacity:0}}
+.cloud{animation:cl 6s ease-in-out infinite alternate}
+@keyframes cl{to{transform:translateX(40px)}}
+.shake{animation:shk .45s}
+@keyframes shk{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+
+.done{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(255,255,255,.96);border:4px solid #ffd23f;
+  border-radius:18px;padding:12px 28px;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:dpop .5s cubic-bezier(.3,1.5,.6,1);text-align:center;z-index:5}
+.done.hide{display:none}
+.done b{font-family:var(--title);font-weight:400;font-size:clamp(24px,4vmin,44px);color:#e9852a}
+.done span{font-weight:800;color:var(--ink);font-size:clamp(14px,2vmin,22px)}
+.dstars{font-size:clamp(22px,3.5vmin,38px)}
+.done button{min-height:46px;font-size:18px;padding:0 24px}
+@keyframes dpop{from{transform:translateX(-50%) scale(.5);opacity:0}}
+.toast{position:fixed;left:50%;top:46%;transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;text-align:center;color:#fff;z-index:60;
+  font-family:var(--title);font-size:clamp(22px,3.6vmin,40px);line-height:1.2;padding:.3em .9em;border-radius:1em;transition:transform .25s,opacity .25s;max-width:92vw}
+.toast small{display:block;font-family:inherit;font-size:.6em}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.toast.ok{background:rgba(46,190,110,.95);border:3px solid #fff}.toast.no{background:rgba(255,95,95,.95);border:3px solid #fff}.toast.info{background:rgba(40,60,140,.95);border:3px solid #fff}
+.conf{position:fixed;width:10px;height:14px;top:-20px;z-index:55;pointer-events:none;animation:fall 1.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(var(--fy)) rotate(600deg);opacity:.3}}
+/* ---------- 모달 / 결과 ---------- */
+.overlay{position:fixed;inset:0;background:rgba(8,30,40,.55);display:flex;align-items:center;justify-content:center;padding:14px;z-index:20;font-size:var(--ui)}
+.modal{background:var(--panel);border:2px solid var(--accent-line);border-radius:calc(var(--ui)*1.2);padding:calc(var(--ui)*1.2);
+  width:min(100%,calc(var(--ui)*34));max-height:100%;overflow:auto;box-shadow:var(--shadow);text-align:center}
+.modal h2{margin:.1em 0 .35em;font-family:var(--title);font-weight:400;font-size:2em;color:var(--accent-dark)}
+.modal .actions{display:flex;gap:.5em;margin-top:.9em}
+.modal .actions button{flex:1}
+.res{display:flex;flex-direction:column;gap:.5em;text-align:left}
+.rrow{display:flex;align-items:center;gap:.7em;border:2px solid var(--line);border-left:8px solid var(--pc);border-radius:calc(var(--ui)*.8);padding:.5em .7em;background:#fff}
+.rrow.first{background:#fff8e1;border-color:#ffd56b;border-left-color:var(--pc)}
+.medal{font-size:1.8em;width:1.3em;text-align:center;flex:none}
+.rname{font-weight:800;font-size:1.05em}
+.rstat{font-size:.8em;color:var(--muted);margin-top:.15em}
+.rscore{margin-left:auto;font-family:var(--title);font-size:1.6em;color:var(--accent-dark);white-space:nowrap}
+.wrongs{display:flex;flex-wrap:wrap;gap:.3em;margin-top:.35em}
+.wrongs span{font-size:.75em;background:#ffecec;color:#c23b3b;border-radius:99px;padding:.1em .55em;font-weight:700}
+.stars{font-size:2.2em;letter-spacing:.1em;margin:.1em 0 .3em}
+.windino{width:calc(var(--ui)*4.5);height:auto}
+.copy{text-align:center;color:#8A94A6;font-size:13px;margin:18px 0 6px}
+#lobby .top-btns .tmr-btn{flex:none}
+.zone[hidden]{display:none!important}
+</style></head>
+<body>
+<div id="lobby">
+  <div class="lwrap">
+    <header class="top">
+      <div class="brand"><img class="dino" alt="티라노"><div><div class="kicker">TyranoMath 게임존</div><h1>수영장 분수 채우기</h1></div></div>
+      <div class="top-btns"><a class="zone" id="zoneBtn" href="../gamezone.html" hidden>← 게임존</a><button class="icon-btn fsBtn" title="전체 화면" aria-label="전체 화면">⛶</button></div>
+    </header>
+    <section class="hero" style="background:linear-gradient(120deg,#2f8fe0,#1fb5c9)">
+      <div class="plane">🏊</div>
+      <div><h2>분수만큼 물을 채워요!</h2>
+        <p><b>− +</b> 버튼으로 수영장을 똑같이 나누고, 물을 채울 칸의 <b>수도꼭지</b>를 눌러요. <b>밸브</b>를 돌리면 물이 차요. 틀리면 <b>레버</b>를 당겨 물을 빼고 다시 해 봐요!</p></div>
+    </section>
+    <section class="card">
+      <div class="label">분모 범위</div>
+      <div class="grid g3" id="denSeg"><button data-v="6">쉬움<small>분모 2~6</small></button><button data-v="10">보통<small>분모 2~10</small></button><button data-v="12">어려움<small>분모 2~12</small></button></div>
+      <div class="label">수영장 나누기</div>
+      <div class="grid g2" id="divSeg"><button data-v="self">내가 나누기<small>− + 로 칸 수 정하기</small></button><button data-v="auto">나눠진 수영장<small>칸이 미리 나뉘어 있어요</small></button></div>
+      <div class="label">정답 인정</div>
+      <div class="grid g2" id="eqSeg"><button data-v="same">분모와 같은 칸 수만<small>3/4 → 4칸 중 3칸</small></button><button data-v="eq">크기가 같으면 정답<small>3/4 = 6/8 도 OK</small></button></div>
+    </section>
+    <section class="card">
+      <div class="label">문제 수 <small>1~30문제</small></div>
+      <div class="numrow">
+        <button class="nb" data-d="-5">−5</button><button class="nb" data-d="-1">−</button>
+        <label class="numbox"><input id="numIn" type="number" inputmode="numeric" min="1" max="30" enterkeyhint="done"><span>문제</span></label>
+        <button class="nb" data-d="1">+</button><button class="nb" data-d="5">+5</button>
+      </div>
+    </section>
+    <div class="startrow"><button class="go" id="startBtn">🏊 시작!</button></div>
+    <p class="copy">© 2026 TyranoMath 백태진 All rights reserved.</p>
+  </div>
+</div>
+
+<div id="game" class="hide">
+  <div class="gbar"><div class="ttl"><img class="dino" alt=""><span>수영장 분수 채우기</span></div>
+    <div class="mid"><div class="rnd"><b id="rndT">문제 1 / 10</b><small id="rndS">⭐ 0</small></div></div>
+    <div class="tbs"><button id="hintBtn" class="tb" aria-label="힌트">💡<small>힌트</small></button>
+      <button id="homeBtn" class="tb home" aria-label="처음으로">🏠<small>처음으로</small></button>
+      <button id="soundBtn" class="tb" aria-label="소리">🔊</button><button class="fsBtn tb" aria-label="전체 화면">⛶<small>전체</small></button></div></div>
+  <div class="main">
+    <div class="bwrap"><div class="frame"><svg id="pool" viewBox="0 0 1200 860" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="done hide" id="doneBox"><b id="doneT">정답!</b><span id="doneN"></span><div class="dstars" id="doneS"></div><button class="go" id="nextBtn">다음 문제 ▶</button></div></div></div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<div class="overlay hide" id="homeOv"><div class="modal">
+  <h2>처음으로 갈까요?</h2><p class="help">지금 하던 게임은 끝나고 설정 화면으로 돌아가요.</p>
+  <div class="actions"><button id="homeNo">계속하기</button><button class="primary" id="homeYes">🏠 처음으로</button></div>
+</div></div>
+<div class="overlay hide" id="resultOv"><div class="modal">
+  <img class="windino dino" alt="">
+  <h2 id="resTitle">끝!</h2>
+  <div class="stars" id="resStars"></div>
+  <p class="help" id="resInfo"></p>
+  <div class="actions"><button id="setBtn">⚙️ 설정 바꾸기</button><button class="go" id="againBtn">🔁 다시 하기</button></div>
+</div></div>
+<script src="../assets/rank.js"></script>
+<script>(()=>{
+const DINO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAtCAYAAADsvzj/AAAHgUlEQVR4nMWZbWyT1xXHf49fE7/nBec9AYMhJJg2FLqyri0tRFs3BbWaQIXBtKWdkLYv1cTWqdqHZR/QkLZuk6YC0valpaUTrJuEJmhpmNaVdKRAVJyEBkjiAAnYsZPYjpPYsX33IcTExI4fxwn7S5Fyn3PuOff/+Nxzzr2PJKa8/F/h6RZY66RczSiWYi2y4OkWKZ+3tqSXZYFHR6S1BZwnkxc8O3aezNn8oyEy+8Y7TyWT6Tw1K8/5V1HlMjlbxIGves/QL4LCr9EiqtbPCPItMNIB4TvzyKgkJVZtAWsNVb6K/BXF6WxLj2KzC+dJ8eHd/3C2YAVTOWzrGl0Jeyp3UG+yzbOy7ERuTbrF0b5/cHvSs2Q2m0qfZnflC0lkljW0Bie9Q4d7jhOITmTUjYTCxKaiSEoJtV6LUq1Mq3v63gXC8YjYX/2tBJllJfJn1+myTCREXKAZVvC4wcEmm4NgOMS/ej/lltaNrtiYdt7Hni8ozysW262bJVjG0Drn+UK8c+tsRj2VW3Cgfh9PrdvSMPtsOjY98rtzRwYuxzrJs+gWnH+s4WdFOmXeyLKl3/PDVzLqRKemqVKXJUi889fTHa+89kbHmY8vDDRWb6ckWpjRxkfuiz5YpjoyODnsvSNjc0enpllrXQNAz43+jpbDR3F2Xec733y2/uJ/O9FMqzPa6PDfBJaJyO1JT5EcPYVSQWAyAIDHOwrAVDjC2s1NXSdOnUFImWukK3R3xtZiF7sQxqOTsvQ0xjy+8t3AFxjRPLN1U8OzX38iIXt+ewNetT+jDYFgIjZVuCxZSyC/2xjK8/HW+SMXf/jkHo689aax9dP2oG/SS3u0HWGRkFM/hRBLSMTTLXB3gWOXpFHIN5tv0XEzdIffXjmKNqwOxhH4VGNIxSp0QsXGUTOmaTUB1TQebRiXfn461yjUN5eOiLVOwnlS0NoiSuzbspqq0WsJ6SOEiACgRAPAtnsrsIX0SbrvVd/Gr55OjAvVJtQK1TLsEU839gtvo5IVFAvjuiGIX/Ng0ZcLxhIkxj1BAOpNq4BcKntri8BaB45diRVHN3wXV1s/3qJV2LVFXAvLK7Zu5yAAJY6KpOd9hgn6DMmhNO4J4nYOYrAaMViNbC3akCMRx66ZwxKIy/EgnxmMXB7rQVStnpHLJAGgLzERcgdwOwfnkZkLt3OQcU+QEkcFBquRBosdx/1OOKcWZeDqu+KEv4uufH1mZRmYXWjIE0R//43PhhCAwWpMEDUqdbTUNR9foS3YDzkQafN1iiP9f8+sKEEW2TiBhwnMhUml43X7buz6qkRYZ7fZ7x9TP/d1ySMBiyIBJPbAwyQ2F9Ty67rXDs0lAYvYI4N/+744VmPPqGdR63iupJZ6SwUmdT7B6BRnBr/EOXaH6XhMtj8JibK8ImqNNWwtrKfWWJMyHUpX77UL51gve1c2ysqXf+z4g7gUCy6oU2cuZ5/tG2gU8w9H0XiM4642OkfugASr9GX8qrY5rW+FJC9oFA6LTer09/G+61zGIOgLDWUkUaUrpHnNcylJAKgUSn5ge4Yaw8w9Qn/oLpfGeoRCUpDqTy4UAHtqGjkx8AlN/35DvO86J9KRah/tzmiwqbIhow7AtpLaxP+nXZ/R4e7J6TookbXe/PKYcI71JQkdFhsbzLbEuNV3iYiIpjVWmm/mYN23ZTt/u+ccl129jPoedLnNjiZe3bgz67YgKf2mIjMXZp0BaQEX20vrebFio2znbcM3+MuV1iQiAH/acZCGknVZkUkKwkOPHZAcFls6XTK1T1X6gmx8U6UroqDYjG1dNf/c/ft9zY6mRZGAFHXk0GMHpD01O1JrZ4hioyovK+cmzQN9nVL73qsbd0qLIQFp6sj9VCwATgx8kngei8dQKdPfN8WzXEJczLyZYo0ZjSLz+XwhpC2Is3Vl78rGRGrunRjk+sTttMbGwhOQRds1EgkBUG9aIJxlQlai3ruyUdq7slH60eqdrQvp9Y8PZ+V8YHwm0WwtrM9qXipk1WuVagt3bF/xRFp5b9CdlfMrIy4eN6+h3rTq0X+x2lXxvL1YY0kpc08FaPPckGWnbfgmw1PjvFK5w5ftGlIhayJ6Vf7NH69+iXQXDGeHrtIXXDjEfOFxPhq6yk9sL7PQN49ssKgzu11fJf1i3X6s2vl1YyIW4QPX5/Sl2S/9416O9ZzHEjawpWB97gf7+8jphNg25BS/6X4XsyX1rfl6czm1pjJMah2B6AQ9gXu037rBiHeU6HSMD1863FGiL9y06AXMQU7XQfF4HJ97FL8viNGiR2/IR6PVJOTX/ENc8w8xHYkyEZokGAgRmYok5OFYRF6HKQNLcq8VjUYZ9foZ9fqRJImNZXYOPvk9NApVuFBtWvniydfvRrM4TC0GORGRUnSQQgiUMQmbvnzJ4l8OcrqgW22p7Er1/KnyDUljR/GaeTpmjYFqU+mSkc2JSKm+cMPPv7YfxZxf5oXqLbxs31YzV++nW/aw2lKZGBdojfzy6eZcXM/Dknx6i4k47tBIQKVQtlt1BWlaZ7g77vUK0JQbik05O30I/wNbytLSTe9yZQAAAABJRU5ErkJggg==';
+// ---------- 티라노매스 마스코트 (연필 든 티라노, 벡터) ----------
+function tyrano(p,opt={}){const pose=opt.pose||'pencil',ring=opt.ring===true||pose==='swim',water=opt.water,jer=pose==='soccer'?(opt.jersey||'#ff5a5a'):null;
+ const G='#5cbf6a',GD='#47a85a',GL='#7fd58a',OR='#f7a03c',DK='#2d6b3a';
+ const tri=(x1,y1,x2,y2,x3,y3)=>`<path d="M${x1},${y1} L${x2},${y2} L${x3},${y3}Z" fill="${OR}" stroke="${OR}" stroke-width="2.5" stroke-linejoin="round"/>`;
+ const RB=`<path d="M30,150 A64,20 0 0 1 158,150" fill="none" stroke="#c9d6e2" stroke-width="22"/><path d="M30,150 A64,20 0 0 1 158,150" fill="none" stroke="#ff6b6b" stroke-width="22" stroke-dasharray="26 24" stroke-dashoffset="8"/>`;
+ const RF=`<path d="M30,150 A64,20 0 0 0 158,150" fill="none" stroke="#e8eef4" stroke-width="22"/><path d="M30,150 A64,20 0 0 0 158,150" fill="none" stroke="#ff6b6b" stroke-width="22" stroke-dasharray="26 24" stroke-dashoffset="8"/>
+  <path d="M42,158 A54,14 0 0 0 92,168" stroke="#fff" stroke-width="4" fill="none" opacity=".8"/>`;
+ const body=(fill,dx=0,dy=0)=>`<g transform="translate(${dx},${dy})" fill="${fill}">
+  <path d="M58,116 C42,114 28,112 12,106 C20,122 36,132 58,138Z"/>
+  <ellipse cx="92" cy="135" rx="42" ry="38"/>
+  <path d="M92,82 C88,52 108,38 140,38 L163,38 C177,38 185,48 185,61 L185,87 C185,102 173,111 158,111 L122,111 C104,111 95,100 92,82Z"/>
+  <rect x="66" y="152" width="22" height="26" rx="9"/><rect x="99" y="152" width="22" height="26" rx="9"/></g>`;
+const PEN=` <g transform="rotate(-33 144 120)"><rect x="139" y="98" width="10" height="34" rx="2" fill="#f5c242"/><rect x="144" y="98" width="5" height="34" fill="#e3a92a"/>
+  <rect x="139" y="93" width="10" height="7" rx="2.5" fill="#f4a0b0"/><rect x="139" y="99" width="10" height="2.5" fill="#c9cfd6"/>
+  <path d="M139,132 L149,132 L144,143Z" fill="#f6dfb8"/><path d="M142.3,139 L145.7,139 L144,143Z" fill="#3a3a44"/></g>
+ <ellipse cx="135" cy="121" rx="8" ry="6" fill="${G}"/><path d="M130,118 q6,-4 11,1" stroke="${GD}" stroke-width="2" fill="none"/>
+`;
+ const JER=jer?`<clipPath id="${p}jc"><ellipse cx="92" cy="135" rx="42" ry="38"/></clipPath><g clip-path="url(#${p}jc)"><rect x="40" y="96" width="110" height="56" fill="${jer}"/><rect x="82" y="96" width="7" height="56" fill="#fff" opacity=".85"/><rect x="118" y="96" width="7" height="56" fill="#fff" opacity=".85"/><rect x="40" y="150" width="110" height="30" fill="#1f2f6b"/><rect x="40" y="150" width="110" height="3" fill="#fff" opacity=".6"/><rect x="40" y="96" width="110" height="8" fill="#fff" opacity=".25"/></g><path d="M112,104 l8,10 l8,-10" stroke="#fff" stroke-width="4" fill="none"/><text x="103.5" y="140" font-size="22" stroke="#1f2f6b" stroke-width="3" paint-order="stroke" text-anchor="middle" fill="#fff" font-weight="900" style="font-family:Jua,sans-serif">10</text>`:'';
+ const GOG=pose==='swim'?`<path d="M93,54 C120,46 160,44 184,50" stroke="#2b6fd6" stroke-width="6" fill="none"/><circle cx="121" cy="48" r="10" fill="#7fe0ff" stroke="#2b6fd6" stroke-width="3.5"/><circle cx="147" cy="47" r="10" fill="#7fe0ff" stroke="#2b6fd6" stroke-width="3.5"/><path d="M131,48 h6" stroke="#2b6fd6" stroke-width="3.5"/><path d="M116,45 a5,5 0 0 1 6,-3 M142,44 a5,5 0 0 1 6,-3" stroke="#fff" stroke-width="2" fill="none"/>`:'';
+ return `<g stroke-linecap="round" stroke-linejoin="round">
+ ${ring?RB:''}
+ ${body('#d8efcf',3,4)}
+ ${tri(48,112,51,100,62,108)}${tri(60,96,65,84,76,93)}${tri(76,86,82,74,92,84)}
+ ${tri(100,42,106,29,114,40)}${tri(120,39,127,26,134,38)}
+ ${body(G)}
+ <rect x="66" y="160" width="22" height="18" rx="8" fill="${GD}"/><rect x="99" y="160" width="22" height="18" rx="8" fill="${GD}"/>
+ <ellipse cx="101" cy="135" rx="23" ry="28" fill="#eaf6c6"/>
+ <path d="M86,124 h28 M84,136 h32 M87,148 h26" stroke="#cfe5a8" stroke-width="2.6"/>
+ ${JER}
+ <circle cx="137" cy="65" r="13.5" fill="#fff" stroke="#3f9a52" stroke-width="2.2"/><circle cx="140" cy="67" r="7.5" fill="#2a3060"/><circle cx="143" cy="63.5" r="2.6" fill="#fff"/>
+ ${GOG}
+ <circle cx="172" cy="61" r="2.2" fill="${DK}"/>
+ <ellipse cx="157" cy="83" rx="8.5" ry="4.8" fill="#e8a3a0" opacity=".9"/>
+ <path d="M128,92 Q152,99 175,88" stroke="${DK}" stroke-width="3" fill="none"/>
+ <path d="M140,95 l2.5,5 l3,-4.6Z M158,94.2 l2.6,4.8 l2.8,-5Z" fill="#fff"/>
+ ${pose==='pencil'?PEN:`<path d="M124,124 C138,130 156,128 166,113" stroke="${GD}" stroke-width="15" fill="none"/><path d="M124,124 C138,130 156,128 166,113" stroke="${jer||G}" stroke-width="11" fill="none"/>
+  <circle cx="168" cy="110" r="8" fill="${G}" stroke="${GD}" stroke-width="2"/>${pose==='swim'?'<path d="M178,100 q5,-4 9,0 M180,112 q5,-2 8,2" stroke="#fff" stroke-width="2.5" fill="none"/>':'<path d="M176,98 l6,-6 M180,108 l8,-2 M170,96 l2,-8" stroke="#ffd23f" stroke-width="3"/>'}`}
+ ${water?`<ellipse cx="94" cy="156" rx="88" ry="15" fill="none" stroke="#fff" stroke-width="4" opacity=".75"/>`:''}
+ ${ring?RF:''}
+ </g>`;}
+const DINO_SVG='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 20 190 166">${tyrano('L')}</svg>`);
+// ---------- 애니메이션용 고급 티라노 (도안 기반, 명암·외곽선) ----------
+function tyranoHD(p,opt={}){const pose=opt.pose||'swim',O='#1f5a33',sw=3;const jer=opt.jersey||'#ff5a5a';
+ const soccer=pose==='soccer',swim=pose==='swim';
+ const dy=soccer?-8:0;// 점프
+ const spike=(x,y,a,s=1)=>`<g transform="translate(${x},${y}) rotate(${a}) scale(${s})"><path d="M-9,4 C-6,-6 -2,-15 1,-19 C4,-14 8,-5 9,4Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="2.4" stroke-linejoin="round"/><path d="M-3,0 C-2,-6 0,-11 1,-14" stroke="#ffe0a0" stroke-width="2" fill="none" opacity=".8"/></g>`;
+ const hand=(x,y,a,fist)=>`<g transform="translate(${x},${y}) rotate(${a})">${fist?`<circle r="8.5" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/><path d="M-3,-6 q4,2 3,7 M2,-6 q4,2 3,7" stroke="${O}" stroke-width="1.8" fill="none"/>`
+   :`<path d="M-6,4 C-8,-2 -4,-8 2,-8 C8,-8 10,-2 7,4Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M-5,-6 l-3,-7 M0,-8 l0,-8 M5,-6 l4,-7" stroke="${O}" stroke-width="5.5" stroke-linecap="round"/><path d="M-5,-6 l-3,-7 M0,-8 l0,-8 M5,-6 l4,-7" stroke="#6fd36a" stroke-width="2.6" stroke-linecap="round"/>`}</g>`;
+ const arm=(d,col)=>`<path d="${d}" stroke="${O}" stroke-width="15" fill="none" stroke-linecap="round"/><path d="${d}" stroke="${col}" stroke-width="9.5" fill="none" stroke-linecap="round"/>`;
+ const BODY='M58,150 C50,120 64,96 92,92 C118,88 136,104 140,128 C144,154 130,178 100,180 C76,182 62,170 58,150Z';
+ const ring=(front)=>{const d=front?'M26,150 A70,22 0 0 0 166,150':'M26,150 A70,22 0 0 1 166,150';return `<path d="${d}" fill="none" stroke="${O}" stroke-width="28"/><path d="${d}" fill="none" stroke="url(#${p}rw)" stroke-width="22"/><path d="${d}" fill="none" stroke="url(#${p}rr)" stroke-width="22" stroke-dasharray="30 26" stroke-dashoffset="10"/>${front?`<path d="M40,160 A58,15 0 0 0 96,171" stroke="#fff" stroke-width="4.5" fill="none" opacity=".85"/>`:''}`;};
+ return `<defs>
+  <radialGradient id="${p}bd" cx=".4" cy=".28" r=".85"><stop offset="0" stop-color="#9be88a"/><stop offset=".5" stop-color="#5cc566"/><stop offset="1" stop-color="#2f9a4a"/></radialGradient>
+  <radialGradient id="${p}hd" cx=".42" cy=".25" r=".85"><stop offset="0" stop-color="#a4ee90"/><stop offset=".55" stop-color="#60c868"/><stop offset="1" stop-color="#349f4c"/></radialGradient>
+  <linearGradient id="${p}dk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4db35a"/><stop offset="1" stop-color="#2c8a42"/></linearGradient>
+  <linearGradient id="${p}bl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfde6"/><stop offset="1" stop-color="#dcefb0"/></linearGradient>
+  <linearGradient id="${p}sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc35a"/><stop offset="1" stop-color="#f27d22"/></linearGradient>
+  <radialGradient id="${p}ir" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#5a6cc8"/><stop offset=".6" stop-color="#2a3170"/><stop offset="1" stop-color="#141a40"/></radialGradient>
+  <linearGradient id="${p}jr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${jer}"/><stop offset="1" stop-color="${jer}" stop-opacity=".82"/></linearGradient>
+  <linearGradient id="${p}rw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d6e2ec"/></linearGradient>
+  <linearGradient id="${p}rr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8080"/><stop offset="1" stop-color="#e2384a"/></linearGradient>
+  <radialGradient id="${p}gl" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#eafdff"/><stop offset=".5" stop-color="#5fd3f5"/><stop offset="1" stop-color="#1b8fc6"/></radialGradient>
+  <clipPath id="${p}bc"><path d="${BODY}"/></clipPath>
+ </defs>
+ <g stroke-linejoin="round" transform="translate(0,${dy})">
+ ${swim?ring(false):''}
+ <!-- 뒤쪽 다리 / 팔 -->
+ ${soccer?`<path d="M80,168 C70,176 60,180 50,180" stroke="${O}" stroke-width="20" stroke-linecap="round" fill="none"/><path d="M80,168 C70,176 60,180 50,180" stroke="url(#${p}dk)" stroke-width="14" stroke-linecap="round" fill="none"/><path d="M48,170 C40,172 36,182 40,190 C46,194 54,190 56,182Z" fill="url(#${p}dk)" stroke="${O}" stroke-width="${sw}"/>`:''}
+ ${!swim&&!soccer?`<path d="M70,196 C68,186 76,180 86,182 C94,184 96,194 92,198Z" fill="url(#${p}dk)" stroke="${O}" stroke-width="${sw}"/>`:''}
+ ${arm('M100,112 C92,100 88,90 84,78','url(#'+p+'dk)')}${hand(84,76,-20,soccer)}
+ <!-- 꼬리 -->
+ <path d="M66,126 C46,124 24,132 6,150 C4,153 6,156 10,155 C30,152 50,156 68,156Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/>
+ <path d="M60,134 C44,134 30,140 18,148" stroke="#fff" stroke-width="3" opacity=".3" fill="none" stroke-linecap="round"/>
+ ${spike(54,128,-70,.75)}${spike(66,108,-48,.95)}${spike(80,96,-25,1.05)}
+ <!-- 몸 -->
+ <path d="${BODY}" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/>
+ <g clip-path="url(#${p}bc)">
+  <ellipse cx="80" cy="176" rx="40" ry="16" fill="#1f6b36" opacity=".22"/>
+  <path d="M98,104 C118,108 132,128 130,152 C128,172 112,182 98,180 C84,176 80,140 98,104Z" fill="url(#${p}bl)" stroke="#bcd88c" stroke-width="2"/>
+  ${[120,134,148,162].map((y,i)=>`<path d="M${92-i},${y} Q${110},${y+6} ${129-i*.5},${y-2}" stroke="#c6dd98" stroke-width="2.2" fill="none"/>`).join('')}
+  ${soccer?`<rect x="40" y="90" width="110" height="64" fill="url(#${p}jr)"/><rect x="84" y="90" width="8" height="64" fill="#fff" opacity=".9"/><rect x="118" y="90" width="8" height="64" fill="#fff" opacity=".9"/>
+   <rect x="40" y="152" width="110" height="40" fill="#1f2f6b"/><rect x="40" y="152" width="110" height="3.5" fill="#fff" opacity=".7"/><path d="M60,100 C80,94 110,94 132,104" stroke="#fff" stroke-width="5" opacity=".25" fill="none"/>
+   <text x="106" y="142" font-size="24" text-anchor="middle" fill="#fff" stroke="#1f2f6b" stroke-width="3.5" paint-order="stroke" font-weight="900" style="font-family:Jua,sans-serif">10</text>`:''}
+  <path d="M70,104 C80,96 96,94 108,96" stroke="#fff" stroke-width="5" opacity=".3" fill="none" stroke-linecap="round"/>
+ </g>
+ <path d="${BODY}" fill="none" stroke="${O}" stroke-width="${sw}"/>
+ <!-- 앞쪽 다리 -->
+ ${swim?'':`<ellipse cx="112" cy="168" rx="17" ry="15" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/><path d="M98,196 C96,186 104,180 116,181 C128,182 134,190 130,198Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/><path d="M106,197 l0,-5 M115,198 l0,-5 M124,197 l0,-5" stroke="${O}" stroke-width="2.4" stroke-linecap="round"/>`}
+ <!-- 머리 -->
+ ${spike(104,42,-14,1)}${spike(122,36,4,1.05)}${spike(141,35,18,.9)}
+ <path d="M96,100 C86,72 98,40 132,35 L160,35 C179,35 190,48 190,64 L190,78 C190,94 180,104 164,106 L132,108 C114,110 100,108 96,100Z" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>
+ <path d="M108,52 C116,42 134,40 152,41" stroke="#fff" stroke-width="5" opacity=".35" fill="none" stroke-linecap="round"/>
+ <path d="M104,100 C112,106 130,108 150,106" stroke="#2f8a44" stroke-width="2.5" opacity=".5" fill="none"/>
+ <!-- 눈 -->
+ <ellipse cx="141" cy="63" rx="14" ry="15.5" fill="#fff" stroke="${O}" stroke-width="2.6"/>
+ <ellipse cx="144" cy="65" rx="9.5" ry="10.5" fill="url(#${p}ir)"/><circle cx="145" cy="66" r="5" fill="#0d1030"/>
+ <circle cx="148.5" cy="60.5" r="3.6" fill="#fff"/><circle cx="140.5" cy="70.5" r="1.8" fill="#fff" opacity=".9"/>
+ <path d="M126,50 C134,44 148,44 156,50" stroke="${O}" stroke-width="3" fill="none" stroke-linecap="round"/>
+ ${swim?`<path d="M94,46 C120,34 162,32 190,40" stroke="#1d4f8a" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <g transform="rotate(-6 150 36)"><circle cx="134" cy="38" r="11" fill="url(#${p}gl)" stroke="#1d4f8a" stroke-width="4"/><circle cx="162" cy="38" r="11" fill="url(#${p}gl)" stroke="#1d4f8a" stroke-width="4"/><path d="M145,38 h6" stroke="#1d4f8a" stroke-width="4"/>
+  <path d="M128,33 a7,7 0 0 1 8,-3 M156,33 a7,7 0 0 1 8,-3" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`:''}
+ <ellipse cx="178" cy="54" rx="2.4" ry="1.8" fill="${O}"/>
+ <ellipse cx="128" cy="84" rx="9" ry="5.5" fill="#ff8aa0" opacity=".55"/>
+ <!-- 입 -->
+ <path d="M138,86 C150,92 168,92 184,82 C182,96 170,104 158,104 C148,104 140,96 138,86Z" fill="#8a2333" stroke="${O}" stroke-width="2.6"/>
+ <path d="M150,98 C156,94 166,94 172,98 C168,103 156,104 150,98Z" fill="#ff8a96"/>
+ <path d="M146,88.5 l3,5 l3,-4 M172,88 l3,4.5 l3,-5.5" fill="#fff" stroke="#fff" stroke-width="1" stroke-linejoin="round"/>
+ <!-- 앞쪽 팔 -->
+ ${swim?arm('M120,120 C134,124 150,122 168,112','url(#'+p+'bd)')+hand(170,110,60,false)
+   :soccer?arm('M120,120 C140,126 160,124 174,112','url(#'+p+'jr)')+hand(177,108,40,true)
+   :arm('M120,120 C130,126 138,128 146,126','url(#'+p+'bd)')+hand(148,124,90,false)}
+ ${swim?ring(true)+`<g fill="#e8fbff" stroke="#9fd9ef" stroke-width="1.2"><path d="M180,104 q4,-8 6,0 q-3,4 -6,0Z"/><path d="M188,118 q3,-6 5,0 q-2,3 -5,0Z"/><path d="M60,74 q3,-6 5,0 q-2,3 -5,0Z"/></g>`:''}
+ ${soccer?`<g stroke="#ffd23f" stroke-width="3.5" stroke-linecap="round"><path d="M184,96 l8,-6 M188,110 l9,1 M178,92 l2,-9"/><path d="M70,66 l-6,-8 M64,78 l-10,-2"/></g>`:''}
+ </g>`;}
+// ---------- 수영하는 티라노 (정면, 물안경을 눈에 착용) ----------
+function tyranoSwim(p){const O='#1d5631',sw=2.8;
+ const spike=(x,y,a,s)=>`<g transform="translate(${x},${y}) rotate(${a}) scale(${s})"><path d="M-10,6 C-7,-6 -2,-16 0,-21 C3,-16 8,-6 10,6Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="2.3" stroke-linejoin="round"/><path d="M-3,1 C-2,-6 -1,-11 0,-15" stroke="#ffe3a6" stroke-width="2" fill="none" stroke-linecap="round"/></g>`;
+ const lens=(cx,cy,flip)=>`<g>
+   <ellipse cx="${cx}" cy="${cy+1}" rx="19" ry="17" fill="#0c3b66" opacity=".35"/>
+   <ellipse cx="${cx}" cy="${cy}" rx="16.5" ry="14.5" fill="#fff"/>
+   <circle cx="${cx+(flip?-2:2)}" cy="${cy+1}" r="8.5" fill="url(#${p}ir)"/><circle cx="${cx+(flip?-2:2)}" cy="${cy+1.5}" r="4.4" fill="#0b0e2a"/>
+   <circle cx="${cx+(flip?-5:-1)}" cy="${cy-3}" r="2.6" fill="#fff"/>
+   <ellipse cx="${cx}" cy="${cy}" rx="16.5" ry="14.5" fill="url(#${p}ln)"/>
+   <ellipse cx="${cx}" cy="${cy}" rx="18.5" ry="16.5" fill="none" stroke="url(#${p}gk)" stroke-width="6"/>
+   <ellipse cx="${cx}" cy="${cy}" rx="18.5" ry="16.5" fill="none" stroke="#0e2f5c" stroke-width="1.6" opacity=".7"/>
+   <path d="M${cx-11},${cy-7} C${cx-7},${cy-12} ${cx},${cy-13} ${cx+6},${cy-11}" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round" opacity=".9"/>
+   <circle cx="${cx+9}" cy="${cy+7}" r="1.8" fill="#fff" opacity=".8"/></g>`;
+ const arm=(d)=>`<path d="${d}" stroke="${O}" stroke-width="17" fill="none" stroke-linecap="round"/><path d="${d}" stroke="url(#${p}arm)" stroke-width="11.5" fill="none" stroke-linecap="round"/>`;
+ const hand=(x,y,a)=>`<g transform="translate(${x},${y}) rotate(${a})"><ellipse rx="9" ry="8" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>
+   ${[-6,0,6].map(dx=>`<path d="M${dx},-5 l${dx*.4},-9" stroke="${O}" stroke-width="6" stroke-linecap="round"/><path d="M${dx},-5 l${dx*.4},-9" stroke="#79d572" stroke-width="2.8" stroke-linecap="round"/>`).join('')}</g>`;
+ const ringPath=front=>front?'M22,160 A78,24 0 0 0 178,160':'M22,160 A78,24 0 0 1 178,160';
+ const ring=front=>`<path d="${ringPath(front)}" fill="none" stroke="${O}" stroke-width="30"/>
+   <path d="${ringPath(front)}" fill="none" stroke="url(#${p}rw)" stroke-width="24"/>
+   <path d="${ringPath(front)}" fill="none" stroke="url(#${p}rr)" stroke-width="24" stroke-dasharray="34 30" stroke-dashoffset="${front?14:-6}"/>
+   ${front?`<path d="M36,166 A66,18 0 0 0 100,182" stroke="#fff" stroke-width="5" fill="none" opacity=".85" stroke-linecap="round"/><path d="M30,170 A72,22 0 0 0 170,170" stroke="#000" stroke-width="5" fill="none" opacity=".12"/>`:''}`;
+ return `<defs>
+  <radialGradient id="${p}hd" cx=".38" cy=".28" r=".85"><stop offset="0" stop-color="#b2f29c"/><stop offset=".45" stop-color="#66cb6c"/><stop offset="1" stop-color="#2c8f45"/></radialGradient>
+  <radialGradient id="${p}bd" cx=".4" cy=".25" r=".9"><stop offset="0" stop-color="#9ee88a"/><stop offset=".55" stop-color="#58c063"/><stop offset="1" stop-color="#2a8a42"/></radialGradient>
+  <linearGradient id="${p}arm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fe07c"/><stop offset="1" stop-color="#3fa652"/></linearGradient>
+  <radialGradient id="${p}mz" cx=".45" cy=".3" r=".8"><stop offset="0" stop-color="#c6f5ac"/><stop offset="1" stop-color="#76cf72"/></radialGradient>
+  <radialGradient id="${p}bl" cx=".45" cy=".3" r=".8"><stop offset="0" stop-color="#fffef0"/><stop offset="1" stop-color="#dcecaa"/></radialGradient>
+  <linearGradient id="${p}sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc35a"/><stop offset="1" stop-color="#ee7a20"/></linearGradient>
+  <radialGradient id="${p}ir" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#6a7ad8"/><stop offset=".6" stop-color="#2a3170"/><stop offset="1" stop-color="#141a40"/></radialGradient>
+  <linearGradient id="${p}ln" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fe6ff" stop-opacity=".45"/><stop offset=".5" stop-color="#2fb6ec" stop-opacity=".22"/><stop offset="1" stop-color="#0b6fb0" stop-opacity=".45"/></linearGradient>
+  <linearGradient id="${p}gk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f9bff"/><stop offset="1" stop-color="#1a4fb8"/></linearGradient>
+  <linearGradient id="${p}st" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d86f0"/><stop offset="1" stop-color="#1a4fb8"/></linearGradient>
+  <linearGradient id="${p}rw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#e6eef5"/><stop offset="1" stop-color="#b7c6d4"/></linearGradient>
+  <linearGradient id="${p}rr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff9090"/><stop offset=".6" stop-color="#f04a56"/><stop offset="1" stop-color="#b82432"/></linearGradient>
+  <radialGradient id="${p}wt" cx=".5" cy=".2" r=".75"><stop offset="0" stop-color="#bff3ff" stop-opacity=".2"/><stop offset=".6" stop-color="#3aa8e0" stop-opacity=".55"/><stop offset="1" stop-color="#1f86d0" stop-opacity="0"/></radialGradient>
+ </defs>
+ <g stroke-linejoin="round">
+ <!-- 물에 비친 그림자 -->
+ <ellipse cx="100" cy="176" rx="92" ry="22" fill="#0b4f86" opacity=".25"/>
+ ${ring(false)}
+ <!-- 꼬리 끝 (뒤쪽) -->
+ <path d="M142,152 C160,148 176,136 182,118 C186,112 192,116 190,124 C186,144 170,158 154,162Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/>
+ <!-- 몸통 -->
+ <path d="M52,170 C46,140 62,112 100,110 C138,112 154,140 148,170Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/>
+ <path d="M76,170 C72,146 82,124 100,122 C118,124 128,146 124,170Z" fill="url(#${p}bl)" stroke="#b7d488" stroke-width="2"/>
+ ${[136,148,160].map(y=>`<path d="M${82},${y} Q100,${y+5} ${118},${y}" stroke="#c4db93" stroke-width="2.2" fill="none"/>`).join('')}
+ <!-- 머리 아래 그림자(입체감) -->
+ <ellipse cx="100" cy="118" rx="42" ry="9" fill="#1d6a35" opacity=".35"/>
+ <!-- 팔 (양손 흔들기) -->
+ ${arm('M62,134 C48,124 40,112 34,96')}${hand(33,92,-25)}
+ ${arm('M138,134 C152,124 160,112 166,96')}${hand(167,92,25)}
+ <!-- 가시 -->
+ ${spike(76,30,-28,.95)}${spike(100,22,0,1.1)}${spike(124,30,28,.95)}
+ <!-- 머리 -->
+ <path d="M100,24 C140,24 162,46 162,74 C162,104 136,118 100,118 C64,118 38,104 38,74 C38,46 60,24 100,24Z" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>
+ <ellipse cx="80" cy="40" rx="20" ry="9" fill="#fff" opacity=".35" transform="rotate(-18 80 40)"/>
+ <!-- 물안경 끈: 머리 옆을 감싸 뒤로 -->
+ <path d="M58,60 C48,60 41,64 38.5,70" stroke="url(#${p}st)" stroke-width="8" fill="none" stroke-linecap="round"/>
+ <path d="M142,60 C152,60 159,64 161.5,70" stroke="url(#${p}st)" stroke-width="8" fill="none" stroke-linecap="round"/>
+ <path d="M58,57 C50,57 44,60 41,65 M142,57 C150,57 156,60 159,65" stroke="#8cc4ff" stroke-width="1.6" fill="none" opacity=".8"/>
+ <!-- 주둥이 -->
+ <ellipse cx="100" cy="94" rx="40" ry="22" fill="url(#${p}mz)" stroke="#3a9a4e" stroke-width="1.6"/>
+ <ellipse cx="90" cy="84" rx="3" ry="2.2" fill="${O}"/><ellipse cx="110" cy="84" rx="3" ry="2.2" fill="${O}"/>
+ <!-- 입 -->
+ <path d="M72,94 C84,102 116,102 128,94 C126,110 114,118 100,118 C86,118 74,110 72,94Z" fill="#8a2333" stroke="${O}" stroke-width="2.4"/>
+ <path d="M86,110 C92,105 108,105 114,110 C110,116 90,116 86,110Z" fill="#ff8a96"/>
+ <path d="M80,97 l3,5 l3,-4 M114,97 l3,5 l3,-4" fill="#fff" stroke="#fff" stroke-width="1" stroke-linejoin="round"/>
+ <ellipse cx="60" cy="88" rx="8" ry="5" fill="#ff8aa0" opacity=".5"/><ellipse cx="140" cy="88" rx="8" ry="5" fill="#ff8aa0" opacity=".5"/>
+ <!-- 물안경 (눈 위에 착용) -->
+ ${lens(78,60,false)}${lens(122,60,true)}
+ <path d="M95,58 C98,55 102,55 105,58" stroke="url(#${p}gk)" stroke-width="5" fill="none" stroke-linecap="round"/>
+ <!-- 물 (몸 아래쪽이 물에 잠김) -->
+ <path d="M10,164 C40,156 70,170 100,162 C130,154 160,168 190,160 L190,210 L10,210Z" fill="url(#${p}wt)"/>
+ ${ring(true)}
+ <path d="M8,170 C30,162 52,174 76,168 M124,168 C148,174 170,162 192,170" stroke="#fff" stroke-width="3" fill="none" opacity=".8" stroke-linecap="round"/>
+ <!-- 물방울 -->
+ <g fill="#e8fbff" stroke="#7cc8ea" stroke-width="1.2">
+  <path d="M18,90 q4,-9 7,0 q-3.5,4 -7,0Z"/><path d="M182,88 q4,-9 7,0 q-3.5,4 -7,0Z"/><path d="M10,124 q3,-6 5,0 q-2.5,3 -5,0Z"/><path d="M188,126 q3,-6 5,0 q-2.5,3 -5,0Z"/></g>
+ </g>`;}
+// ================= 수영장 분수 채우기 =================
+const $=id=>document.getElementById(id);
+const KEY='tyranomath-fraction-pool-v1';
+const rnd=(a,b)=>a+Math.random()*(b-a), ri=(a,b)=>Math.floor(rnd(a,b+1)), pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const gcd=(a,b)=>{while(b)[a,b]=[b,a%b];return a;};
+document.querySelectorAll('img.dino').forEach(i=>i.src=DINO_SVG);
+const VW=1200,MAXN=12;let VH=860,PORT=false;
+// 수영장 모양(보는 각도: 뒤쪽 벽이 위로 보임)
+const XL=110,XR=1090,T=196,FL=146,FR=1054,LEVEL=214;let BOT=618,BW=286;
+function layout(){const w=$('game').querySelector('.bwrap').getBoundingClientRect();PORT=w.height>w.width*1.05;VH=PORT?1520:860;BOT=PORT?960:618;BW=PORT?340:286;svg.setAttribute('viewBox',`0 0 ${VW} ${VH}`);}
+const xr=t=>XL+(XR-XL)*t, xf=t=>FL+(FR-FL)*t;
+
+// ---------- 설정 ----------
+let cfg={den:'10',div:'self',eq:'same',num:10,sound:true};
+try{const o=JSON.parse(localStorage.getItem(KEY)||'null');if(o&&o.den)cfg={...cfg,...o};}catch(e){}
+const saveCfg=()=>{try{localStorage.setItem(KEY,JSON.stringify(cfg));}catch(e){}};
+const SEGS=[['denSeg','den'],['divSeg','div'],['eqSeg','eq']];
+function buildLobby(){
+  SEGS.forEach(([id,k])=>document.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{cfg[k]=b.dataset.v;sync();}));
+  const setNum=v=>{cfg.num=clamp(Math.round(v)||1,1,30);sync();};
+  document.querySelectorAll('.numrow .nb').forEach(b=>b.onclick=()=>setNum(cfg.num+ +b.dataset.d));
+  const ni=$('numIn');ni.addEventListener('change',()=>setNum(+ni.value));ni.addEventListener('blur',()=>setNum(+ni.value));ni.addEventListener('keydown',e=>{if(e.key==='Enter')ni.blur();});
+  sync();}
+function sync(){cfg.num=clamp(+cfg.num||10,1,30);
+  SEGS.forEach(([id,k])=>document.querySelectorAll(`#${id} button`).forEach(b=>b.classList.toggle('on',b.dataset.v===cfg[k])));
+  if(document.activeElement!==$('numIn'))$('numIn').value=cfg.num;
+  document.querySelectorAll('.numrow .nb').forEach(b=>{b.disabled=(+b.dataset.d<0&&cfg.num<=1)||(+b.dataset.d>0&&cfg.num>=30);});saveCfg();}
+
+// ---------- 소리 ----------
+let actx=null;
+const AC=()=>{if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();return actx;};
+function beep(f,d,type='sine',v=.12,when=0){if(!cfg.sound)return;try{const a=AC();
+  const t=a.currentTime+when,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.02);}catch(e){}}
+function noise(d,f0,f1,v=.12){if(!cfg.sound)return;try{const a=AC();const len=Math.floor(a.sampleRate*d),buf=a.createBuffer(1,len,a.sampleRate),ch=buf.getChannelData(0);
+  for(let i=0;i<len;i++)ch[i]=Math.random()*2-1;const s=a.createBufferSource();s.buffer=buf;const fl=a.createBiquadFilter();fl.type='bandpass';fl.Q.value=1.2;
+  const t=a.currentTime;fl.frequency.setValueAtTime(f0,t);fl.frequency.linearRampToValueAtTime(f1,t+d);const g=a.createGain();g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(v,t+.1);
+  g.gain.setValueAtTime(v,t+d-.25);g.gain.linearRampToValueAtTime(.001,t+d);s.connect(fl).connect(g).connect(a.destination);s.start(t);s.stop(t+d);}catch(e){}}
+const sfx={tap(){beep(700,.06,'triangle',.07);},tick(){beep(520,.05,'square',.05);},ok(){beep(660,.1,'triangle');beep(990,.15,'triangle',.1,.09);},
+  no(){beep(220,.22,'sawtooth',.07);beep(160,.25,'sawtooth',.06,.1);},fill(){noise(1.6,500,1400,.16);},drain(){noise(1,1200,300,.14);beep(300,.3,'sine',.06,.6);},
+  splash(){noise(.5,2000,600,.2);},done(){[523,659,784,1047,1319].forEach((f,i)=>beep(f,.22,'triangle',.11,i*.12));}};
+
+// ---------- SVG 그리기 ----------
+const NS='http://www.w3.org/2000/svg';
+const svg=$('pool');
+function tilePat(id,cols,grout){const s=13,n=4;let r=`<pattern id="${id}" width="${s*n}" height="${s*n}" patternUnits="userSpaceOnUse"><rect width="${s*n}" height="${s*n}" fill="${grout}"/>`;
+  let k=7;for(let y=0;y<n;y++)for(let x=0;x<n;x++){k=(k*31+17)%97;r+=`<rect x="${x*s+1}" y="${y*s+1}" width="${s-2}" height="${s-2}" rx="1.5" fill="${cols[k%cols.length]}"/>`;}return r+'</pattern>';}
+function drawStatic(){
+  const tree=(x,y,s,c)=>`<g transform="translate(${x},${y}) scale(${s})"><rect x="-7" y="-30" width="14" height="40" fill="#8a5a3a"/><circle cy="-62" r="44" fill="${c}"/><circle cx="-30" cy="-40" r="30" fill="${c}"/><circle cx="32" cy="-42" r="30" fill="${c}"/><circle cx="-12" cy="-80" r="20" fill="#fff" opacity=".18"/></g>`;
+  const cyp=(x,y,s)=>`<g transform="translate(${x},${y}) scale(${s})"><path d="M0,-130 C22,-90 24,-30 14,0 L-14,0 C-24,-30 -22,-90 0,-130Z" fill="#2f8a5a"/><path d="M0,-130 C10,-90 10,-40 6,0 L0,0Z" fill="#000" opacity=".12"/></g>`;
+  const cloud=(x,y,s)=>`<g transform="translate(${x},${y}) scale(${s})"><g class="cloud"><ellipse rx="70" ry="28" fill="#fff"/><ellipse cx="50" cy="8" rx="50" ry="22" fill="#fff"/><ellipse cx="-50" cy="8" rx="46" ry="20" fill="#fff"/><ellipse cx="10" cy="-18" rx="42" ry="26" fill="#fff"/></g></g>`;
+  // 앞 테두리 돌
+  let stones='';for(let i=0;i<7;i++){const x=50+i*157;stones+=`<rect x="${x+2}" y="${BOT+2}" width="153" height="40" rx="8" fill="url(#stone)" stroke="#d8ccb0" stroke-width="2"/>`;}
+  let back='';for(let i=0;i<7;i++){const x=50+i*157;back+=`<rect x="${x+2}" y="152" width="153" height="40" rx="8" fill="url(#stone)" stroke="#d8ccb0" stroke-width="2"/>`;}
+  let caus='';for(let i=0;i<Math.floor((BOT-BW-20)/32);i++){const y=BW+34+i*32;caus+=`<path class="wv" d="M${FL-30},${y} q40,-10 80,0 t80,0 t80,0 t80,0 t80,0 t80,0 t80,0 t80,0 t80,0 t80,0 t80,0 t80,0" stroke="#fff" stroke-width="3" fill="none" opacity=".12"/>`;}
+  svg.innerHTML=`<defs>
+   ${tilePat('tileF',['#7fd0ef','#6cc4e8','#8fd8f3','#63bce3','#78ccec','#9adcf4'],'#b8e8f7')}
+   ${tilePat('tileD',['#3d92c4','#3889bb','#4699c9','#337fb1','#4294c4'],'#79b6d6')}
+   ${tilePat('tileS',['#3f97c6','#3a8ebd','#4aa0cd','#3588b8'],'#7dbcdc')}
+   <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd3ff"/><stop offset="1" stop-color="#e3f6ff"/></linearGradient>
+   <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf5e8"/><stop offset="1" stop-color="#e6dcc4"/></linearGradient>
+   <linearGradient id="front" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2d6bb"/><stop offset="1" stop-color="#c9bb9c"/></linearGradient>
+   <linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fe0ff" stop-opacity=".78"/><stop offset="1" stop-color="#1f86d0" stop-opacity=".88"/></linearGradient>
+   <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8b97a4"/><stop offset=".45" stop-color="#f4f8fb"/><stop offset="1" stop-color="#7d8996"/></linearGradient>
+   <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f78b8"/><stop offset="1" stop-color="#1d5a94"/></linearGradient>
+   <linearGradient id="wedge" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e8f8fd"/><stop offset="1" stop-color="#bfe9f7"/></linearGradient>
+   <radialGradient id="hub"><stop offset="0" stop-color="#fff2a8"/><stop offset="1" stop-color="#d49a10"/></radialGradient>
+   <filter id="dsh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-opacity=".3"/></filter>
+  </defs>
+  <rect width="1200" height="${VH}" fill="url(#sky)"/>
+  <circle cx="1090" cy="70" r="46" fill="#fff6c2"/><circle cx="1090" cy="70" r="70" fill="#fff6c2" opacity=".35"/>
+  ${cloud(120,70,.8)}${cloud(1000,150,.6)}
+  <path d="M0,170 Q200,110 420,150 T840,140 T1200,150 L1200,${VH} L0,${VH}Z" fill="#9fd9b8"/>
+  ${[60,250,980,1150].map((x,i)=>cyp(x,175,1+i%2*.2)).join('')}${tree(160,170,.8,'#5cb877')}${tree(1060,172,.75,'#4fae6c')}${tree(860,160,.6,'#6cc287')}${tree(330,158,.55,'#6cc287')}
+    <rect x="30" y="140" width="1140" height="${BOT+82-140}" rx="26" fill="#cbbd9e"/>
+  ${back}
+  <polygon points="${XL},${T} ${XR},${T} ${FR},${BW} ${FL},${BW}" fill="url(#tileD)"/>
+  <polygon points="${XL},${T} ${FL},${BW} ${FL},${BOT} ${XL},${BOT}" fill="url(#tileS)"/>
+  <polygon points="${XR},${T} ${FR},${BW} ${FR},${BOT} ${XR},${BOT}" fill="url(#tileS)"/>
+  <rect x="${FL}" y="${BW}" width="${FR-FL}" height="${BOT-BW}" fill="url(#tileF)"/>
+  <rect x="${FL}" y="${BW}" width="${FR-FL}" height="14" fill="#1d5f8c" opacity=".18"/><g clip-path="url(#floorClip)">${caus}</g><clipPath id="floorClip"><rect x="${FL}" y="${BW}" width="${FR-FL}" height="${BOT-BW}"/></clipPath>
+  <path d="M${XL},${T} L${XR},${T}" stroke="#2b7fb0" stroke-width="4"/>
+  <g id="wat"></g><g id="parts"></g><g id="sels"></g><g id="labs"></g>
+  <rect x="30" y="${BOT}" width="1140" height="2" fill="#2b7fb0"/>
+  <path d="M30,${BOT} H1170 V${BOT+48} Q1170,${BOT+62} 1156,${BOT+62} H44 Q30,${BOT+62} 30,${BOT+48}Z" fill="#e9dfc6"/>
+  ${stones}
+  <rect x="30" y="${BOT+42}" width="1140" height="34" fill="url(#front)"/>
+  ${Array.from({length:9},(_,i)=>`<line x1="${30+i*142}" y1="${BOT+42}" x2="${30+i*142}" y2="${BOT+76}" stroke="#b9ab8b" stroke-width="2"/>`).join('')}
+  <g id="faus"></g><g id="streams"></g><g id="hits"></g><g id="fx"></g>
+  <!-- 문제 배너 -->
+  <g filter="url(#dsh)"><rect x="170" y="10" width="860" height="104" rx="22" fill="#fffaf0" stroke="#1f9d8f" stroke-width="5"/></g>
+  <text id="bnL" x="520" y="80" font-size="46" text-anchor="end" fill="#1f3a6b">수영장의</text>
+  <text id="bnN" x="575" y="56" font-size="42" text-anchor="middle" fill="#e9852a">3</text>
+  <rect id="bnBar" x="547" y="64" width="56" height="5" rx="2.5" fill="#e9852a"/>
+  <text id="bnD" x="575" y="106" font-size="42" text-anchor="middle" fill="#e9852a">4</text>
+  <text id="bnR" x="630" y="80" font-size="46" text-anchor="start" fill="#1f3a6b">만큼 물을 채워요</text>
+  <!-- 조작판 -->
+  ${PORT?`<rect x="20" y="${BOT+96}" width="1160" height="${VH-BOT-110}" rx="30" fill="url(#panel)" stroke="#f3d27a" stroke-width="5"/>`:`<rect x="20" y="704" width="1160" height="148" rx="26" fill="url(#panel)" stroke="#f3d27a" stroke-width="4"/>`}
+  <g transform="${PORT?`translate(600,${BOT+215}) scale(1.55) translate(-300,-775)`:''}"><g id="minusB" class="btn"><circle cx="100" cy="770" r="44" fill="transparent"/><g class="face"><circle cx="100" cy="774" r="36" fill="#c9d6de"/><circle cx="100" cy="768" r="36" fill="#fbfbf6"/><rect x="82" y="764" width="36" height="8" rx="4" fill="#3c5a74"/></g></g>
+  <rect x="160" y="728" width="96" height="82" rx="16" fill="#142f52" stroke="#9fc4e2" stroke-width="3"/>
+  <text id="nTxt" x="208" y="790" font-size="54" text-anchor="middle" fill="#fff">1</text>
+  <g id="plusB" class="btn"><circle cx="316" cy="770" r="44" fill="transparent"/><g class="face"><circle cx="316" cy="774" r="36" fill="#c9d6de"/><circle cx="316" cy="768" r="36" fill="#fbfbf6"/><rect x="298" y="764" width="36" height="8" rx="4" fill="#3c5a74"/><rect x="312" y="750" width="8" height="36" rx="4" fill="#3c5a74"/></g></g>
+  <text class="lab" x="208" y="836">칸 나누기</text>
+  <text id="stat" class="lab" x="452" y="782" font-size="26" opacity=".9"></text></g>
+  <g transform="${PORT?`translate(370,${BOT+420}) scale(1.6) translate(-640,-772)`:''}"><g id="valveB" class="btn"><circle cx="640" cy="764" r="62" fill="transparent"/>
+   <g id="valveG"><circle cx="640" cy="764" r="50" fill="none" stroke="#9ec3df" stroke-width="16"/><circle cx="640" cy="764" r="50" fill="none" stroke="#1f5f96" stroke-width="10"/>
+    ${[0,90,180,270].map(a=>`<rect x="634" y="718" width="12" height="46" rx="6" fill="#bcd8ee" stroke="#1f5f96" stroke-width="2" transform="rotate(${a+45} 640 764)"/>`).join('')}
+    ${[0,90,180,270].map(a=>`<circle cx="640" cy="714" r="8" fill="#bcd8ee" stroke="#1f5f96" stroke-width="2" transform="rotate(${a+45} 640 764)"/>`).join('')}
+    <circle cx="640" cy="764" r="16" fill="url(#hub)" stroke="#8a6a10" stroke-width="2"/></g></g>
+  <text class="lab" x="640" y="840" font-size="22">밸브: 물 채우기</text></g>
+  <g transform="${PORT?`translate(850,${BOT+420}) scale(1.6) translate(-1040,-775)`:''}"><g id="leverB" class="btn"><rect x="958" y="716" width="170" height="124" fill="transparent"/>
+   <rect x="980" y="754" width="124" height="70" rx="14" fill="#142f52" stroke="#9fc4e2" stroke-width="3"/>
+   <g id="leverG"><rect x="1035" y="712" width="10" height="90" rx="5" fill="url(#chrome)"/><rect x="996" y="702" width="88" height="20" rx="10" fill="#2d6fa8" stroke="#9ec3df" stroke-width="2"/></g>
+   <circle cx="1040" cy="800" r="12" fill="url(#chrome)" stroke="#5d6a78" stroke-width="2"/></g>
+  <text class="lab" x="1040" y="840" font-size="22">레버: 물 빼기</text></g>`;
+}
+
+// ---------- 게임 상태 ----------
+let G=null,P=null,game={state:'off'},hintOn=false;
+function makeList(k){const maxD=+cfg.den;const all=[];for(let d=2;d<=maxD;d++)for(let n=1;n<d;n++)all.push({n,d});
+  const out=[];let pool=[];while(out.length<k){if(!pool.length)pool=shuffle(all.slice());
+    // 너무 쉬운 1/2 반복을 줄이고 분모가 고루 나오게
+    const f=pool.pop();if(out.length&&out[out.length-1].d===f.d&&pool.length>2){pool.unshift(f);continue;}out.push(f);}
+  return out;}
+function start(){$('lobby').classList.add('hide');$('game').classList.remove('hide');$('resultOv').classList.add('hide');
+  layout();drawStatic();bindPanel();G={list:makeList(cfg.num),idx:0,stars:0,tries:0,first:0,t0:performance.now()};game.state='run';fitFrame();setup();TMRank.start(rankLv(),rankName());}
+function setup(){const f=G.list[G.idx];let n=1;
+  if(cfg.div==='auto'){n=f.d;if(cfg.eq==='eq'&&Math.random()<.5){const ms=[2,3,4].filter(m=>f.d*m<=MAXN);if(ms.length)n=f.d*pick(ms);}}
+  P={f,n,sel:new Set(),lv:Array(MAXN).fill(0),state:'idle',tries:0,hint:false};
+  $('doneBox').classList.add('hide');$('fx').innerHTML='';
+  $('bnN').textContent=f.n;$('bnD').textContent=f.d;
+  $('rndT').textContent=`문제 ${G.idx+1} / ${G.list.length}`;$('rndS').textContent=`⭐ ${G.stars}`;
+  ['minusB','plusB'].forEach(id=>$(id).classList.toggle('dis',cfg.div==='auto'));
+  drawPool();}
+function cols(){const a=[];for(let i=0;i<P.n;i++)a.push({x0:xr(i/P.n),x1:xr((i+1)/P.n)});return a;}
+function drawPool(){const C=cols();$('nTxt').textContent=P.n;
+  // 칸막이
+  let ps='';for(let i=1;i<P.n;i++){const t=i/P.n,a=xr(t),b=xf(t);
+    ps+=`<polygon points="${a},${T} ${b},${BW} ${b},${BOT} ${a},${BOT}" fill="url(#wedge)" opacity=".85"/><line x1="${b}" y1="${BW}" x2="${b}" y2="${BOT}" stroke="#3a8fbd" stroke-width="2" opacity=".6"/>
+     <line x1="${a}" y1="${T}" x2="${a}" y2="${BOT}" stroke="#fff" stroke-width="5"/><line x1="${a+3}" y1="${T}" x2="${a+3}" y2="${BOT}" stroke="#9fd6ec" stroke-width="2"/>`;}
+  $('parts').innerHTML=ps;
+  // 물
+  $('wat').innerHTML=C.map((c,i)=>`<g id="w${i}" style="display:none"><rect class="wr" x="${c.x0}" y="${BOT}" width="${c.x1-c.x0}" height="0" fill="url(#water)"/>
+    <rect class="ws" x="${c.x0}" y="${BOT}" width="${c.x1-c.x0}" height="10" fill="#d8f7ff" opacity=".85"/></g>`).join('');
+  // 수도꼭지 + 누르는 영역
+  const sc=Math.min(1,(C[0].x1-C[0].x0)/80);
+  $('faus').innerHTML=C.map((c,i)=>{const cx=(c.x0+c.x1)/2;return `<g class="fau" id="f${i}" transform="translate(${cx},${T}) scale(${sc.toFixed(2)})">
+    <circle class="glow" cx="-20" cy="-36" r="20" fill="#ffd23f" opacity="0"/>
+    <ellipse cx="-20" cy="-4" rx="14" ry="6" fill="#7d8996"/><path d="M-20,-6 V-48 Q-20,-72 -2,-72 Q16,-72 16,-54 V-40" stroke="#5d6a78" stroke-width="13" fill="none" stroke-linecap="round"/>
+    <path d="M-20,-6 V-48 Q-20,-72 -2,-72 Q16,-72 16,-54 V-40" stroke="url(#chrome)" stroke-width="9" fill="none" stroke-linecap="round"/>
+    <rect x="-38" y="-40" width="18" height="8" rx="4" fill="#9aa6b2"/><circle class="knob" cx="-40" cy="-36" r="10" fill="#b9c4cf" stroke="#5d6a78" stroke-width="2"/></g>`;}).join('');
+  $('hits').innerHTML=C.map((c,i)=>`<rect class="hit" data-i="${i}" x="${c.x0}" y="${T-84}" width="${c.x1-c.x0}" height="${BOT-T+84}" fill="transparent"/>`).join('');
+  $('hits').querySelectorAll('.hit').forEach(h=>h.addEventListener('click',()=>toggle(+h.dataset.i)));
+  // 기존 칸 수에 맞는 수도꼭지 이동
+  $('streams').innerHTML=C.map((c,i)=>`<g id="s${i}" style="display:none"><line x1="${(c.x0+c.x1)/2+16*sc}" y1="${T-40*sc}" x2="${(c.x0+c.x1)/2+16*sc}" y2="${BOT}" stroke="#e8fbff" stroke-width="${12*sc}" opacity=".55" stroke-linecap="round"/>
+    <line class="stream" x1="${(c.x0+c.x1)/2+16*sc}" y1="${T-40*sc}" x2="${(c.x0+c.x1)/2+16*sc}" y2="${BOT}" stroke="#7fd6ff" stroke-width="${6*sc}" stroke-linecap="round"/></g>`).join('');
+  drawSel();renderWater();}
+function drawSel(){const C=cols();
+  $('sels').innerHTML=C.map((c,i)=>P.sel.has(i)?`<rect class="sel" x="${c.x0+5}" y="${T+5}" width="${c.x1-c.x0-10}" height="${BOT-T-10}" rx="8"/>`:'').join('');
+  C.forEach((c,i)=>$('f'+i).classList.toggle('on',P.sel.has(i)));
+  const fs=P.n>=10?24:30;
+  $('labs').innerHTML=hintOn?C.map((c,i)=>`<text class="secl" x="${(c.x0+c.x1)/2}" y="${BOT-26}" font-size="${fs}">1/${P.n}</text>`).join('')+
+    `<text class="secl" x="600" y="${BW+60}" font-size="34">${P.n}칸 중 ${P.sel.size}칸</text>`:'';
+  $('stat').textContent=`수도꼭지 ${P.sel.size}개`;
+  $('hintBtn').classList.toggle('on',hintOn);}
+function renderWater(){for(let i=0;i<P.n;i++){const g=$('w'+i);if(!g)continue;const y=BOT-(BOT-LEVEL)*P.lv[i];
+  if(P.lv[i]<=.002){g.style.display='none';continue;}g.style.display='';const r=g.querySelector('.wr'),s=g.querySelector('.ws');
+  r.setAttribute('y',y);r.setAttribute('height',BOT-y);s.setAttribute('y',y);s.setAttribute('height',Math.min(10,BOT-y));
+  const st=$('s'+i);if(st)st.querySelectorAll('line').forEach(l=>l.setAttribute('y2',y));}}
+const hasWater=()=>P.lv.some(v=>v>.002);
+function anim(ms,step,done){const t0=performance.now();const f=now=>{const k=Math.min(1,(now-t0)/ms);step(k);if(k<1)requestAnimationFrame(f);else done&&done();};requestAnimationFrame(f);}
+const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+
+// ---------- 조작 ----------
+const busy=()=>game.state!=='run'||P.state==='fill'||P.state==='drain'||P.state==='solved';
+function afterDrain(fn){if(hasWater())drain(fn,true);else fn();}
+function toggle(i){if(busy())return;afterDrain(()=>{if(P.sel.has(i))P.sel.delete(i);else P.sel.add(i);sfx.tap();drawSel();});}
+function setN(d){if(busy())return;if(cfg.div==='auto'){toast('info','칸이 정해져 있어요','수도꼭지만 골라요');return;}
+  const nn=clamp(P.n+d,1,MAXN);if(nn===P.n){sfx.no();return;}
+  afterDrain(()=>{P.n=nn;P.sel.clear();sfx.tick();drawPool();});}
+function fill(){if(busy())return;
+  if(hasWater()){toast('info','물이 이미 있어요','레버를 당겨 물을 먼저 빼요');nudgeLever();return;}
+  if(!P.sel.size){toast('info','수도꼭지를 먼저 골라요','물을 채울 칸을 눌러요');return;}
+  P.state='fill';const v=$('valveG');v.classList.remove('spin');void v.getBBox();v.classList.add('spin');sfx.fill();
+  const idx=[...P.sel];idx.forEach(i=>$('s'+i).style.display='');
+  setTimeout(()=>anim(1500,k=>{const v=ease(k);idx.forEach(i=>P.lv[i]=v);renderWater();},()=>{
+    idx.forEach(i=>$('s'+i).style.display='none');P.state='full';judge();}),250);}
+function drain(fn,quick){if(game.state!=='run'||P.state==='fill'||P.state==='drain'||P.state==='solved')return;
+  if(!hasWater()){if(!fn)toast('info','물이 없어요','수도꼭지를 고르고 밸브를 돌려요');fn&&fn();return;}
+  P.state='drain';const l=$('leverG');l.classList.remove('pull','nudge');void l.getBBox();l.classList.add('pull');sfx.drain();
+  const from=P.lv.slice();anim(quick?600:1000,k=>{for(let i=0;i<MAXN;i++)P.lv[i]=from[i]*(1-ease(k));renderWater();},()=>{P.lv.fill(0);renderWater();P.state='idle';fn&&fn();});}
+function nudgeLever(){const l=$('leverG');l.classList.remove('pull','nudge');void l.getBBox();l.classList.add('nudge');}
+function judge(){const k=P.sel.size,n=P.n,f=P.f;const same=k*f.d===f.n*n;const ok=same&&(cfg.eq==='eq'||n===f.d);
+  if(ok){P.state='solved';const st=Math.max(1,3-P.tries-(P.hint?1:0));G.stars+=st;if(P.tries===0)G.first++;
+    sfx.ok();setTimeout(()=>sfx.splash(),500);confetti();dinoJump();
+    $('rndS').textContent=`⭐ ${G.stars}`;
+    setTimeout(()=>{$('doneT').textContent=pick(['딩동댕! 🎉','정답! 🎉','멋져요! 🎉']);
+      $('doneN').textContent=n===f.d?`${n}칸 중 ${k}칸 = ${f.n}/${f.d}`:`${k}/${n} = ${f.n}/${f.d} (크기가 같아요)`;
+      $('doneS').textContent='⭐'.repeat(st)+'☆'.repeat(3-st);$('nextBtn').textContent=G.idx+1>=G.list.length?'결과 보기 🏆':'다음 문제 ▶';$('doneBox').classList.remove('hide');},900);
+    return;}
+  P.tries++;G.tries++;sfx.no();const fr=$('pool');
+  if(same){toast('no','크기는 같아요!',`이번엔 수영장을 ${f.d}칸으로 나눠서 채워 봐요`);}
+  else{const more=k*f.d>f.n*n;const g=gcd(k,n);
+    let tip=`물이 ${k}/${n}만큼 찼어요`;
+    if(cfg.eq==='same'&&n!==f.d)tip+=` · ${f.d}칸으로 나눠 봐요`;
+    toast('no',more?'물이 너무 많아요!':'물이 조금 모자라요!',tip);}
+  setTimeout(nudgeLever,700);}
+function next(){if(!G||P.state!=='solved')return;G.idx++;if(G.idx>=G.list.length){showResult();return;}setup();}
+$('nextBtn').onclick=next;
+
+// 티라노가 풍덩!
+let dinoN=0;
+function dinoJump(){const idx=[...P.sel].sort((a,b)=>a-b);const C=cols();const c=C[idx[Math.floor(idx.length/2)]];const tx=(c.x0+c.x1)/2,ty=LEVEL+70;
+  const w=Math.min(220,Math.max(170,(c.x1-c.x0)*2));
+  const inner=document.createElementNS(NS,'g');inner.innerHTML=`<g transform="scale(${(w/200).toFixed(3)})">${tyranoSwim('pd'+(++dinoN))}</g>`;
+  const wrap=document.createElementNS(NS,'g');wrap.appendChild(inner);$('fx').appendChild(wrap);
+  const sx=1120,sy=BOT-60;anim(800,k=>{const x=sx+(tx-sx)*k,y=sy+(ty-sy)*k-260*Math.sin(Math.PI*k);wrap.setAttribute('transform',`translate(${x-w/2},${y-w*.8})`);},()=>{
+    inner.setAttribute('class','bob');inner.style.transformBox='fill-box';inner.style.transformOrigin='50% 100%';
+    for(let j=0;j<3;j++){const e=document.createElementNS(NS,'ellipse');e.setAttribute('cx',tx);e.setAttribute('cy',ty+4);e.setAttribute('rx',40);e.setAttribute('ry',12);e.setAttribute('class','splash');e.style.animationDelay=j*.18+'s';$('fx').appendChild(e);}
+    for(let j=0;j<14;j++){const e=document.createElementNS(NS,'circle');const x=tx+rnd(-60,60);e.setAttribute('cx',x);e.setAttribute('cy',ty-rnd(0,30));e.setAttribute('r',rnd(4,9));e.setAttribute('fill','#e8fbff');
+      const vx=(x-tx)*2,vy=-rnd(60,140);$('fx').appendChild(e);anim(700,k=>{e.setAttribute('transform',`translate(${vx*k},${vy*k+260*k*k})`);e.setAttribute('opacity',1-k);},()=>e.remove());}
+    // 물방울 거품
+    idx.forEach(i=>{const cc=C[i];for(let j=0;j<3;j++){const b=document.createElementNS(NS,'circle');b.setAttribute('cx',rnd(cc.x0+12,cc.x1-12));b.setAttribute('cy',rnd(BOT-120,BOT-20));b.setAttribute('r',rnd(3,7));b.setAttribute('class','bub');b.style.animationDelay=rnd(0,1.8)+'s';$('fx').insertBefore(b,$('fx').firstChild);}});});}
+
+function bindPanel(){$('minusB').addEventListener('click',()=>setN(-1));$('plusB').addEventListener('click',()=>setN(1));
+  $('valveB').addEventListener('click',fill);$('leverB').addEventListener('click',()=>drain());}
+$('hintBtn').onclick=()=>{if(!G||game.state!=='run')return;hintOn=!hintOn;if(hintOn&&P.state!=='solved')P.hint=true;sfx.tap();drawSel();};
+function fitFrame(){const w=$('game').querySelector('.bwrap').getBoundingClientRect();const f=$('game').querySelector('.frame');
+  const r=VW/VH,W=Math.min(w.width,w.height*r);f.style.width=W+'px';f.style.height=(W/r)+'px';}
+addEventListener('resize',()=>{if(game.state==='off')return;const was=PORT;layout();fitFrame();
+  if(was!==PORT&&P&&P.state!=='fill'&&P.state!=='drain'){const f=$('nTxt');drawStatic();bindPanel();$('bnN').textContent=P.f.n;$('bnD').textContent=P.f.d;
+    ['minusB','plusB'].forEach(id=>$(id).classList.toggle('dis',cfg.div==='auto'));drawPool();if(P.state==='solved')dinoJump();}});
+addEventListener('keydown',e=>{if(game.state!=='run'||!P||!$('homeOv').classList.contains('hide'))return;const k=e.key;
+  if(k==='ArrowLeft'||k==='-')setN(-1);else if(k==='ArrowRight'||k==='+'||k==='=')setN(1);
+  else if(k===' '||k==='Enter'){e.preventDefault();if(P.state==='solved')next();else fill();}
+  else if(k==='Backspace'||k==='Delete'||k==='ArrowDown'){e.preventDefault();drain();}
+  else if(/^[0-9]$/.test(k)){const i=k==='0'?9:+k-1;if(i<P.n)toggle(i);}});
+
+function showResult(){game.state='end';const n=G.list.length,avg=G.stars/n;const st=avg>=2.6?3:avg>=1.8?2:1;
+  $('resStars').textContent='⭐'.repeat(st)+'☆'.repeat(3-st);$('resTitle').textContent=st===3?'수영장 분수 박사!':st===2?'잘했어요!':'끝까지 해냈어요!';
+  $('resInfo').textContent=`${n}문제 완료 · 한 번에 맞힌 문제 ${G.first}개 · 모은 별 ⭐ ${G.stars}`;
+  $('resultOv').classList.remove('hide');sfx.done();confetti();
+  setTimeout(()=>TMRank.finish({level:rankLv(),name:rankName(),value:G.stars,t:Math.round((performance.now()-G.t0)/1000)}),700);
+  const detail={type:'tyranomath:fraction-pool-complete',problems:n,firstTry:G.first,stars:G.stars,rating:st};
+  try{window.dispatchEvent(new CustomEvent('fraction-pool-complete',{detail}));}catch(e){}
+  try{if(window.parent!==window)window.parent.postMessage(detail,'*');}catch(e){}}
+function toast(cls,big,small){const t=$('toast');t.className='toast '+cls;t.innerHTML=big+(small?'<small></small>':'');if(small)t.querySelector('small').textContent=small;
+  void t.offsetWidth;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1700);}
+function confetti(){const cols=['#ff5a6e','#ffd23f','#3d8bff','#3ccf8a','#b56bff'];
+  for(let i=0;i<60;i++){const c=document.createElement('i');c.className='conf';c.style.left=rnd(2,98)+'vw';c.style.background=pick(cols);
+    c.style.setProperty('--fy',innerHeight*rnd(.8,1.1)+'px');c.style.animationDelay=rnd(0,.5)+'s';c.style.borderRadius=Math.random()<.4?'50%':'2px';document.body.appendChild(c);setTimeout(()=>c.remove(),2300);}}
+
+// ---------- 버튼 ----------
+$('startBtn').onclick=()=>{try{AC().resume&&actx.resume();}catch(e){}start();};
+$('againBtn').onclick=start;
+const toLobby=()=>{game.state='off';hintOn=false;['game','resultOv','homeOv'].forEach(id=>$(id).classList.add('hide'));$('lobby').classList.remove('hide');sync();};
+$('setBtn').onclick=toLobby;$('homeBtn').onclick=()=>{if(game.state==='off')return;$('homeOv').classList.remove('hide');};
+$('homeYes').onclick=toLobby;$('homeNo').onclick=()=>$('homeOv').classList.add('hide');
+const syncSound=()=>{$('soundBtn').innerHTML=(cfg.sound?'🔊':'🔇')+'<small>소리</small>';};
+$('soundBtn').onclick=()=>{cfg.sound=!cfg.sound;syncSound();saveCfg();};syncSound();
+const root=document.documentElement,fsOK=!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
+document.querySelectorAll('.fsBtn').forEach(b=>{if(!fsOK){b.style.display='none';return;}
+  b.onclick=()=>{try{if(document.fullscreenElement||document.webkitFullscreenElement)(document.exitFullscreen||document.webkitExitFullscreen).call(document);
+    else (root.requestFullscreen||root.webkitRequestFullscreen).call(root);}catch(e){}};});
+const GAMEZONE_URL='/';
+try{if(window.top===window)$('zoneBtn').hidden=false;}catch(e){}
+document.addEventListener('contextmenu',e=>{if(e.target.tagName!=='INPUT')e.preventDefault();});
+// 🏆 랭킹: 모은 별 (같으면 빨리 끝낸 사람이 앞서요 · 분모 · 나누기 · 정답 인정 · 문제 수마다 따로)
+const DNN={'6':'쉬움','10':'보통','12':'어려움'};
+function rankLv(){return `${cfg.den}|${cfg.div}|${cfg.eq}|${cfg.num}`;}
+function rankName(){return `${DNN[cfg.den]} · ${cfg.div==='self'?'내가 나누기':'나눠진 수영장'} · ${cfg.eq==='eq'?'크기 같으면 정답':'같은 칸 수만'} · ${cfg.num}문제`;}
+TMRank.setup({game:'fraction-pool',title:'수영장 분수 채우기',note:'모은 별 순위예요 (같으면 빨리 끝낸 사람이 앞서요 · 설정마다 따로)',kind:'score',levels:[],level:rankLv,lvName:rankName,mount:['.top-btns']});
+buildLobby();
+if(/[?&]test/.test(location.search))window.__pool={get G(){return G},get P(){return P},setN,toggle,fill,drain,next};
+})();</script></body></html>

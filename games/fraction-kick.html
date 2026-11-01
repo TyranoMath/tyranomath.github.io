@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>분수 페널티킥 · TyranoMath</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2faf7; --panel:#ffffff; --ink:#22303f; --muted:#6f7d88;
+  --accent:#1f9d8f; --accent-dark:#167a6f; --accent-ink:#ffffff; --accent-soft:#e1f5f0; --accent-line:#bfe6dd;
+  --green:#4cb662; --green-dark:#36924b; --orange:#ff9f43; --orange-dark:#e9852a;
+  --line:#dfe9e6; --navy:#1f2f6b;
+  --shadow:0 8px 28px rgba(31,110,100,.14);
+  --title:"Jua","Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  --ui:clamp(13px, calc(1.1vmin + 7px), 26px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  overscroll-behavior:none;-webkit-text-size-adjust:100%;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;touch-action:none}
+input{-webkit-user-select:text;user-select:text;touch-action:manipulation}
+button{font:inherit;font-weight:700;border-radius:calc(var(--ui)*.85);border:2px solid var(--line);border-bottom-width:4px;
+  background:var(--panel);color:var(--ink);cursor:pointer;min-height:max(44px,calc(var(--ui)*2.7));padding:0 calc(var(--ui)*.8);
+  touch-action:manipulation;transition:transform .06s,background .12s,border-color .12s;white-space:nowrap}
+button:active{transform:translateY(2px);border-bottom-width:2px;margin-bottom:2px}
+button.on,button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent-dark)}
+button.go{background:var(--orange);color:#fff;border-color:var(--orange-dark)}
+button:disabled{opacity:.45}
+@media (hover:hover) and (pointer:fine){button:hover:not(.on):not(.primary):not(.go):not(:disabled){background:var(--accent-soft);border-color:var(--accent-line)}}
+.hide{display:none!important}
+
+/* ---------- 설정 화면 ---------- */
+#lobby{position:fixed;inset:0;overflow:auto;font-size:var(--ui);
+  padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));
+  background:radial-gradient(ellipse at 20% 0%,#dff6ef 0,transparent 55%),radial-gradient(ellipse at 100% 100%,#e6f0ff 0,transparent 50%),var(--bg)}
+.lwrap{max-width:calc(var(--ui)*48);margin:0 auto;display:flex;flex-direction:column;gap:calc(var(--ui)*.8)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:.5em}
+.brand{display:flex;align-items:center;gap:.6em;min-width:0}
+.brand img{width:calc(var(--ui)*3);height:auto}
+.kicker{font-size:.72em;font-weight:600;color:var(--muted)}
+.brand h1{margin:0;font-family:var(--title);font-weight:400;font-size:1.75em;line-height:1.1;color:var(--accent-dark)}
+.top-btns{display:flex;gap:.45em;align-items:center}
+.zone{display:inline-flex;align-items:center;text-decoration:none;font-weight:700;font-size:.9em;background:var(--accent);color:#fff;
+  border-radius:99px;padding:0 1em;min-height:max(40px,calc(var(--ui)*2.3));white-space:nowrap}
+.icon-btn{width:max(44px,calc(var(--ui)*2.7));padding:0;flex:none}
+.hero{display:flex;align-items:center;gap:1em;background:linear-gradient(120deg,#3a8dff,#37c3d6);color:#fff;border-radius:calc(var(--ui)*1.2);
+  padding:calc(var(--ui)*.9) calc(var(--ui)*1.2);box-shadow:var(--shadow);overflow:hidden;position:relative}
+.hero h2{margin:0;font-family:var(--title);font-weight:400;font-size:1.6em}
+.hero p{margin:.25em 0 0;font-size:.88em;opacity:.95;line-height:1.45}
+.hero .plane{font-size:3em;flex:none;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
+.card{background:var(--panel);border:2px solid var(--accent-line);border-radius:calc(var(--ui)*1.1);padding:calc(var(--ui)*.9);
+  display:flex;flex-direction:column;gap:calc(var(--ui)*.55)}
+.label{font-size:.9em;font-weight:800;color:var(--accent-dark);display:flex;justify-content:space-between;align-items:center;gap:.5em}
+.label small{font-weight:600;color:var(--muted);font-size:.85em}
+.grid{display:grid;gap:calc(var(--ui)*.45)}
+.g4{grid-template-columns:repeat(4,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g5{grid-template-columns:repeat(5,1fr)}
+.cnt button{min-height:max(54px,calc(var(--ui)*3.4));font-size:1.05em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1em;line-height:1.1}
+.cnt button small{font-size:.7em;opacity:.85;font-weight:600}
+.players{display:grid;grid-template-columns:repeat(auto-fit,minmax(calc(var(--ui)*10),1fr));gap:calc(var(--ui)*.5)}
+.pl{display:flex;align-items:center;gap:.5em;border:2px solid var(--line);border-radius:calc(var(--ui)*.85);padding:.35em .6em;background:var(--panel)}
+.pl i{width:1.5em;height:1.5em;border-radius:50%;flex:none;background:var(--pc);box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.pl input{flex:1;min-width:0;border:0;outline:none;background:transparent;font:inherit;font-weight:700;color:var(--ink);font-size:max(16px,1em)}
+.pl kbd{font-family:inherit;font-size:.68em;color:var(--muted);background:var(--accent-soft);border-radius:6px;padding:.15em .4em;white-space:nowrap}
+.dans button{font-size:1em;padding:0}
+.dans{grid-template-columns:repeat(8,1fr)}
+.numrow{display:flex;gap:calc(var(--ui)*.45);align-items:stretch}
+.numrow .nb{flex:1;min-width:0;padding:0;font-size:1.1em}
+.numbox{flex:2.2;display:flex;align-items:center;justify-content:center;gap:.35em;border:2px solid var(--accent-line);border-radius:calc(var(--ui)*.85);
+  background:var(--accent-soft);padding:0 .6em;min-height:max(48px,calc(var(--ui)*2.9))}
+.numbox:focus-within{border-color:var(--accent)}
+.numbox input{width:3.2em;min-width:0;border:0;outline:none;background:transparent;font:inherit;font-family:var(--title);font-size:max(20px,1.6em);
+  color:var(--accent-dark);text-align:center;-moz-appearance:textfield}
+.numbox input::-webkit-inner-spin-button,.numbox input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.numbox span{font-weight:800;color:var(--accent-dark)}
+#numSeg button{min-height:max(38px,calc(var(--ui)*2.3))}
+#numSeg{grid-template-columns:repeat(5,1fr)!important}
+.grid.g3 button{white-space:normal;line-height:1.15;word-break:keep-all;padding:.2em .3em}
+.help{font-size:.82em;color:var(--muted);line-height:1.5;margin:0}
+.startrow{display:flex;gap:.6em}
+.startrow button{flex:1;min-height:max(60px,calc(var(--ui)*3.6));font-size:1.25em;font-family:var(--title);font-weight:400}
+@media (max-width:560px){.dans{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(3,1fr)}}
+
+.g2{grid-template-columns:repeat(2,1fr)}
+.grid button small{display:block;font-size:.72em;font-weight:600;opacity:.85}
+.grid button{white-space:normal;line-height:1.2;padding:.3em .3em}
+
+#game{position:fixed;inset:0;display:flex;flex-direction:column;
+  background:radial-gradient(ellipse at 50% 0,#d8f3ec 0,transparent 60%),linear-gradient(rgba(31,157,143,.06) 1px,transparent 1px) 0 0/28px 28px,linear-gradient(90deg,rgba(31,157,143,.06) 1px,transparent 1px) 0 0/28px 28px,#eef9f5}
+.gbar{flex:none;display:flex;align-items:center;gap:10px;padding:max(8px,env(safe-area-inset-top)) 12px 6px;font-size:clamp(12px,1.6vmin,20px)}
+.gbar .ttl{display:flex;align-items:center;gap:.45em;font-family:var(--title);color:var(--accent-dark);font-size:1.25em;white-space:nowrap;min-width:0}
+.gbar .ttl img{width:1.9em;height:auto}
+.gbar .mid{flex:1;display:flex;justify-content:center;min-width:0}
+.rnd{display:flex;flex-direction:column;align-items:center;gap:.2em;background:linear-gradient(180deg,#26387f,#1b2862);color:#fff;border:3px solid #fff;border-radius:.9em;padding:.2em 1.2em .35em;box-shadow:0 .25em 0 #a8b9d6;max-width:100%}
+.rnd b{font-family:var(--title);font-weight:400;font-size:1.25em;color:#ffd23f;white-space:nowrap}
+.dots{display:flex;flex-direction:column;gap:3px;align-items:center}
+.dots .row{display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:center;font-size:.72em;font-weight:800;white-space:nowrap}
+.dots i{width:.85em;height:.85em;border-radius:50%;background:#3a4a8a;border:2px solid #6a7ac0;display:inline-block}
+.dots i.g{background:#3ccf8a;border-color:#bff5d6}.dots i.y{background:#ffd23f;border-color:#fff3b0}.dots i.x{background:#ff6b6b;border-color:#ffc4c4}
+.dots i.now{box-shadow:0 0 0 2px #fff}
+.dots .tm{padding:0 .4em;border-radius:99px}.dots .tm.on{background:rgba(255,255,255,.2);outline:2px solid #ffd23f}
+.tbs{display:flex;gap:6px}
+.tbs .tb{width:54px;height:50px;min-height:0;padding:0;border-radius:14px;font-size:18px;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.tbs .tb small{font-size:9.5px;font-weight:800;color:var(--muted)}
+.tbs .tb.home{background:var(--orange);border-color:var(--orange-dark)}.tbs .tb.home small{color:#fff}
+@media (max-width:600px){.gbar .ttl span{display:none}.tbs .tb{width:42px;height:42px;font-size:15px}.tbs .tb small{display:none}.rnd{padding:.15em .6em}.gbar{gap:6px;padding-left:8px;padding-right:8px}}
+
+.main{flex:1;min-height:0;display:flex;padding:4px 12px max(12px,env(safe-area-inset-bottom))}
+.bwrap{flex:1;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center}
+.frame{position:relative;flex:none;border:6px solid #fff;border-radius:18px;overflow:hidden;box-shadow:0 0 0 3px var(--accent-line),0 10px 28px rgba(31,110,100,.18);background:#5fbf4a}
+#pitch{display:block;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+#pitch text{font-family:var(--title)}
+.gseg{cursor:pointer}
+.kp{animation:kp 1.6s ease-in-out infinite alternate}
+@keyframes kp{from{transform:translateX(-10px)}to{transform:translateX(10px)}}
+.netshake{animation:ns .6s ease-out}
+@keyframes ns{30%{transform:scale(1.025,1.04)}60%{transform:scale(.995)}}
+#net{transform-box:fill-box;transform-origin:50% 50%}
+.cloud{animation:cl 7s ease-in-out infinite alternate}
+@keyframes cl{to{transform:translateX(40px)}}
+.flare{animation:fl 1.4s ease-in-out infinite alternate}
+@keyframes fl{to{opacity:.55}}
+.cele{animation:cele .5s cubic-bezier(.3,1.6,.6,1) both}
+@keyframes cele{from{transform:translateY(260px)}}
+.celeIn{animation:bob .45s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes bob{to{transform:translateY(-14px) rotate(-3deg)}}
+.blink{animation:blk .5s ease-in-out infinite alternate}
+@keyframes blk{to{opacity:.25}}
+.big{font-size:120px;text-anchor:middle;fill:#ffd23f;stroke:#1b2862;stroke-width:12px;paint-order:stroke;animation:bigin .5s cubic-bezier(.3,1.6,.6,1)}
+@keyframes bigin{from{transform:scale(.3);opacity:0}}
+.big{transform-box:fill-box;transform-origin:center}
+.toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;text-align:center;color:#fff;z-index:60;
+  font-family:var(--title);font-size:clamp(22px,3.6vmin,40px);line-height:1.2;padding:.3em .9em;border-radius:1em;transition:transform .25s,opacity .25s;max-width:92vw}
+.toast small{display:block;font-family:inherit;font-size:.6em}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.toast.ok{background:rgba(46,190,110,.95);border:3px solid #fff}.toast.no{background:rgba(255,95,95,.95);border:3px solid #fff}.toast.info{background:rgba(40,60,140,.95);border:3px solid #fff}
+.conf{position:fixed;width:10px;height:14px;top:-20px;z-index:55;pointer-events:none;animation:fall 1.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(var(--fy)) rotate(600deg);opacity:.3}}
+#crowd .crow{animation:cidle 2.4s ease-in-out infinite alternate}
+@keyframes cidle{to{transform:translateY(-1.5px)}}
+#crowd.cheer .crow{animation:chop .26s ease-in-out infinite alternate}
+#crowd.cheer .crow:nth-child(2n){animation-delay:.13s}
+@keyframes chop{to{transform:translateY(-7px)}}
+.flag{transform-box:fill-box;transform-origin:0 50%;animation:flg .5s ease-in-out infinite alternate}
+@keyframes flg{to{transform:scaleX(.6) skewY(8deg)}}
+.cname{text-anchor:middle;fill:#fff;stroke:#1b2862;stroke-width:8px;paint-order:stroke;animation:bigin .6s .2s cubic-bezier(.3,1.6,.6,1) both;transform-box:fill-box;transform-origin:center}
+#celeA{transform-box:fill-box;transform-origin:50% 100%}
+.cPop{animation:cpop .48s cubic-bezier(.3,1.5,.6,1) both}
+@keyframes cpop{from{transform:translateY(240px)}}
+.cJump{animation:cj .5s ease-in-out infinite alternate}
+@keyframes cj{to{transform:translateY(-26px) scale(1.02,.98)}}
+.cHeart{animation:chh .8s ease-in-out infinite alternate}
+@keyframes chh{to{transform:translateY(-10px) scale(1.04)}}
+.cDance{animation:cdn .9s ease-in-out infinite}
+@keyframes cdn{0%,100%{transform:rotate(-10deg)}25%{transform:translateY(-14px)}50%{transform:rotate(10deg)}75%{transform:translateY(-14px)}}
+.cBank{animation:cbk 1.1s ease-in-out infinite alternate}
+@keyframes cbk{from{transform:rotate(-9deg)}to{transform:rotate(9deg) translateY(-6px)}}
+.cPump{animation:cpm .35s ease-in-out infinite alternate}
+@keyframes cpm{to{transform:translateY(-6px)}}
+.spray{animation:spr .7s ease-out forwards;transform-box:fill-box}
+@keyframes spr{to{transform:translate(-30px,-30px);opacity:0}}
+.rise{animation:rise 1.7s ease-out forwards;transform-box:fill-box;transform-origin:center}
+@keyframes rise{to{transform:translateY(-170px) scale(1.3);opacity:0}}
+.twinkle{animation:twk .9s ease-out forwards;transform-box:fill-box;transform-origin:center}
+@keyframes twk{0%{transform:scale(0)}40%{transform:scale(1.2)}to{transform:scale(0);opacity:0}}
+/* ---------- 모달 / 결과 ---------- */
+.overlay{position:fixed;inset:0;background:rgba(8,30,40,.55);display:flex;align-items:center;justify-content:center;padding:14px;z-index:20;font-size:var(--ui)}
+.modal{background:var(--panel);border:2px solid var(--accent-line);border-radius:calc(var(--ui)*1.2);padding:calc(var(--ui)*1.2);
+  width:min(100%,calc(var(--ui)*34));max-height:100%;overflow:auto;box-shadow:var(--shadow);text-align:center}
+.modal h2{margin:.1em 0 .35em;font-family:var(--title);font-weight:400;font-size:2em;color:var(--accent-dark)}
+.modal .actions{display:flex;gap:.5em;margin-top:.9em}
+.modal .actions button{flex:1}
+.res{display:flex;flex-direction:column;gap:.5em;text-align:left}
+.rrow{display:flex;align-items:center;gap:.7em;border:2px solid var(--line);border-left:8px solid var(--pc);border-radius:calc(var(--ui)*.8);padding:.5em .7em;background:#fff}
+.rrow.first{background:#fff8e1;border-color:#ffd56b;border-left-color:var(--pc)}
+.medal{font-size:1.8em;width:1.3em;text-align:center;flex:none}
+.rname{font-weight:800;font-size:1.05em}
+.rstat{font-size:.8em;color:var(--muted);margin-top:.15em}
+.rscore{margin-left:auto;font-family:var(--title);font-size:1.6em;color:var(--accent-dark);white-space:nowrap}
+.wrongs{display:flex;flex-wrap:wrap;gap:.3em;margin-top:.35em}
+.wrongs span{font-size:.75em;background:#ffecec;color:#c23b3b;border-radius:99px;padding:.1em .55em;font-weight:700}
+.stars{font-size:2.2em;letter-spacing:.1em;margin:.1em 0 .3em}
+.windino{width:calc(var(--ui)*4.5);height:auto}
+.copy{text-align:center;color:#8A94A6;font-size:13px;margin:18px 0 6px}
+#lobby .top-btns .tmr-btn{flex:none}
+.zone[hidden]{display:none!important}
+</style></head>
+<body>
+<div id="lobby">
+  <div class="lwrap">
+    <header class="top">
+      <div class="brand"><img class="dino" alt="티라노"><div><div class="kicker">TyranoMath 게임존</div><h1>분수 페널티킥</h1></div></div>
+      <div class="top-btns"><a class="zone" id="zoneBtn" href="../gamezone.html" hidden>← 게임존</a><button class="icon-btn fsBtn" title="전체 화면" aria-label="전체 화면">⛶</button></div>
+    </header>
+    <section class="hero" style="background:linear-gradient(120deg,#2fa84f,#1f9d8f)">
+      <div class="plane">⚽</div>
+      <div><h2>게이지를 채우고 슛!</h2>
+        <p>오른쪽 <b>힘 게이지</b>를 문제의 분수만큼 채운 다음, <b>공을 골대 쪽으로 밀어서</b> 차요. 골대를 톡 눌러도 슛! 게이지가 딱 맞으면 골인, 모자라면 공이 굴러가다 멈추고, 넘치면 골대를 넘어가요.</p></div>
+    </section>
+    <section class="card">
+      <div class="label">게임 방법</div>
+      <div class="grid g2" id="modeSeg"><button data-v="solo">⚽ 혼자 하기<small>골인할 때까지 다시 차요</small></button><button data-v="team">🏆 두 팀 대결<small>번갈아 한 번씩 차요</small></button></div>
+      <div class="label">분모 범위</div>
+      <div class="grid g3" id="denSeg"><button data-v="6">쉬움<small>분모 2~6</small></button><button data-v="10">보통<small>분모 2~10</small></button><button data-v="12">어려움<small>분모 2~12</small></button></div>
+      <div class="label">힘 게이지 칸</div>
+      <div class="grid g2" id="eqSeg"><button data-v="same">분모와 같은 칸<small>2/6 → 6칸 중 2칸</small></button><button data-v="eq">크기가 같은 분수 섞기<small>1/3 → 6칸 중 2칸</small></button></div>
+    </section>
+    <section class="card">
+      <div class="label"><span id="numLab">문제 수</span> <small id="numHint">1~30</small></div>
+      <div class="numrow">
+        <button class="nb" data-d="-5">−5</button><button class="nb" data-d="-1">−</button>
+        <label class="numbox"><input id="numIn" type="number" inputmode="numeric" min="1" max="30" enterkeyhint="done"><span id="numUnit">문제</span></label>
+        <button class="nb" data-d="1">+</button><button class="nb" data-d="5">+5</button>
+      </div>
+    </section>
+    <div class="startrow"><button class="go" id="startBtn">⚽ 킥오프!</button></div>
+    <p class="copy">© 2026 TyranoMath 백태진 All rights reserved.</p>
+  </div>
+</div>
+
+<div id="game" class="hide">
+  <div class="gbar"><div class="ttl"><img class="dino" alt=""><span>분수 페널티킥</span></div>
+    <div class="mid"><div class="rnd"><b id="rndT">문제 1 / 10</b><div class="dots" id="dots"></div></div></div>
+    <div class="tbs"><button id="homeBtn" class="tb home" aria-label="처음으로">🏠<small>처음으로</small></button>
+      <button id="soundBtn" class="tb" aria-label="소리">🔊</button><button class="fsBtn tb" aria-label="전체 화면">⛶<small>전체</small></button></div></div>
+  <div class="main">
+    <div class="bwrap"><div class="frame"><svg id="pitch" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"></svg></div></div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<div class="overlay hide" id="homeOv"><div class="modal">
+  <h2>처음으로 갈까요?</h2><p class="help">지금 하던 경기는 끝나고 설정 화면으로 돌아가요.</p>
+  <div class="actions"><button id="homeNo">계속하기</button><button class="primary" id="homeYes">🏠 처음으로</button></div>
+</div></div>
+<div class="overlay hide" id="resultOv"><div class="modal">
+  <img class="windino dino" alt="">
+  <h2 id="resTitle">경기 끝!</h2>
+  <div class="stars" id="resStars"></div>
+  <p class="help" id="resInfo"></p>
+  <div class="actions"><button id="setBtn">⚙️ 설정 바꾸기</button><button class="go" id="againBtn">🔁 다시 하기</button></div>
+</div></div>
+<script src="../assets/rank.js"></script>
+<script>(()=>{
+const DINO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAtCAYAAADsvzj/AAAHgUlEQVR4nMWZbWyT1xXHf49fE7/nBec9AYMhJJg2FLqyri0tRFs3BbWaQIXBtKWdkLYv1cTWqdqHZR/QkLZuk6YC0valpaUTrJuEJmhpmNaVdKRAVJyEBkjiAAnYsZPYjpPYsX33IcTExI4fxwn7S5Fyn3PuOff/+Nxzzr2PJKa8/F/h6RZY66RczSiWYi2y4OkWKZ+3tqSXZYFHR6S1BZwnkxc8O3aezNn8oyEy+8Y7TyWT6Tw1K8/5V1HlMjlbxIGves/QL4LCr9EiqtbPCPItMNIB4TvzyKgkJVZtAWsNVb6K/BXF6WxLj2KzC+dJ8eHd/3C2YAVTOWzrGl0Jeyp3UG+yzbOy7ERuTbrF0b5/cHvSs2Q2m0qfZnflC0lkljW0Bie9Q4d7jhOITmTUjYTCxKaiSEoJtV6LUq1Mq3v63gXC8YjYX/2tBJllJfJn1+myTCREXKAZVvC4wcEmm4NgOMS/ej/lltaNrtiYdt7Hni8ozysW262bJVjG0Drn+UK8c+tsRj2VW3Cgfh9PrdvSMPtsOjY98rtzRwYuxzrJs+gWnH+s4WdFOmXeyLKl3/PDVzLqRKemqVKXJUi889fTHa+89kbHmY8vDDRWb6ckWpjRxkfuiz5YpjoyODnsvSNjc0enpllrXQNAz43+jpbDR3F2Xec733y2/uJ/O9FMqzPa6PDfBJaJyO1JT5EcPYVSQWAyAIDHOwrAVDjC2s1NXSdOnUFImWukK3R3xtZiF7sQxqOTsvQ0xjy+8t3AFxjRPLN1U8OzX38iIXt+ewNetT+jDYFgIjZVuCxZSyC/2xjK8/HW+SMXf/jkHo689aax9dP2oG/SS3u0HWGRkFM/hRBLSMTTLXB3gWOXpFHIN5tv0XEzdIffXjmKNqwOxhH4VGNIxSp0QsXGUTOmaTUB1TQebRiXfn461yjUN5eOiLVOwnlS0NoiSuzbspqq0WsJ6SOEiACgRAPAtnsrsIX0SbrvVd/Gr55OjAvVJtQK1TLsEU839gtvo5IVFAvjuiGIX/Ng0ZcLxhIkxj1BAOpNq4BcKntri8BaB45diRVHN3wXV1s/3qJV2LVFXAvLK7Zu5yAAJY6KpOd9hgn6DMmhNO4J4nYOYrAaMViNbC3akCMRx66ZwxKIy/EgnxmMXB7rQVStnpHLJAGgLzERcgdwOwfnkZkLt3OQcU+QEkcFBquRBosdx/1OOKcWZeDqu+KEv4uufH1mZRmYXWjIE0R//43PhhCAwWpMEDUqdbTUNR9foS3YDzkQafN1iiP9f8+sKEEW2TiBhwnMhUml43X7buz6qkRYZ7fZ7x9TP/d1ySMBiyIBJPbAwyQ2F9Ty67rXDs0lAYvYI4N/+744VmPPqGdR63iupJZ6SwUmdT7B6BRnBr/EOXaH6XhMtj8JibK8ImqNNWwtrKfWWJMyHUpX77UL51gve1c2ysqXf+z4g7gUCy6oU2cuZ5/tG2gU8w9H0XiM4642OkfugASr9GX8qrY5rW+FJC9oFA6LTer09/G+61zGIOgLDWUkUaUrpHnNcylJAKgUSn5ge4Yaw8w9Qn/oLpfGeoRCUpDqTy4UAHtqGjkx8AlN/35DvO86J9KRah/tzmiwqbIhow7AtpLaxP+nXZ/R4e7J6TookbXe/PKYcI71JQkdFhsbzLbEuNV3iYiIpjVWmm/mYN23ZTt/u+ccl129jPoedLnNjiZe3bgz67YgKf2mIjMXZp0BaQEX20vrebFio2znbcM3+MuV1iQiAH/acZCGknVZkUkKwkOPHZAcFls6XTK1T1X6gmx8U6UroqDYjG1dNf/c/ft9zY6mRZGAFHXk0GMHpD01O1JrZ4hioyovK+cmzQN9nVL73qsbd0qLIQFp6sj9VCwATgx8kngei8dQKdPfN8WzXEJczLyZYo0ZjSLz+XwhpC2Is3Vl78rGRGrunRjk+sTttMbGwhOQRds1EgkBUG9aIJxlQlai3ruyUdq7slH60eqdrQvp9Y8PZ+V8YHwm0WwtrM9qXipk1WuVagt3bF/xRFp5b9CdlfMrIy4eN6+h3rTq0X+x2lXxvL1YY0kpc08FaPPckGWnbfgmw1PjvFK5w5ftGlIhayJ6Vf7NH69+iXQXDGeHrtIXXDjEfOFxPhq6yk9sL7PQN49ssKgzu11fJf1i3X6s2vl1YyIW4QPX5/Sl2S/9416O9ZzHEjawpWB97gf7+8jphNg25BS/6X4XsyX1rfl6czm1pjJMah2B6AQ9gXu037rBiHeU6HSMD1863FGiL9y06AXMQU7XQfF4HJ97FL8viNGiR2/IR6PVJOTX/ENc8w8xHYkyEZokGAgRmYok5OFYRF6HKQNLcq8VjUYZ9foZ9fqRJImNZXYOPvk9NApVuFBtWvniydfvRrM4TC0GORGRUnSQQgiUMQmbvnzJ4l8OcrqgW22p7Er1/KnyDUljR/GaeTpmjYFqU+mSkc2JSKm+cMPPv7YfxZxf5oXqLbxs31YzV++nW/aw2lKZGBdojfzy6eZcXM/Dknx6i4k47tBIQKVQtlt1BWlaZ7g77vUK0JQbik05O30I/wNbytLSTe9yZQAAAABJRU5ErkJggg==';
+// ---------- 티라노매스 마스코트 (연필 든 티라노, 벡터) ----------
+function tyrano(p,opt={}){const pose=opt.pose||'pencil',ring=opt.ring===true||pose==='swim',water=opt.water,jer=pose==='soccer'?(opt.jersey||'#ff5a5a'):null;
+ const G='#5cbf6a',GD='#47a85a',GL='#7fd58a',OR='#f7a03c',DK='#2d6b3a';
+ const tri=(x1,y1,x2,y2,x3,y3)=>`<path d="M${x1},${y1} L${x2},${y2} L${x3},${y3}Z" fill="${OR}" stroke="${OR}" stroke-width="2.5" stroke-linejoin="round"/>`;
+ const RB=`<path d="M30,150 A64,20 0 0 1 158,150" fill="none" stroke="#c9d6e2" stroke-width="22"/><path d="M30,150 A64,20 0 0 1 158,150" fill="none" stroke="#ff6b6b" stroke-width="22" stroke-dasharray="26 24" stroke-dashoffset="8"/>`;
+ const RF=`<path d="M30,150 A64,20 0 0 0 158,150" fill="none" stroke="#e8eef4" stroke-width="22"/><path d="M30,150 A64,20 0 0 0 158,150" fill="none" stroke="#ff6b6b" stroke-width="22" stroke-dasharray="26 24" stroke-dashoffset="8"/>
+  <path d="M42,158 A54,14 0 0 0 92,168" stroke="#fff" stroke-width="4" fill="none" opacity=".8"/>`;
+ const body=(fill,dx=0,dy=0)=>`<g transform="translate(${dx},${dy})" fill="${fill}">
+  <path d="M58,116 C42,114 28,112 12,106 C20,122 36,132 58,138Z"/>
+  <ellipse cx="92" cy="135" rx="42" ry="38"/>
+  <path d="M92,82 C88,52 108,38 140,38 L163,38 C177,38 185,48 185,61 L185,87 C185,102 173,111 158,111 L122,111 C104,111 95,100 92,82Z"/>
+  <rect x="66" y="152" width="22" height="26" rx="9"/><rect x="99" y="152" width="22" height="26" rx="9"/></g>`;
+const PEN=` <g transform="rotate(-33 144 120)"><rect x="139" y="98" width="10" height="34" rx="2" fill="#f5c242"/><rect x="144" y="98" width="5" height="34" fill="#e3a92a"/>
+  <rect x="139" y="93" width="10" height="7" rx="2.5" fill="#f4a0b0"/><rect x="139" y="99" width="10" height="2.5" fill="#c9cfd6"/>
+  <path d="M139,132 L149,132 L144,143Z" fill="#f6dfb8"/><path d="M142.3,139 L145.7,139 L144,143Z" fill="#3a3a44"/></g>
+ <ellipse cx="135" cy="121" rx="8" ry="6" fill="${G}"/><path d="M130,118 q6,-4 11,1" stroke="${GD}" stroke-width="2" fill="none"/>
+`;
+ const JER=jer?`<clipPath id="${p}jc"><ellipse cx="92" cy="135" rx="42" ry="38"/></clipPath><g clip-path="url(#${p}jc)"><rect x="40" y="96" width="110" height="56" fill="${jer}"/><rect x="82" y="96" width="7" height="56" fill="#fff" opacity=".85"/><rect x="118" y="96" width="7" height="56" fill="#fff" opacity=".85"/><rect x="40" y="150" width="110" height="30" fill="#1f2f6b"/><rect x="40" y="150" width="110" height="3" fill="#fff" opacity=".6"/><rect x="40" y="96" width="110" height="8" fill="#fff" opacity=".25"/></g><path d="M112,104 l8,10 l8,-10" stroke="#fff" stroke-width="4" fill="none"/><text x="103.5" y="140" font-size="22" stroke="#1f2f6b" stroke-width="3" paint-order="stroke" text-anchor="middle" fill="#fff" font-weight="900" style="font-family:Jua,sans-serif">10</text>`:'';
+ const GOG=pose==='swim'?`<path d="M93,54 C120,46 160,44 184,50" stroke="#2b6fd6" stroke-width="6" fill="none"/><circle cx="121" cy="48" r="10" fill="#7fe0ff" stroke="#2b6fd6" stroke-width="3.5"/><circle cx="147" cy="47" r="10" fill="#7fe0ff" stroke="#2b6fd6" stroke-width="3.5"/><path d="M131,48 h6" stroke="#2b6fd6" stroke-width="3.5"/><path d="M116,45 a5,5 0 0 1 6,-3 M142,44 a5,5 0 0 1 6,-3" stroke="#fff" stroke-width="2" fill="none"/>`:'';
+ return `<g stroke-linecap="round" stroke-linejoin="round">
+ ${ring?RB:''}
+ ${body('#d8efcf',3,4)}
+ ${tri(48,112,51,100,62,108)}${tri(60,96,65,84,76,93)}${tri(76,86,82,74,92,84)}
+ ${tri(100,42,106,29,114,40)}${tri(120,39,127,26,134,38)}
+ ${body(G)}
+ <rect x="66" y="160" width="22" height="18" rx="8" fill="${GD}"/><rect x="99" y="160" width="22" height="18" rx="8" fill="${GD}"/>
+ <ellipse cx="101" cy="135" rx="23" ry="28" fill="#eaf6c6"/>
+ <path d="M86,124 h28 M84,136 h32 M87,148 h26" stroke="#cfe5a8" stroke-width="2.6"/>
+ ${JER}
+ <circle cx="137" cy="65" r="13.5" fill="#fff" stroke="#3f9a52" stroke-width="2.2"/><circle cx="140" cy="67" r="7.5" fill="#2a3060"/><circle cx="143" cy="63.5" r="2.6" fill="#fff"/>
+ ${GOG}
+ <circle cx="172" cy="61" r="2.2" fill="${DK}"/>
+ <ellipse cx="157" cy="83" rx="8.5" ry="4.8" fill="#e8a3a0" opacity=".9"/>
+ <path d="M128,92 Q152,99 175,88" stroke="${DK}" stroke-width="3" fill="none"/>
+ <path d="M140,95 l2.5,5 l3,-4.6Z M158,94.2 l2.6,4.8 l2.8,-5Z" fill="#fff"/>
+ ${pose==='pencil'?PEN:`<path d="M124,124 C138,130 156,128 166,113" stroke="${GD}" stroke-width="15" fill="none"/><path d="M124,124 C138,130 156,128 166,113" stroke="${jer||G}" stroke-width="11" fill="none"/>
+  <circle cx="168" cy="110" r="8" fill="${G}" stroke="${GD}" stroke-width="2"/>${pose==='swim'?'<path d="M178,100 q5,-4 9,0 M180,112 q5,-2 8,2" stroke="#fff" stroke-width="2.5" fill="none"/>':'<path d="M176,98 l6,-6 M180,108 l8,-2 M170,96 l2,-8" stroke="#ffd23f" stroke-width="3"/>'}`}
+ ${water?`<ellipse cx="94" cy="156" rx="88" ry="15" fill="none" stroke="#fff" stroke-width="4" opacity=".75"/>`:''}
+ ${ring?RF:''}
+ </g>`;}
+const DINO_SVG='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 20 190 166">${tyrano('L')}</svg>`);
+// ---------- 애니메이션용 고급 티라노 (도안 기반, 명암·외곽선) ----------
+function tyranoHD(p,opt={}){const pose=opt.pose||'swim',O='#1f5a33',sw=3;const jer=opt.jersey||'#ff5a5a';
+ const soccer=pose==='soccer',swim=pose==='swim';
+ const dy=soccer?-8:0;// 점프
+ const spike=(x,y,a,s=1)=>`<g transform="translate(${x},${y}) rotate(${a}) scale(${s})"><path d="M-9,4 C-6,-6 -2,-15 1,-19 C4,-14 8,-5 9,4Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="2.4" stroke-linejoin="round"/><path d="M-3,0 C-2,-6 0,-11 1,-14" stroke="#ffe0a0" stroke-width="2" fill="none" opacity=".8"/></g>`;
+ const hand=(x,y,a,fist)=>`<g transform="translate(${x},${y}) rotate(${a})">${fist?`<circle r="8.5" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/><path d="M-3,-6 q4,2 3,7 M2,-6 q4,2 3,7" stroke="${O}" stroke-width="1.8" fill="none"/>`
+   :`<path d="M-6,4 C-8,-2 -4,-8 2,-8 C8,-8 10,-2 7,4Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M-5,-6 l-3,-7 M0,-8 l0,-8 M5,-6 l4,-7" stroke="${O}" stroke-width="5.5" stroke-linecap="round"/><path d="M-5,-6 l-3,-7 M0,-8 l0,-8 M5,-6 l4,-7" stroke="#6fd36a" stroke-width="2.6" stroke-linecap="round"/>`}</g>`;
+ const arm=(d,col)=>`<path d="${d}" stroke="${O}" stroke-width="15" fill="none" stroke-linecap="round"/><path d="${d}" stroke="${col}" stroke-width="9.5" fill="none" stroke-linecap="round"/>`;
+ const BODY='M58,150 C50,120 64,96 92,92 C118,88 136,104 140,128 C144,154 130,178 100,180 C76,182 62,170 58,150Z';
+ const ring=(front)=>{const d=front?'M26,150 A70,22 0 0 0 166,150':'M26,150 A70,22 0 0 1 166,150';return `<path d="${d}" fill="none" stroke="${O}" stroke-width="28"/><path d="${d}" fill="none" stroke="url(#${p}rw)" stroke-width="22"/><path d="${d}" fill="none" stroke="url(#${p}rr)" stroke-width="22" stroke-dasharray="30 26" stroke-dashoffset="10"/>${front?`<path d="M40,160 A58,15 0 0 0 96,171" stroke="#fff" stroke-width="4.5" fill="none" opacity=".85"/>`:''}`;};
+ return `<defs>
+  <radialGradient id="${p}bd" cx=".4" cy=".28" r=".85"><stop offset="0" stop-color="#9be88a"/><stop offset=".5" stop-color="#5cc566"/><stop offset="1" stop-color="#2f9a4a"/></radialGradient>
+  <radialGradient id="${p}hd" cx=".42" cy=".25" r=".85"><stop offset="0" stop-color="#a4ee90"/><stop offset=".55" stop-color="#60c868"/><stop offset="1" stop-color="#349f4c"/></radialGradient>
+  <linearGradient id="${p}dk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4db35a"/><stop offset="1" stop-color="#2c8a42"/></linearGradient>
+  <linearGradient id="${p}bl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfde6"/><stop offset="1" stop-color="#dcefb0"/></linearGradient>
+  <linearGradient id="${p}sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc35a"/><stop offset="1" stop-color="#f27d22"/></linearGradient>
+  <radialGradient id="${p}ir" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#5a6cc8"/><stop offset=".6" stop-color="#2a3170"/><stop offset="1" stop-color="#141a40"/></radialGradient>
+  <linearGradient id="${p}jr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${jer}"/><stop offset="1" stop-color="${jer}" stop-opacity=".82"/></linearGradient>
+  <linearGradient id="${p}rw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d6e2ec"/></linearGradient>
+  <linearGradient id="${p}rr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8080"/><stop offset="1" stop-color="#e2384a"/></linearGradient>
+  <radialGradient id="${p}gl" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#eafdff"/><stop offset=".5" stop-color="#5fd3f5"/><stop offset="1" stop-color="#1b8fc6"/></radialGradient>
+  <clipPath id="${p}bc"><path d="${BODY}"/></clipPath>
+ </defs>
+ <g stroke-linejoin="round" transform="translate(0,${dy})">
+ ${swim?ring(false):''}
+ <!-- 뒤쪽 다리 / 팔 -->
+ ${soccer?`<path d="M80,168 C70,176 60,180 50,180" stroke="${O}" stroke-width="20" stroke-linecap="round" fill="none"/><path d="M80,168 C70,176 60,180 50,180" stroke="url(#${p}dk)" stroke-width="14" stroke-linecap="round" fill="none"/><path d="M48,170 C40,172 36,182 40,190 C46,194 54,190 56,182Z" fill="url(#${p}dk)" stroke="${O}" stroke-width="${sw}"/>`:''}
+ ${!swim&&!soccer?`<path d="M70,196 C68,186 76,180 86,182 C94,184 96,194 92,198Z" fill="url(#${p}dk)" stroke="${O}" stroke-width="${sw}"/>`:''}
+ ${arm('M100,112 C92,100 88,90 84,78','url(#'+p+'dk)')}${hand(84,76,-20,soccer)}
+ <!-- 꼬리 -->
+ <path d="M66,126 C46,124 24,132 6,150 C4,153 6,156 10,155 C30,152 50,156 68,156Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/>
+ <path d="M60,134 C44,134 30,140 18,148" stroke="#fff" stroke-width="3" opacity=".3" fill="none" stroke-linecap="round"/>
+ ${spike(54,128,-70,.75)}${spike(66,108,-48,.95)}${spike(80,96,-25,1.05)}
+ <!-- 몸 -->
+ <path d="${BODY}" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/>
+ <g clip-path="url(#${p}bc)">
+  <ellipse cx="80" cy="176" rx="40" ry="16" fill="#1f6b36" opacity=".22"/>
+  <path d="M98,104 C118,108 132,128 130,152 C128,172 112,182 98,180 C84,176 80,140 98,104Z" fill="url(#${p}bl)" stroke="#bcd88c" stroke-width="2"/>
+  ${[120,134,148,162].map((y,i)=>`<path d="M${92-i},${y} Q${110},${y+6} ${129-i*.5},${y-2}" stroke="#c6dd98" stroke-width="2.2" fill="none"/>`).join('')}
+  ${soccer?`<rect x="40" y="90" width="110" height="64" fill="url(#${p}jr)"/><rect x="84" y="90" width="8" height="64" fill="#fff" opacity=".9"/><rect x="118" y="90" width="8" height="64" fill="#fff" opacity=".9"/>
+   <rect x="40" y="152" width="110" height="40" fill="#1f2f6b"/><rect x="40" y="152" width="110" height="3.5" fill="#fff" opacity=".7"/><path d="M60,100 C80,94 110,94 132,104" stroke="#fff" stroke-width="5" opacity=".25" fill="none"/>
+   <text x="106" y="142" font-size="24" text-anchor="middle" fill="#fff" stroke="#1f2f6b" stroke-width="3.5" paint-order="stroke" font-weight="900" style="font-family:Jua,sans-serif">10</text>`:''}
+  <path d="M70,104 C80,96 96,94 108,96" stroke="#fff" stroke-width="5" opacity=".3" fill="none" stroke-linecap="round"/>
+ </g>
+ <path d="${BODY}" fill="none" stroke="${O}" stroke-width="${sw}"/>
+ <!-- 앞쪽 다리 -->
+ ${swim?'':`<ellipse cx="112" cy="168" rx="17" ry="15" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/><path d="M98,196 C96,186 104,180 116,181 C128,182 134,190 130,198Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/><path d="M106,197 l0,-5 M115,198 l0,-5 M124,197 l0,-5" stroke="${O}" stroke-width="2.4" stroke-linecap="round"/>`}
+ <!-- 머리 -->
+ ${spike(104,42,-14,1)}${spike(122,36,4,1.05)}${spike(141,35,18,.9)}
+ <path d="M96,100 C86,72 98,40 132,35 L160,35 C179,35 190,48 190,64 L190,78 C190,94 180,104 164,106 L132,108 C114,110 100,108 96,100Z" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>
+ <path d="M108,52 C116,42 134,40 152,41" stroke="#fff" stroke-width="5" opacity=".35" fill="none" stroke-linecap="round"/>
+ <path d="M104,100 C112,106 130,108 150,106" stroke="#2f8a44" stroke-width="2.5" opacity=".5" fill="none"/>
+ <!-- 눈 -->
+ <ellipse cx="141" cy="63" rx="14" ry="15.5" fill="#fff" stroke="${O}" stroke-width="2.6"/>
+ <ellipse cx="144" cy="65" rx="9.5" ry="10.5" fill="url(#${p}ir)"/><circle cx="145" cy="66" r="5" fill="#0d1030"/>
+ <circle cx="148.5" cy="60.5" r="3.6" fill="#fff"/><circle cx="140.5" cy="70.5" r="1.8" fill="#fff" opacity=".9"/>
+ <path d="M126,50 C134,44 148,44 156,50" stroke="${O}" stroke-width="3" fill="none" stroke-linecap="round"/>
+ ${swim?`<path d="M94,46 C120,34 162,32 190,40" stroke="#1d4f8a" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <g transform="rotate(-6 150 36)"><circle cx="134" cy="38" r="11" fill="url(#${p}gl)" stroke="#1d4f8a" stroke-width="4"/><circle cx="162" cy="38" r="11" fill="url(#${p}gl)" stroke="#1d4f8a" stroke-width="4"/><path d="M145,38 h6" stroke="#1d4f8a" stroke-width="4"/>
+  <path d="M128,33 a7,7 0 0 1 8,-3 M156,33 a7,7 0 0 1 8,-3" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`:''}
+ <ellipse cx="178" cy="54" rx="2.4" ry="1.8" fill="${O}"/>
+ <ellipse cx="128" cy="84" rx="9" ry="5.5" fill="#ff8aa0" opacity=".55"/>
+ <!-- 입 -->
+ <path d="M138,86 C150,92 168,92 184,82 C182,96 170,104 158,104 C148,104 140,96 138,86Z" fill="#8a2333" stroke="${O}" stroke-width="2.6"/>
+ <path d="M150,98 C156,94 166,94 172,98 C168,103 156,104 150,98Z" fill="#ff8a96"/>
+ <path d="M146,88.5 l3,5 l3,-4 M172,88 l3,4.5 l3,-5.5" fill="#fff" stroke="#fff" stroke-width="1" stroke-linejoin="round"/>
+ <!-- 앞쪽 팔 -->
+ ${swim?arm('M120,120 C134,124 150,122 168,112','url(#'+p+'bd)')+hand(170,110,60,false)
+   :soccer?arm('M120,120 C140,126 160,124 174,112','url(#'+p+'jr)')+hand(177,108,40,true)
+   :arm('M120,120 C130,126 138,128 146,126','url(#'+p+'bd)')+hand(148,124,90,false)}
+ ${swim?ring(true)+`<g fill="#e8fbff" stroke="#9fd9ef" stroke-width="1.2"><path d="M180,104 q4,-8 6,0 q-3,4 -6,0Z"/><path d="M188,118 q3,-6 5,0 q-2,3 -5,0Z"/><path d="M60,74 q3,-6 5,0 q-2,3 -5,0Z"/></g>`:''}
+ ${soccer?`<g stroke="#ffd23f" stroke-width="3.5" stroke-linecap="round"><path d="M184,96 l8,-6 M188,110 l9,1 M178,92 l2,-9"/><path d="M70,66 l-6,-8 M64,78 l-10,-2"/></g>`:''}
+ </g>`;}
+// ---------- 골 세리머니 티라노 (정면, 유니폼) ----------
+function tyranoKick(p,jer='#ff4d5a',pose='fists'){const O='#1d5631',sw=2.8;
+ const spike=(x,y,a,s)=>`<g transform="translate(${x},${y}) rotate(${a}) scale(${s})"><path d="M-10,6 C-7,-6 -2,-16 0,-21 C3,-16 8,-6 10,6Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="2.3" stroke-linejoin="round"/><path d="M-3,1 C-2,-6 -1,-11 0,-15" stroke="#ffe3a6" stroke-width="2" fill="none" stroke-linecap="round"/></g>`;
+ const eye=(cx,cy,f)=>`<ellipse cx="${cx}" cy="${cy}" rx="14" ry="15.5" fill="#fff" stroke="${O}" stroke-width="2.4"/>
+   <circle cx="${cx+f*2}" cy="${cy+1}" r="8.5" fill="url(#${p}ir)"/><circle cx="${cx+f*2}" cy="${cy+1.5}" r="4.4" fill="#0b0e2a"/>
+   <circle cx="${cx+f*2-3}" cy="${cy-3}" r="2.8" fill="#fff"/><circle cx="${cx+f*2+3}" cy="${cy+5}" r="1.3" fill="#fff" opacity=".9"/>
+   <path d="M${cx-13},${cy-20} C${cx-6},${cy-25} ${cx+6},${cy-25} ${cx+13},${cy-19}" stroke="${O}" stroke-width="3.4" fill="none" stroke-linecap="round" transform="rotate(${f*-8} ${cx} ${cy-20})"/>`;
+ const arm=d=>`<path d="${d}" stroke="${O}" stroke-width="18" fill="none" stroke-linecap="round"/><path d="${d}" stroke="url(#${p}arm)" stroke-width="12.5" fill="none" stroke-linecap="round"/>`;
+ const sleeve=(x,y,a)=>`<g transform="translate(${x},${y}) rotate(${a})"><path d="M-12,-9 L12,-9 L10,9 L-10,9Z" fill="url(#${p}jr)" stroke="${O}" stroke-width="2.4"/><rect x="-10" y="5" width="20" height="3.5" fill="#fff"/></g>`;
+ const fist=(x,y,a)=>`<g transform="translate(${x},${y}) rotate(${a})"><ellipse rx="11" ry="10" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>
+   <path d="M-7,-4 q3.5,-4 7,0 M0,-4 q3.5,-4 7,0" stroke="${O}" stroke-width="2" fill="none"/><path d="M-9,3 q-3,-3 0,-6" stroke="${O}" stroke-width="2" fill="none"/></g>`;
+ const leg=(d,sock)=>`<path d="${d}" stroke="${O}" stroke-width="20" fill="none" stroke-linecap="round"/><path d="${d}" stroke="url(#${p}arm)" stroke-width="14.5" fill="none" stroke-linecap="round"/>`;
+const L1=(d,sx,sy,sa)=>arm(d)+sleeve(sx,sy,sa);
+ const openHand=(x,y,a)=>`<g transform="translate(${x},${y}) rotate(${a})"><ellipse rx="10" ry="9" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>${[-6,0,6].map(dx=>`<path d="M${dx},-6 l${dx*.4},-9" stroke="${O}" stroke-width="6.5" stroke-linecap="round"/><path d="M${dx},-6 l${dx*.4},-9" stroke="#79d572" stroke-width="3" stroke-linecap="round"/>`).join('')}</g>`;
+ const point=(x,y,a)=>`<g transform="translate(${x},${y}) rotate(${a})"><path d="M0,-8 L0,-24" stroke="${O}" stroke-width="8.5" stroke-linecap="round"/><path d="M0,-8 L0,-24" stroke="#79d572" stroke-width="4.2" stroke-linecap="round"/><ellipse rx="10.5" ry="9.5" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/><path d="M-6,-2 q3,-3 6,0 M0,-2 q3,-3 6,0" stroke="${O}" stroke-width="1.8" fill="none"/></g>`;
+ const ARMS=pose==='plane'?L1('M62,130 C44,128 26,126 6,122',60,128,80)+openHand(0,121,-90)+L1('M138,130 C156,128 174,126 194,122',140,128,-80)+openHand(200,121,90)
+  :pose==='heart'?L1('M62,130 C16,112 16,16 86,2',58,126,40)+L1('M138,130 C184,112 184,16 114,2',142,126,-40)+fist(90,0,30)+fist(110,0,-30)+`<path d="M100,-26 C92,-36 78,-30 82,-20 C86,-12 100,-4 100,-4 C100,-4 114,-12 118,-20 C122,-30 108,-36 100,-26Z" fill="#ff5a8a" stroke="#c22a5a" stroke-width="2"/><path d="M88,-24 q2,-5 7,-4" stroke="#fff" stroke-width="2.4" fill="none"/>`
+  :pose==='dance'?L1('M62,130 C50,146 38,160 26,170',58,134,130)+point(22,174,200)+L1('M138,130 C156,112 168,86 176,58',142,128,-50)+point(178,52,25)
+  :pose==='point'?L1('M62,130 C46,140 44,156 58,162',58,132,120)+fist(60,162,0)+L1('M138,130 C148,110 154,80 156,44',140,128,-30)+point(156,40,5)
+  :L1('M62,130 C44,124 30,104 24,62',58,128,55)+fist(22,52,-15)+L1('M138,130 C156,124 170,104 176,62',142,128,-55)+fist(178,52,15);
+ const LEGS=` ${leg('M84,176 C80,188 74,194 66,198')}${leg('M116,176 C118,190 120,200 120,206')}
+ <path d="M76,190 L68,196" stroke="#fff" stroke-width="9" stroke-linecap="round"/><path d="M73,192 L64,199" stroke="${jer}" stroke-width="9" stroke-linecap="round"/>
+ <path d="M120,192 L120,202" stroke="#fff" stroke-width="10" stroke-linecap="butt"/><path d="M120,194 L120,204" stroke="${jer}" stroke-width="10" stroke-linecap="butt"/>
+ <path d="M48,200 C48,192 58,190 68,193 C74,196 72,204 66,205 L52,206Z" fill="#1b2433" stroke="${O}" stroke-width="2"/><path d="M52,206 l0,3 M60,206 l0,3 M67,205 l0,3" stroke="#c8d0da" stroke-width="2.2"/>
+ <path d="M108,212 C106,204 114,201 124,202 C134,203 138,210 134,213Z" fill="#1b2433" stroke="${O}" stroke-width="2"/><path d="M112,213 l0,3 M121,213 l0,3 M130,213 l0,3" stroke="#c8d0da" stroke-width="2.2"/>
+ <path d="M112,206 C118,205 126,205 130,207" stroke="#fff" stroke-width="2" opacity=".6"/>
+`,KNEEL=` <path d="M84,176 C80,188 78,196 78,202" stroke="${O}" stroke-width="20" fill="none" stroke-linecap="round"/><path d="M84,176 C80,188 78,196 78,202" stroke="url(#${p}arm)" stroke-width="14.5" fill="none" stroke-linecap="round"/>
+ <path d="M116,176 C120,188 122,196 122,202" stroke="${O}" stroke-width="20" fill="none" stroke-linecap="round"/><path d="M116,176 C120,188 122,196 122,202" stroke="url(#${p}arm)" stroke-width="14.5" fill="none" stroke-linecap="round"/>
+ <ellipse cx="78" cy="204" rx="10" ry="6" fill="#3a8a3a" stroke="${O}" stroke-width="2"/><ellipse cx="122" cy="204" rx="10" ry="6" fill="#3a8a3a" stroke="${O}" stroke-width="2"/>`,RUN=` <path d="M84,176 C76,188 64,192 54,190" stroke="${O}" stroke-width="20" fill="none" stroke-linecap="round"/><path d="M84,176 C76,188 64,192 54,190" stroke="url(#${p}arm)" stroke-width="14.5" fill="none" stroke-linecap="round"/>
+ <path d="M60,184 L52,190" stroke="${jer}" stroke-width="9" stroke-linecap="round"/><path d="M38,186 C38,178 48,178 56,182 C60,186 58,194 52,194 L40,194Z" fill="#1b2433" stroke="${O}" stroke-width="2"/>
+ <path d="M116,176 C122,190 128,200 132,208" stroke="${O}" stroke-width="20" fill="none" stroke-linecap="round"/><path d="M116,176 C122,190 128,200 132,208" stroke="url(#${p}arm)" stroke-width="14.5" fill="none" stroke-linecap="round"/>
+ <path d="M126,196 L131,206" stroke="${jer}" stroke-width="10" stroke-linecap="round"/><path d="M120,214 C118,206 126,203 136,204 C146,205 150,212 146,215Z" fill="#1b2433" stroke="${O}" stroke-width="2"/>`;
+ return `<defs>
+  <radialGradient id="${p}hd" cx=".38" cy=".28" r=".85"><stop offset="0" stop-color="#b2f29c"/><stop offset=".45" stop-color="#66cb6c"/><stop offset="1" stop-color="#2c8f45"/></radialGradient>
+  <linearGradient id="${p}arm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fe07c"/><stop offset="1" stop-color="#3fa652"/></linearGradient>
+  <radialGradient id="${p}mz" cx=".45" cy=".3" r=".8"><stop offset="0" stop-color="#c6f5ac"/><stop offset="1" stop-color="#76cf72"/></radialGradient>
+  <linearGradient id="${p}sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc35a"/><stop offset="1" stop-color="#ee7a20"/></linearGradient>
+  <radialGradient id="${p}ir" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#6a7ad8"/><stop offset=".6" stop-color="#2a3170"/><stop offset="1" stop-color="#141a40"/></radialGradient>
+  <radialGradient id="${p}jr" cx=".4" cy=".25" r=".95"><stop offset="0" stop-color="#fff" stop-opacity=".15"/><stop offset=".25" stop-color="${jer}"/><stop offset="1" stop-color="${jer}"/></radialGradient>
+  <linearGradient id="${p}js" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset=".3" stop-color="#000" stop-opacity="0"/><stop offset=".75" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></linearGradient>
+  <linearGradient id="${p}sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3d86"/><stop offset="1" stop-color="#16225a"/></linearGradient>
+  <clipPath id="${p}jc"><path d="M56,176 C50,146 60,120 100,116 C140,120 150,146 144,176Z"/></clipPath>
+ </defs>
+ <g stroke-linejoin="round" stroke-linecap="round">
+ <ellipse cx="100" cy="214" rx="62" ry="7" fill="#000" opacity=".22"/>
+ <!-- 꼬리 -->
+ <path d="M138,170 C158,172 176,166 190,150 C194,146 198,150 196,156 C188,176 166,188 140,186Z" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>
+${pose==='kneel'?KNEEL:pose==='plane'?RUN:LEGS}
+ <!-- 반바지 -->
+ <path d="M60,164 L140,164 L144,184 C130,190 112,188 104,182 L96,182 C88,188 70,190 56,184Z" fill="url(#${p}sh)" stroke="${O}" stroke-width="${sw}"/>
+ <path d="M60,168 L140,168" stroke="#fff" stroke-width="2" opacity=".5"/>
+ <!-- 몸통 + 유니폼 -->
+ <path d="M56,176 C50,146 60,120 100,116 C140,120 150,146 144,176Z" fill="url(#${p}jr)" stroke="${O}" stroke-width="${sw}"/>
+ <g clip-path="url(#${p}jc)"><rect x="78" y="110" width="9" height="70" fill="#fff" opacity=".92"/><rect x="113" y="110" width="9" height="70" fill="#fff" opacity=".92"/><rect x="40" y="110" width="120" height="70" fill="url(#${p}js)"/></g>
+ <path d="M86,118 L100,134 L114,118" stroke="#fff" stroke-width="6" fill="none"/><path d="M88,117 L100,131 L112,117" fill="url(#${p}hd)" stroke="none"/>
+ <text x="100" y="164" font-size="25" text-anchor="middle" fill="#fff" stroke="#1f2f6b" stroke-width="3.5" paint-order="stroke" font-weight="900" style="font-family:Jua,sans-serif">10</text>
+ ${ARMS}
+ <!-- 머리 -->
+ <ellipse cx="100" cy="120" rx="34" ry="7" fill="#1d6a35" opacity=".3"/>
+ ${spike(76,30,-28,.95)}${spike(100,22,0,1.1)}${spike(124,30,28,.95)}
+ <path d="M100,24 C140,24 162,46 162,74 C162,104 136,118 100,118 C64,118 38,104 38,74 C38,46 60,24 100,24Z" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>
+ <ellipse cx="80" cy="40" rx="20" ry="9" fill="#fff" opacity=".35" transform="rotate(-18 80 40)"/>
+ <ellipse cx="100" cy="94" rx="40" ry="22" fill="url(#${p}mz)" stroke="#3a9a4e" stroke-width="1.6"/>
+ ${eye(78,62,1)}${eye(122,62,-1)}
+ <ellipse cx="90" cy="82" rx="3" ry="2.2" fill="${O}"/><ellipse cx="110" cy="82" rx="3" ry="2.2" fill="${O}"/>
+ <path d="M70,92 C84,100 116,100 130,92 C128,112 116,120 100,120 C84,120 72,112 70,92Z" fill="#8a2333" stroke="${O}" stroke-width="2.4"/>
+ <path d="M84,111 C92,105 108,105 116,111 C110,118 90,118 84,111Z" fill="#ff8a96"/>
+ <path d="M78,95 l3,5.5 l3,-4.5 M116,95 l3,5.5 l3,-4.5" fill="#fff" stroke="#fff" stroke-width="1"/>
+ <ellipse cx="58" cy="88" rx="8" ry="5" fill="#ff8aa0" opacity=".5"/><ellipse cx="142" cy="88" rx="8" ry="5" fill="#ff8aa0" opacity=".5"/>
+ <!-- 환호 효과 -->
+ ${pose==="plane"||pose==="heart"?"":`<g stroke="#ffd23f" stroke-width="3.5"><path d="M8,40 l-6,-6 M10,56 l-8,1 M20,32 l-3,-8"/><path d="M192,40 l6,-6 M190,56 l8,1 M180,32 l3,-8"/></g>`}
+ </g>`;}
+// ---------- 멋진 골키퍼 (트리케라톱스, 입체 스타일) ----------
+function keeperSVG(p){const O='#1a1f45',sw=2.8;
+ const limb=(d,w,fill)=>`<path d="${d}" stroke="${O}" stroke-width="${w+6}" fill="none" stroke-linecap="round"/><path d="${d}" stroke="${fill}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
+ const glove=(x,y,a)=>`<g transform="translate(${x},${y}) rotate(${a})">
+   <rect x="-12" y="8" width="24" height="9" rx="3" fill="#15172e" stroke="${O}" stroke-width="2"/>
+   <path d="M-15,10 C-19,-4 -16,-20 -9,-24 C-6,-26 -3,-24 -3,-20 L-3,-26 C-3,-31 3,-31 3,-26 L3,-24 C3,-29 9,-29 9,-24 L9,-20 C10,-24 16,-23 15,-18 C16,-6 15,4 12,10Z" fill="url(#${p}gv)" stroke="${O}" stroke-width="${sw}"/>
+   <path d="M-3,-20 L-3,-6 M3,-22 L3,-6 M9,-18 L9,-6" stroke="#0f1430" stroke-width="1.6" opacity=".45"/>
+   <path d="M-12,-2 C-8,2 6,2 12,-2" stroke="#15172e" stroke-width="3.5" fill="none"/><path d="M-11,-14 C-10,-18 -8,-20 -6,-21" stroke="#fff" stroke-width="2.4" opacity=".7" fill="none" stroke-linecap="round"/></g>`;
+ return `<defs>
+  <radialGradient id="${p}sk" cx=".4" cy=".28" r=".85"><stop offset="0" stop-color="#b9c6ff"/><stop offset=".5" stop-color="#7486ec"/><stop offset="1" stop-color="#3f4bb8"/></radialGradient>
+  <linearGradient id="${p}lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a9af2"/><stop offset="1" stop-color="#4a56c4"/></linearGradient>
+  <radialGradient id="${p}fr" cx=".5" cy=".8" r=".85"><stop offset="0" stop-color="#ffb35a"/><stop offset=".6" stop-color="#f26a2e"/><stop offset="1" stop-color="#b8361e"/></radialGradient>
+  <linearGradient id="${p}hn" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e8dcc0"/><stop offset="1" stop-color="#fffdf4"/></linearGradient>
+  <linearGradient id="${p}js" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3f5c"/><stop offset="1" stop-color="#111326"/></linearGradient>
+  <linearGradient id="${p}gv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8ff8a"/><stop offset=".6" stop-color="#b8f02a"/><stop offset="1" stop-color="#7cc012"/></linearGradient>
+  <clipPath id="${p}jc"><path d="M66,150 C58,108 76,82 110,80 C144,82 162,108 154,150Z"/></clipPath>
+ </defs>
+ <g stroke-linejoin="round">
+ <ellipse cx="110" cy="230" rx="78" ry="8" fill="#000" opacity=".25"/>
+ <path d="M146,166 C170,168 188,180 200,198 C202,202 198,204 194,202 C178,194 160,188 142,186Z" fill="url(#${p}sk)" stroke="${O}" stroke-width="${sw}"/>
+ <!-- 다리: 넓게 웅크린 자세 -->
+ ${limb('M92,158 C78,170 66,180 62,196 L60,214',17,`url(#${p}lg)`)}${limb('M128,158 C142,170 154,180 158,196 L160,214',17,`url(#${p}lg)`)}
+ ${limb('M62,194 L60,214',15,'#c6f53a')}${limb('M158,194 L160,214',15,'#c6f53a')}
+ <path d="M57,200 h7 M156,200 h7" stroke="#15172e" stroke-width="3"/>
+ <path d="M40,226 C38,216 50,212 62,214 C72,216 74,226 68,228Z" fill="#15172e" stroke="${O}" stroke-width="2"/><path d="M46,222 l16,0" stroke="#c6f53a" stroke-width="2.4"/>
+ <path d="M180,226 C182,216 170,212 158,214 C148,216 146,226 152,228Z" fill="#15172e" stroke="${O}" stroke-width="2"/><path d="M174,222 l-16,0" stroke="#c6f53a" stroke-width="2.4"/>
+ <!-- 반바지 -->
+ <path d="M72,140 L148,140 L156,170 C140,176 120,172 112,166 L108,166 C100,172 80,176 64,170Z" fill="#15172e" stroke="${O}" stroke-width="${sw}"/><path d="M66,164 L74,140 M154,164 L146,140" stroke="#c6f53a" stroke-width="3"/>
+ <!-- 키퍼 유니폼 -->
+ <path d="M66,150 C58,108 76,82 110,80 C144,82 162,108 154,150Z" fill="url(#${p}js)" stroke="${O}" stroke-width="${sw}"/>
+ <g clip-path="url(#${p}jc)"><path d="M56,120 L110,104 L164,120 L164,130 L110,114 L56,130Z" fill="#c6f53a"/><path d="M56,136 L110,120 L164,136 L164,140 L110,124 L56,140Z" fill="#c6f53a" opacity=".7"/>
+  <ellipse cx="90" cy="96" rx="22" ry="8" fill="#fff" opacity=".12"/></g>
+ <path d="M98,82 L110,94 L122,82" stroke="#c6f53a" stroke-width="4" fill="none"/>
+ <text x="110" y="146" font-size="22" text-anchor="middle" fill="#c6f53a" font-weight="900" style="font-family:Jua,sans-serif">1</text>
+ <!-- 팔: 양옆으로 넓게 -->
+ ${limb('M76,98 C60,104 46,110 32,104',13,`url(#${p}js)`)}${limb('M144,98 C160,104 174,110 188,104',13,`url(#${p}js)`)}
+ <path d="M70,100 L62,103 M150,100 L158,103" stroke="#c6f53a" stroke-width="3"/>
+ ${glove(26,98,-28)}${glove(194,98,28)}
+ <!-- 프릴 -->
+ <path d="M50,62 C46,20 80,0 110,0 C140,0 174,20 170,62 C150,48 70,48 50,62Z" fill="url(#${p}fr)" stroke="${O}" stroke-width="${sw}"/>
+ ${[[56,44],[64,26],[78,13],[94,5],[110,3],[126,5],[142,13],[156,26],[164,44]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4.6" fill="#ffd9a0" stroke="${O}" stroke-width="1.8"/>`).join('')}
+ <path d="M70,40 C84,30 136,30 150,40" stroke="#ffcf8a" stroke-width="3" fill="none" opacity=".7"/>
+ <!-- 뿔 -->
+ <path d="M88,40 C82,24 78,10 72,-4 C86,4 96,22 100,36Z" fill="url(#${p}hn)" stroke="${O}" stroke-width="2.4"/>
+ <path d="M132,40 C138,24 142,10 148,-4 C134,4 124,22 120,36Z" fill="url(#${p}hn)" stroke="${O}" stroke-width="2.4"/>
+ <!-- 얼굴 -->
+ <path d="M72,62 C72,40 90,32 110,32 C130,32 148,40 148,62 C148,84 132,96 110,96 C88,96 72,84 72,62Z" fill="url(#${p}sk)" stroke="${O}" stroke-width="${sw}"/>
+ <ellipse cx="96" cy="42" rx="12" ry="5" fill="#fff" opacity=".35"/>
+ <path d="M104,72 L110,56 L116,72Z" fill="url(#${p}hn)" stroke="${O}" stroke-width="2"/>
+ <!-- 집중한 눈 -->
+ <ellipse cx="94" cy="62" rx="9" ry="9.5" fill="#fff" stroke="${O}" stroke-width="2"/><ellipse cx="126" cy="62" rx="9" ry="9.5" fill="#fff" stroke="${O}" stroke-width="2"/>
+ <circle cx="96" cy="64" r="5.2" fill="#2a2f6a"/><circle cx="124" cy="64" r="5.2" fill="#2a2f6a"/><circle cx="96" cy="64.5" r="2.6" fill="#0b0d22"/><circle cx="124" cy="64.5" r="2.6" fill="#0b0d22"/>
+ <circle cx="98" cy="61.5" r="1.7" fill="#fff"/><circle cx="126" cy="61.5" r="1.7" fill="#fff"/>
+ <path d="M82,50 L102,56 M138,50 L118,56" stroke="${O}" stroke-width="4.5" stroke-linecap="round"/>
+ <path d="M86,75 h10 M124,75 h10" stroke="#15172e" stroke-width="3" stroke-linecap="round"/>
+ <!-- 부리와 입 -->
+ <path d="M96,80 Q110,92 124,80 Q118,90 110,90 Q102,90 96,80Z" fill="url(#${p}hn)" stroke="${O}" stroke-width="2"/>
+ <path d="M102,84 Q112,88 120,82" stroke="${O}" stroke-width="2" fill="none"/>
+ </g>`;}
+
+// ---------- 공룡 관중 ----------
+const CROWD_DEFS=(()=>{
+ const eyes=(y=-5)=>`<circle cx="-4" cy="${y}" r="2.6" fill="#fff"/><circle cx="4" cy="${y}" r="2.6" fill="#fff"/><circle cx="-3.6" cy="${y+.4}" r="1.3" fill="#111"/><circle cx="4.4" cy="${y+.4}" r="1.3" fill="#111"/>`;
+ const head=`<ellipse cy="-4" rx="10.5" ry="9.5" fill="currentColor"/><ellipse cx="-3" cy="-9" rx="5" ry="2.4" fill="#fff" opacity=".3"/><ellipse cy="1.5" rx="7.5" ry="4.2" fill="#fff" opacity=".28"/>${eyes()}<path d="M-4,2 Q0,6.5 4,2Z" fill="#8a2333"/>`;
+ const sh=`<path d="M-12,18 C-13,8 -8,4 0,4 C8,4 13,8 12,18Z" fill="currentColor"/><path d="M-12,18 C-13,8 -8,4 0,4 C8,4 13,8 12,18Z" fill="#000" opacity=".2"/>`;
+ return `<g id="cdA">${sh}<path d="M-5,-12 l2,-6.5 l2.2,6Z M1,-12.5 l2.6,-6 l1.8,6.4Z" fill="#ffa63a"/>${head}</g>
+ <g id="cdT">${sh}<ellipse cy="-9" rx="15" ry="11" fill="currentColor"/><ellipse cy="-9" rx="15" ry="11" fill="#fff" opacity=".35"/>${head}<path d="M-6,-11 l-2,-8 l4,6Z M6,-11 l2,-8 l-4,6Z" fill="#fff6dc"/></g>
+ <g id="cdS">${sh}<path d="M-11,-7 l-6,-7 l8,1Z M-5,-12 l-2,-9 l6,6Z M5,-12 l2,-9 l-6,6Z M11,-7 l6,-7 l-8,1Z" fill="#ff7a5a"/>${head}</g>
+ <g id="cdB">${sh}<path d="M-4,6 C-6,-10 -3,-26 2,-36 L9,-34 C6,-22 5,-8 6,6Z" fill="currentColor"/><path d="M-1,4 C-2,-10 0,-24 4,-32" stroke="#fff" stroke-width="2" opacity=".25" fill="none"/><ellipse cx="6" cy="-38" rx="8" ry="5.5" fill="currentColor"/><circle cx="8" cy="-39" r="2" fill="#fff"/><circle cx="8.4" cy="-38.8" r="1" fill="#111"/></g>
+ <g id="cdUp"><path d="M-10,9 L-16,-8 M10,9 L16,-8" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"/><circle cx="-16" cy="-9" r="3" fill="currentColor"/><circle cx="16" cy="-9" r="3" fill="currentColor"/></g>`;})();
+function crowdSVG(r){const cols=['#5cc566','#3fae5c','#7ad37a','#4a9bd8','#7b8ff0','#b07ad8','#f2a03c','#e86a6a','#e8c33c','#3cc7b5','#a0835e','#ff8fb0'];
+ let out='';for(let row=0;row<7;row++){const y=262+row*15.5,s=.6+row*.07;let g='';
+  for(let x=-8;x<1215;x+=19*s+r()*5){const c=cols[(r()*cols.length)|0],q=r();const sp=q<.48?'cdA':q<.7?'cdT':q<.92?'cdS':'cdB';
+    const up=r()<.35,flag=r()<.06;const yy=y+r()*3;
+    g+=`<g transform="translate(${x.toFixed(1)},${yy.toFixed(1)}) scale(${s.toFixed(2)})" style="color:${c}">${up?'<use href="#cdUp"/>':''}<use href="#${sp}"/>${flag?`<path d="M14,10 L14,-26" stroke="#ddd" stroke-width="2"/><path class="flag" d="M14,-26 L34,-21 L14,-14Z" fill="${r()<.5?'#ff4d5a':'#3d8bff'}"/>`:''}</g>`;}
+  out+=`<g class="crow" style="animation-delay:${(row%3)*.15}s">${g}</g>`;}
+ return out;}
+function stadiumSVG(r){
+ const beam=(x1,x2,x3)=>`<polygon points="${x1-10},236 ${x1+10},236 ${x3},640 ${x2},640" fill="url(#beam)" opacity=".55"/>`;
+ let lights='';for(let x=20;x<1200;x+=46)lights+=`<rect x="${x}" y="240" width="20" height="4" rx="2" fill="#fff6c8"/>`;
+ let steps='';for(let y=266;y<356;y+=15.5)steps+=`<line x1="0" y1="${y+14}" x2="1200" y2="${y+14}" stroke="#0e1640" stroke-width="2" opacity=".5"/>`;
+ const ads=['TyranoMath','⚽ 분수 슈팅','공룡 리그','TyranoMath','분수 최고!','⚽ GOAL!'];
+ return `<path d="M0,226 C300,218 900,218 1200,226 L1200,246 L0,246Z" fill="#141c3e"/><path d="M0,226 C300,218 900,218 1200,226" stroke="#4a5a9a" stroke-width="3" fill="none"/>${lights}
+  <rect x="0" y="246" width="1200" height="${HZ-246}" fill="url(#stand)"/>${steps}
+  <g id="crowd">${crowdSVG(r)}</g>
+  <rect x="0" y="246" width="1200" height="40" fill="url(#standHaze)"/>
+  <rect x="0" y="354" width="1200" height="20" fill="#0b1230"/>
+  ${ads.map((t,i)=>`<rect x="${i*200+3}" y="355" width="194" height="18" rx="3" fill="url(#led${i%3})"/><text x="${i*200+100}" y="369" font-size="13" text-anchor="middle" fill="#fff">${t}</text>`).join('')}
+  ${beam(160,120,420)}${beam(1040,780,1080)}`;}
+const STADIUM_DEFS=`<linearGradient id="standHaze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5f9e" stop-opacity=".55"/><stop offset="1" stop-color="#4a5f9e" stop-opacity="0"/></linearGradient>
+ <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffbe0" stop-opacity=".35"/><stop offset="1" stop-color="#fffbe0" stop-opacity="0"/></linearGradient>
+ <linearGradient id="led0" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1f9d8f"/><stop offset="1" stop-color="#2fc4a8"/></linearGradient>
+ <linearGradient id="led1" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e2384a"/><stop offset="1" stop-color="#ff7a5a"/></linearGradient>
+ <linearGradient id="led2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2b5fd6"/><stop offset="1" stop-color="#6a8aff"/></linearGradient>
+ <radialGradient id="vig" cx=".5" cy=".55" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient>
+ ${CROWD_DEFS}`;
+// ================= 분수 페널티킥 =================
+const $=id=>document.getElementById(id);
+const KEY='tyranomath-fraction-kick-v1';
+const rnd=(a,b)=>a+Math.random()*(b-a), ri=(a,b)=>Math.floor(rnd(a,b+1)), pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const gcd=(a,b)=>{while(b)[a,b]=[b,a%b];return a;};
+function seeded(s){return ()=>{s=(s*16807)%2147483647;return (s-1)/2147483646;};}
+document.querySelectorAll('img.dino').forEach(i=>i.src=DINO_SVG);
+const NS='http://www.w3.org/2000/svg',svg=$('pitch');
+const VW=1200,GL=330,GR=870,GT=232,GB=470,VY=232,HZ=372,BALLX=600,MAXM=12;
+let L={};// 화면 배치
+function layout(){const w=$('game').querySelector('.bwrap').getBoundingClientRect();const port=w.height>w.width*1.05;
+  L=port?{port,vx:150,vw:900,Y0:-330,VH:1480,BY:950,BR:62,gx:885,gy:610,gw:140,gh:430,by:-310,bs:1.3,hy:1128,cs:260,cx:160}
+        :{port,vx:0,vw:1200,Y0:0,VH:800,BY:690,BR:44,gx:1070,gy:380,gw:88,gh:350,by:12,bs:1,hy:784,cs:240,cx:24};
+  svg.setAttribute('viewBox',`${L.vx} ${L.Y0} ${L.vw} ${L.VH}`);}
+
+// ---------- 설정 ----------
+let cfg={mode:'solo',den:'10',eq:'same',num:10,kicks:5,sound:true};
+try{const o=JSON.parse(localStorage.getItem(KEY)||'null');if(o&&o.den)cfg={...cfg,...o};}catch(e){}
+const saveCfg=()=>{try{localStorage.setItem(KEY,JSON.stringify(cfg));}catch(e){}};
+const SEGS=[['modeSeg','mode'],['denSeg','den'],['eqSeg','eq']];
+const team=()=>cfg.mode==='team',maxNum=()=>team()?15:30,numKey=()=>team()?'kicks':'num';
+function buildLobby(){
+  SEGS.forEach(([id,k])=>document.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{cfg[k]=b.dataset.v;sync();}));
+  const setNum=v=>{cfg[numKey()]=clamp(Math.round(v)||1,1,maxNum());sync();};
+  document.querySelectorAll('.numrow .nb').forEach(b=>b.onclick=()=>setNum(cfg[numKey()]+ +b.dataset.d));
+  const ni=$('numIn');ni.addEventListener('change',()=>setNum(+ni.value));ni.addEventListener('blur',()=>setNum(+ni.value));ni.addEventListener('keydown',e=>{if(e.key==='Enter')ni.blur();});
+  sync();}
+function sync(){const k=numKey();cfg[k]=clamp(+cfg[k]||5,1,maxNum());
+  SEGS.forEach(([id,kk])=>document.querySelectorAll(`#${id} button`).forEach(b=>b.classList.toggle('on',b.dataset.v===cfg[kk])));
+  $('numLab').textContent=team()?'팀마다 차는 횟수':'문제 수';$('numHint').textContent=team()?'1~15번 (두 팀이 번갈아)':'1~30문제';$('numUnit').textContent=team()?'번씩':'문제';
+  $('numIn').max=maxNum();if(document.activeElement!==$('numIn'))$('numIn').value=cfg[k];
+  document.querySelectorAll('.numrow .nb').forEach(b=>{b.disabled=(+b.dataset.d<0&&cfg[k]<=1)||(+b.dataset.d>0&&cfg[k]>=maxNum());});saveCfg();}
+
+// ---------- 소리 ----------
+let actx=null;const AC=()=>{if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();return actx;};
+function beep(f,d,type='sine',v=.12,when=0,f2){if(!cfg.sound)return;try{const a=AC();const t=a.currentTime+when,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
+  if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.02);}catch(e){}}
+function noise(d,f0,f1,v=.12,when=0){if(!cfg.sound)return;try{const a=AC();const len=Math.floor(a.sampleRate*d),buf=a.createBuffer(1,len,a.sampleRate),ch=buf.getChannelData(0);
+  for(let i=0;i<len;i++)ch[i]=Math.random()*2-1;const s=a.createBufferSource();s.buffer=buf;const fl=a.createBiquadFilter();fl.type='bandpass';fl.Q.value=.9;
+  const t=a.currentTime+when;fl.frequency.setValueAtTime(f0,t);fl.frequency.linearRampToValueAtTime(f1,t+d);const g=a.createGain();g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(v,t+Math.min(.15,d/4));
+  g.gain.setValueAtTime(v,t+d*.6);g.gain.linearRampToValueAtTime(.001,t+d);s.connect(fl).connect(g).connect(a.destination);s.start(t);s.stop(t+d);}catch(e){}}
+const sfx={tick(){beep(560+lvl*40,.05,'triangle',.07);},whistle(){beep(2400,.12,'square',.04);beep(2400,.3,'square',.04,.16);},
+  kick(){beep(140,.15,'sine',.3,0,60);noise(.08,300,200,.2);},goal(){noise(2,700,1200,.18,.05);[523,659,784,1047].forEach((f,i)=>beep(f,.25,'triangle',.1,.15+i*.1));},
+  aww(){beep(420,.6,'triangle',.08,0,210);noise(.9,500,300,.07);},post(){beep(900,.3,'triangle',.08,0,700);},done(){[523,659,784,1047,1319].forEach((f,i)=>beep(f,.22,'triangle',.11,i*.12));}};
+
+// ---------- 그림 조각 ----------
+function ballSVG(r,p){const pent=(cx,cy,R,a0)=>Array.from({length:5},(_,i)=>{const a=a0+i*2*Math.PI/5;return `${(cx+R*Math.cos(a)).toFixed(1)},${(cy+R*Math.sin(a)).toFixed(1)}`;}).join(' ');
+  const c=r*.36;let s=`<defs><radialGradient id="${p}bg" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#e9eef3"/><stop offset="1" stop-color="#aab6c4"/></radialGradient>
+   <clipPath id="${p}bc"><circle r="${r}"/></clipPath><radialGradient id="${p}bs" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".0"/><stop offset=".75" stop-color="#000" stop-opacity=".0"/><stop offset="1" stop-color="#1b2433" stop-opacity=".35"/></radialGradient></defs>
+   <circle r="${r}" fill="url(#${p}bg)"/><g clip-path="url(#${p}bc)" stroke="#5a6676" stroke-width="${r*.04}" stroke-linejoin="round">`;
+  s+=`<polygon points="${pent(0,0,c,-Math.PI/2)}" fill="#1b2433"/>`;
+  for(let i=0;i<5;i++){const a=-Math.PI/2+i*2*Math.PI/5,vx=c*Math.cos(a),vy=c*Math.sin(a),ox=r*.92*Math.cos(a),oy=r*.92*Math.sin(a);
+    s+=`<line x1="${vx.toFixed(1)}" y1="${vy.toFixed(1)}" x2="${(r*.62*Math.cos(a)).toFixed(1)}" y2="${(r*.62*Math.sin(a)).toFixed(1)}"/><polygon points="${pent(ox,oy,c*.95,a+Math.PI/2+Math.PI/5)}" fill="#1b2433"/>`;}
+  return s+`</g><circle r="${r}" fill="url(#${p}bs)"/><circle r="${r-1}" fill="none" stroke="#7a8696" stroke-width="2"/><ellipse cx="${-r*.35}" cy="${-r*.42}" rx="${r*.28}" ry="${r*.16}" fill="#fff" opacity=".8" transform="rotate(-30 ${-r*.35} ${-r*.42})"/>`;}
+function scenery(){const r=seeded(5);const Yb=L.Y0+L.VH;
+  const cloud=(x,y,s,o=.9)=>`<g transform="translate(${x},${y}) scale(${s})" opacity="${o}"><g class="cloud"><ellipse rx="80" ry="24" fill="#ffd9c2"/><ellipse cx="50" cy="-10" rx="56" ry="24" fill="#ffe9dc"/><ellipse cx="-46" cy="-4" rx="44" ry="20" fill="#ffe2d2"/></g></g>`;
+  // 잔디 줄무늬(원근)
+  let stripes='';const k=.43;for(let i=-16;i<16;i++){const xa=y=>600+i*k*(y-VY)*1.0,xb=y=>600+(i+1)*k*(y-VY);
+    stripes+=`<polygon points="${xa(HZ)},${HZ} ${xb(HZ)},${HZ} ${xb(Yb)},${Yb} ${xa(Yb)},${Yb}" fill="${i%2?'#5cbf48':'#4fb33e'}"/>`;}
+  const sx=(hw,y)=>hw*(y-VY)/(GB-VY);// 원근 폭
+  const box=(hw,y2)=>`<path d="M${600-hw},${GB} L${600-sx(hw,y2)},${y2} L${600+sx(hw,y2)},${y2} L${600+hw},${GB}" stroke="#fff" stroke-width="5" fill="none" opacity=".9"/>`;
+  const tower=(x)=>`<g transform="translate(${x},0)"><path d="M-6,${L.Y0+L.VH>0?250:250} L-14,120 M6,250 L14,120" stroke="#8a96a8" stroke-width="5"/><path d="M-12,140 L12,170 M12,140 L-12,170 M-12,180 L12,210 M12,180 L-12,210" stroke="#8a96a8" stroke-width="2.5"/>
+   <rect x="-46" y="76" width="92" height="48" rx="6" fill="#4a5568"/>${Array.from({length:8},(_,i)=>`<circle cx="${-34+(i%4)*22.5}" cy="${88+Math.floor(i/4)*22}" r="8" fill="#fffbe6"/>`).join('')}
+   <circle cy="100" r="120" fill="url(#flr)" class="flare"/></g>`;
+  return `<defs>
+   <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b6fd8"/><stop offset=".55" stop-color="#7aa8f0"/><stop offset=".85" stop-color="#ffc9a0"/><stop offset="1" stop-color="#ffb27a"/></linearGradient>
+   <linearGradient id="haze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a3a10" stop-opacity=".35"/><stop offset="1" stop-color="#0a3a10" stop-opacity="0"/></linearGradient>
+   <linearGradient id="post" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9e2ec"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#c3cfdc"/></linearGradient>
+   <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c3cfdc"/></linearGradient>
+   <linearGradient id="stand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3f8a"/><stop offset="1" stop-color="#1a2862"/></linearGradient>
+   <filter id="grassTx" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9 .25" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 .1  0 0 0 0 .35  0 0 0 0 .08  0 0 0 .55 -.12"/></filter>
+   ${STADIUM_DEFS}<radialGradient id="flr"><stop offset="0" stop-color="#fffbe6" stop-opacity=".55"/><stop offset=".35" stop-color="#fffbe6" stop-opacity=".18"/><stop offset="1" stop-color="#fffbe6" stop-opacity="0"/></radialGradient>
+   <radialGradient id="sun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff6d6"/><stop offset=".4" stop-color="#ffd68a" stop-opacity=".7"/><stop offset="1" stop-color="#ffb070" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect x="0" y="${L.Y0}" width="1200" height="${HZ-L.Y0+10}" fill="url(#sky)"/>
+  <circle cx="1010" cy="200" r="150" fill="url(#sun)"/>
+  ${cloud(170,L.Y0+(L.port?260:90),1.1)}${cloud(860,L.Y0+(L.port?180:70),.9)}${cloud(480,L.Y0+(L.port?380:150),.7,.7)}${L.port?cloud(300,40,.9,.8)+cloud(980,-60,1,.85):''}
+  <path d="M0,240 L120,180 L230,215 L360,150 L470,210 L590,170 L720,220 L840,160 L960,205 L1080,170 L1200,210 L1200,280 L0,280Z" fill="#7a6aa8" opacity=".55"/>
+  ${stadiumSVG(r)}
+  ${L.port?"":tower(110)+tower(1090)}
+  ${stripes}<rect x="0" y="${HZ}" width="1200" height="${Yb-HZ}" filter="url(#grassTx)" opacity=".5"/><rect x="0" y="${HZ}" width="1200" height="160" fill="url(#haze)"/>
+  <line x1="0" y1="${GB}" x2="1200" y2="${GB}" stroke="#fff" stroke-width="5" opacity=".9"/>
+  ${box(150,530)}${box(300,650)}
+  <ellipse cx="600" cy="${L.BY+L.BR*.75}" rx="${L.BR*.5}" ry="${L.BR*.16}" fill="#fff" opacity=".85"/>
+  <polygon points="${GL},${GB} ${GR},${GB} ${GR+40},${GB+26} ${GL-40},${GB+26}" fill="#0a3a10" opacity=".14"/>
+  <rect x="${L.vx}" y="${L.Y0}" width="${L.vw}" height="${L.VH}" fill="url(#vig)" pointer-events="none"/>`;}
+function goalSVG(){const bl=353,br=847,bb=450;let net='';
+  for(let x=bl;x<=br;x+=26)net+=`<line x1="${x}" y1="${GT}" x2="${x}" y2="${bb}"/>`;for(let y=GT;y<=bb;y+=24)net+=`<line x1="${bl}" y1="${y}" x2="${br}" y2="${y}"/>`;
+  for(let t=0;t<=1.001;t+=.125){net+=`<line x1="${GL+(bl-GL)*t}" y1="${GT}" x2="${GL+(bl-GL)*t}" y2="${GB+(bb-GB)*t}"/><line x1="${GR+(br-GR)*t}" y1="${GT}" x2="${GR+(br-GR)*t}" y2="${GB+(bb-GB)*t}"/>`;}
+  for(let y=GT;y<=GB;y+=24){const y2=GT+(y-GT)*(bb-GT)/(GB-GT);net+=`<line x1="${GL}" y1="${y}" x2="${bl}" y2="${y2}"/><line x1="${GR}" y1="${y}" x2="${br}" y2="${y2}"/>`;}
+  return {net:`<g id="net"><polygon points="${GL},${GT} ${bl},${GT} ${bl},${bb} ${GL},${GB}" fill="#fff" opacity=".08"/><polygon points="${GR},${GT} ${br},${GT} ${br},${bb} ${GR},${GB}" fill="#fff" opacity=".08"/>
+    <rect x="${bl}" y="${GT}" width="${br-bl}" height="${bb-GT}" fill="#0d2a1a" opacity=".12"/><g stroke="#fff" stroke-width="2" opacity=".75">${net}</g></g>`,
+   posts:`<ellipse cx="600" cy="${GB+4}" rx="300" ry="10" fill="#000" opacity=".15"/>
+    <rect x="${GL-8}" y="${GT-8}" width="16" height="${GB-GT+8}" rx="5" fill="url(#post)" stroke="#9aa8b8" stroke-width="1.5"/><rect x="${GR-8}" y="${GT-8}" width="16" height="${GB-GT+8}" rx="5" fill="url(#post)" stroke="#9aa8b8" stroke-width="1.5"/>
+    <rect x="${GL-8}" y="${GT-10}" width="${GR-GL+16}" height="16" rx="6" fill="url(#bar)" stroke="#9aa8b8" stroke-width="1.5"/>`};}
+
+// ---------- 상태 ----------
+let G=null,game={state:'off'},lvl=0,KS=.8;
+function makeList(k){const maxD=+cfg.den;const all=[];for(let d=2;d<=maxD;d++)for(let n=1;n<d;n++)all.push({n,d});
+  const out=[];let pool=[];while(out.length<k){if(!pool.length)pool=shuffle(all.slice());const f=pool.pop();
+    if(out.length&&out[out.length-1].d===f.d&&pool.length>2){pool.unshift(f);continue;}
+    let m=f.d;if(cfg.eq==='eq'){const g=gcd(f.n,f.d),d0=f.d/g;const ms=[];for(let x=d0;x<=MAXM;x+=d0)if(x!==f.d)ms.push(x);if(ms.length&&Math.random()<.75)m=pick(ms);}
+    out.push({...f,m});}return out;}
+function start(){$('lobby').classList.add('hide');$('game').classList.remove('hide');$('resultOv').classList.add('hide');
+  const n=team()?cfg.kicks*2:cfg.num;G={list:makeList(n),idx:0,res:[],teamGoals:[0,0],first:0,tries:0};
+  game.state='run';G.t0=performance.now();layout();fitFrame();drawScene();setup();if(!team())TMRank.start(rankLv(),rankName());}
+function drawScene(){const g=goalSVG();
+  svg.innerHTML=scenery()+g.net+`<g id="kpPos"><g id="kpDive"><g class="kp" id="kpIn">${keeperSVG('k')}</g></g></g>`+g.posts+
+   `<g id="aim"></g><ellipse id="bsh" rx="${L.BR*.9}" ry="${L.BR*.25}" fill="#000" opacity=".25"/><g id="ball"><g id="ballRot">${ballSVG(L.BR,'b')}</g></g>
+   <g id="gauge"></g><g id="banner"></g><g id="cele"></g><g id="fx"></g>
+   <text id="hintTxt" x="600" y="${L.hy}" font-size="${L.port?32:24}" text-anchor="middle" fill="#fff" stroke="#1b4a22" stroke-width="5" paint-order="stroke" opacity=".95">게이지를 채우고 · 공을 골대 쪽으로 밀어 차요</text>`;
+  const s=KS;$('kpPos').setAttribute('transform',`translate(${600-110*s},${GB+8-228*s}) scale(${s})`);
+  bindPitch();}
+function cur(){return G.list[G.idx];}
+const turnTeam=()=>G.idx%2;
+function setup(){const f=cur();lvl=0;G.tries=0;G.state='ready';G.hint=false;
+  clearInterval(celeTimer);$('crowd').classList.remove('cheer');$('cele').innerHTML='';$('fx').innerHTML='';$('hintTxt').setAttribute('opacity',.95);$('aim').innerHTML='';$('kpDive').setAttribute('transform','');$('kpIn').setAttribute('class','kp');
+  placeBall(BALLX,L.BY,1,0,1);drawBanner();drawGauge();drawDots();sfx.whistle();}
+function drawBanner(){const f=cur(),s=L.bs,w=360*s,h=150*s,x=600-w/2,y=L.by;const t=team()?(turnTeam()?'🔵 2팀 차례':'🔴 1팀 차례'):'게이지를 채워요';
+  $('banner').innerHTML=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${22*s}" fill="#1b2862" opacity=".92" stroke="#5fd3f5" stroke-width="${4*s}"/>
+   <text x="600" y="${y+34*s}" font-size="${24*s}" text-anchor="middle" fill="#bfe9ff">${t}</text>
+   <text x="600" y="${y+84*s}" font-size="${48*s}" text-anchor="middle" fill="#ffd23f">${f.n}</text><rect x="${600-34*s}" y="${y+94*s}" width="${68*s}" height="${5*s}" rx="${2.5*s}" fill="#ffd23f"/>
+   <text x="600" y="${y+140*s}" font-size="${48*s}" text-anchor="middle" fill="#ffd23f">${f.d}</text>`;
+  $('rndT').textContent=team()?`${Math.floor(G.idx/2)+1}번째 킥 / ${cfg.kicks}`:`문제 ${G.idx+1} / ${G.list.length}`;}
+function drawGauge(){const f=cur(),m=f.m,{gx,gy,gw,gh}=L,pad=gw*.12,gap=Math.max(3,gw*.05),sh=(gh-pad*2-gap*(m-1))/m;let s='';
+  s+=`<text x="${gx+gw/2}" y="${gy-14}" font-size="${gw*.32}" text-anchor="middle" fill="#fff" stroke="#1b2862" stroke-width="5" paint-order="stroke">힘</text>
+   <rect x="${gx}" y="${gy}" width="${gw}" height="${gh}" rx="${gw*.2}" fill="#16264f" stroke="#5fd3f5" stroke-width="4"/>`;
+  for(let i=0;i<m;i++){const y=gy+gh-pad-(i+1)*sh-i*gap,on=i<lvl;
+    s+=`<rect class="gseg" data-i="${i}" x="${gx+pad}" y="${y}" width="${gw-pad*2}" height="${sh}" rx="${Math.min(8,sh/3)}" fill="${on?'url(#gOn)':'#2c4a6e'}" stroke="${on?'#bff3ff':'#3d6390'}" stroke-width="2"/>`;
+    if(on)s+=`<rect x="${gx+pad+4}" y="${y+3}" width="${gw-pad*2-8}" height="${Math.max(2,sh*.22)}" rx="2" fill="#fff" opacity=".45" pointer-events="none"/>`;}
+  if(G.hint){const k=f.n*m/f.d,y=gy+gh-pad-k*sh-(k-1)*gap-gap/2;s+=`<g class="blink" pointer-events="none"><path d="M${gx-26},${y-12} L${gx-4},${y} L${gx-26},${y+12}Z" fill="#ffd23f" stroke="#1b2862" stroke-width="3"/><line x1="${gx}" y1="${y}" x2="${gx+gw}" y2="${y}" stroke="#ffd23f" stroke-width="5"/></g>`;}
+  s+=`<text x="${gx+gw/2}" y="${gy+gh+gw*.42}" font-size="${gw*.36}" text-anchor="middle" fill="#fff" stroke="#1b2862" stroke-width="6" paint-order="stroke">${lvl}/${m}</text>
+   <rect id="ghit" x="${gx-20}" y="${gy-10}" width="${gw+40}" height="${gh+20}" fill="transparent" style="cursor:pointer"/>`;
+  $('gauge').innerHTML=`<defs><linearGradient id="gOn" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3fd0ff"/><stop offset="1" stop-color="#7ef0ff"/></linearGradient></defs>`+s;}
+function drawDots(){const d=$('dots');
+  if(!team()){d.innerHTML=`<div class="row">${G.list.map((_,i)=>`<i class="${G.res[i]||''}${i===G.idx?' now':''}"></i>`).join('')}</div>`;return;}
+  const row=t=>{let h='';for(let k=0;k<cfg.kicks;k++){const i=k*2+t;h+=`<i class="${G.res[i]||''}${i===G.idx?' now':''}"></i>`;}return h;};
+  d.innerHTML=`<div class="row"><span class="tm ${turnTeam()===0?'on':''}">🔴 1팀 ${G.teamGoals[0]}</span>${row(0)}</div><div class="row"><span class="tm ${turnTeam()===1?'on':''}">🔵 2팀 ${G.teamGoals[1]}</span>${row(1)}</div>`;}
+function placeBall(x,y,s,rot,shadow){$('ball').setAttribute('transform',`translate(${x},${y}) scale(${s})`);$('ballRot').setAttribute('transform',`rotate(${rot})`);
+  const sh=$('bsh'),gy=(shadow===1?y:shadow)+L.BR*s*.85;sh.setAttribute('cx',x);sh.setAttribute('cy',gy);sh.setAttribute('rx',L.BR*.9*s);sh.setAttribute('ry',L.BR*.25*s);}
+function anim(ms,step,done){const t0=performance.now();const f=now=>{const k=Math.min(1,(now-t0)/ms);step(k);if(k<1)requestAnimationFrame(f);else done&&done();};requestAnimationFrame(f);}
+const eo=k=>1-Math.pow(1-k,3),eio=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+
+// ---------- 입력 ----------
+function toSvg(e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse());}
+function setLvl(v){v=clamp(v,0,cur().m);if(v!==lvl){lvl=v;sfx.tick();drawGauge();}}
+function aimFrom(p){const dx=p.x-BALLX,dy=p.y-L.BY;if(dy>-30)return null;const t=(L.BY-(GT+GB)/2)/(-dy);const len=Math.hypot(dx,dy);
+  return {x:clamp(BALLX+dx*t,GL+40,GR-40),y:clamp(GB-40-(len-80)*.35,GT+40,GB-40)};}
+function drawAim(p,tg){$('aim').innerHTML=`<line x1="${BALLX}" y1="${L.BY}" x2="${p.x}" y2="${p.y}" stroke="#fff" stroke-width="6" stroke-dasharray="14 10" stroke-linecap="round" opacity=".9"/>`+
+  (tg?`<g opacity=".95"><circle cx="${tg.x}" cy="${tg.y}" r="26" fill="none" stroke="#ffd23f" stroke-width="5"/><circle cx="${tg.x}" cy="${tg.y}" r="5" fill="#ffd23f"/><path d="M${tg.x-38},${tg.y} h20 M${tg.x+18},${tg.y} h20 M${tg.x},${tg.y-38} v20 M${tg.x},${tg.y+18} v20" stroke="#ffd23f" stroke-width="4"/></g>`:'');}
+function bindPitch(){let mode=null,id=null;
+  svg.onpointerdown=e=>{if(game.state!=='run'||G.state!=='ready')return;const p=toSvg(e);
+    const {gx,gy,gw,gh}=L;
+    if(p.x>gx-24&&p.x<gx+gw+24&&p.y>gy-14&&p.y<gy+gh+14){mode='g';id=e.pointerId;try{svg.setPointerCapture(id);}catch(_){}gaugeAt(p,true);return;}
+    if(Math.hypot(p.x-BALLX,p.y-L.BY)<L.BR*2.3){mode='b';id=e.pointerId;try{svg.setPointerCapture(id);}catch(_){}drawAim(p,null);return;}
+    if(p.x>GL&&p.x<GR&&p.y>GT&&p.y<GB+10){shoot({x:clamp(p.x,GL+40,GR-40),y:clamp(p.y,GT+40,GB-40)});}};
+  svg.onpointermove=e=>{if(e.pointerId!==id)return;const p=toSvg(e);if(mode==='g')gaugeAt(p,false);else if(mode==='b')drawAim(p,aimFrom(p));};
+  const end=e=>{if(e.pointerId!==id)return;const p=toSvg(e);const m=mode;mode=null;id=null;
+    if(m==='b'){$('aim').innerHTML='';const tg=aimFrom(p);if(tg&&Math.hypot(p.x-BALLX,p.y-L.BY)>60)shoot(tg);else if(Math.hypot(p.x-BALLX,p.y-L.BY)<20)toast('info','공을 골대 쪽으로 밀어요','또는 골대를 톡 눌러도 돼요');}};
+  svg.onpointerup=end;svg.onpointercancel=end;}
+let lastTap=-1;
+function gaugeAt(p,first){const f=cur(),m=f.m,{gy,gh,gw}=L,pad=gw*.12;const rel=(gy+gh-pad-p.y)/(gh-pad*2);let k=clamp(Math.ceil(rel*m),0,m);
+  if(first&&k===lvl&&k===lastTap)k=k-1;// 같은 칸을 다시 누르면 한 칸 내리기
+  lastTap=k;setLvl(k);}
+
+// ---------- 슛 ----------
+function shoot(tg){if(G.state!=='ready')return;const f=cur();
+  if(lvl===0){toast('info','게이지를 먼저 채워요',`${f.n}/${f.d}만큼 칸을 눌러요`);return;}
+  G.state='fly';$('aim').innerHTML='';sfx.kick();const cmp=lvl*f.d-f.n*f.m;const B0={x:BALLX,y:L.BY};
+  $('kpIn').setAttribute('class','');
+  if(cmp===0){const side=Math.abs(tg.x-600)<70?(Math.random()<.5?-1:1):(tg.x>600?-1:1);const ctl={x:(B0.x+tg.x)/2,y:Math.min(B0.y,tg.y)-90};
+    diveKeeper(side,false);
+    anim(720,k=>{const e=eo(k),u=1-e;const x=u*u*B0.x+2*u*e*ctl.x+e*e*tg.x,y=u*u*B0.y+2*u*e*ctl.y+e*e*tg.y;placeBall(x,y,1-e*.62,k*900,L.BY+(GB+6-L.BY)*e);},()=>{
+      const n=$('net');n.classList.remove('netshake');void n.getBBox();n.classList.add('netshake');sfx.goal();goal(tg);});}
+  else if(cmp<0){const ratio=(lvl/f.m)/(f.n/f.d);const ex=B0.x+(tg.x-B0.x)*ratio*.88,ey=B0.y+(GB+16-B0.y)*ratio*.88;
+    setTimeout(()=>{$('kpIn').setAttribute('class','kp');},500);
+    anim(1100,k=>{const e=eo(k);placeBall(B0.x+(ex-B0.x)*e,B0.y+(ey-B0.y)*e,1-e*ratio*.5,k*500*ratio,1);},()=>{sfx.aww();miss('weak');});}
+  else{const ratio=(lvl/f.m)/(f.n/f.d);const ex=tg.x,ey=GT-80-Math.min(1,ratio-1)*90;const ctl={x:(B0.x+tg.x)/2,y:GT-160-Math.min(1,ratio-1)*120};
+    jumpKeeper();
+    anim(850,k=>{const e=eo(k),u=1-e;const x=u*u*B0.x+2*u*e*ctl.x+e*e*ex,y=u*u*B0.y+2*u*e*ctl.y+e*e*ey;placeBall(x,y,1-e*.7,k*1100,L.BY+(GB-20-L.BY)*e);$('ball').setAttribute('opacity',k>.8?1-(k-.8)*4:1);},()=>{
+      $('ball').setAttribute('opacity',0);$('bsh').setAttribute('opacity',0);sfx.aww();miss('over');});}}
+function diveKeeper(side,save){anim(480,k=>{const e=eo(k);$('kpDive').setAttribute('transform',`translate(${side*170*e},${-40*Math.sin(Math.PI*Math.min(1,k*1.2))+30*e}) rotate(${side*72*e} 110 200)`);});}
+function jumpKeeper(){anim(700,k=>{$('kpDive').setAttribute('transform',`translate(0,${-60*Math.sin(Math.PI*k)})`);},()=>$('kpIn').setAttribute('class','kp'));}
+const CELES=[{k:'jump',name:'🙌 만세 점프 세리머니!',pose:'fists'},{k:'slide',name:'🦵 무릎 슬라이딩 세리머니!',pose:'kneel'},
+  {k:'plane',name:'✈️ 비행기 세리머니!',pose:'plane'},{k:'heart',name:'💖 하트 세리머니!',pose:'heart'},{k:'dance',name:'🕺 댄스 세리머니!',pose:'dance'}];
+let celeBag=[],celeTimer=null;
+function nextCele(){if(!celeBag.length)celeBag=shuffle(CELES.map((_,i)=>i));return CELES[celeBag.pop()];}
+function particle(html,x,y,cls,life){const g=document.createElementNS(NS,'g');g.setAttribute('transform',`translate(${x},${y})`);g.innerHTML=`<g class="${cls}">${html}</g>`;$('cele').appendChild(g);setTimeout(()=>g.remove(),life);}
+function goal(tg){$('hintTxt').setAttribute('opacity',0);const crowd=$('crowd');crowd.classList.remove('cheer');void crowd.getBBox();crowd.classList.add('cheer');
+  const C=nextCele();const big=L.port?170:120,by=L.port?560:400;
+  $('fx').innerHTML=`<text class="big" x="600" y="${by}" font-size="${big}">골인!</text><text class="cname" x="600" y="${by-(L.port?170:118)}" font-size="${L.port?52:38}">${C.name}</text>`;
+  const t=team()?turnTeam():-1;const cs=L.cs,sc=cs/200,X=L.cx+cs*.1,Y=L.Y0+L.VH-cs*1.12;
+  $('cele').innerHTML=`<g id="celeW"><g id="celeA">${tyranoKick('c'+G.idx,t===1?'#3d8bff':'#ff4d5a',C.pose)}</g></g>`;
+  const W=$('celeW'),A=$('celeA');const put=(x,y,rot=0)=>W.setAttribute('transform',`translate(${x},${y}) rotate(${rot} ${100*sc} ${200*sc}) scale(${sc})`);
+  const loop=(cls)=>{A.setAttribute('class',cls);};
+  clearInterval(celeTimer);
+  if(C.k==='slide'){const x0=L.vx-cs*1.1,x1=X+cs*.25;let last=0;
+    anim(1150,k=>{const e=eo(k);const x=x0+(x1-x0)*e;put(x,Y+18*sc,-7-6*(1-k));if(k-last>.05&&k<.95){last=k;for(let i=0;i<3;i++)particle(`<rect width="4" height="9" rx="2" fill="${pick(['#3f9a2e','#6ccf4a','#8a6a3a'])}" transform="rotate(${rnd(-60,60)})"/>`,x+rnd(40,110)*sc,Y+rnd(190,210)*sc,'spray',700);}},()=>loop('cPump'));
+    $('cele').insertAdjacentHTML('afterbegin',`<path d="M${L.vx},${Y+200*sc} L${x1+60*sc},${Y+196*sc}" stroke="#8fe07a" stroke-width="${14*sc}" opacity=".35" stroke-linecap="round"/>`);}
+  else if(C.k==='plane'){const x0=L.vx+L.vw+cs*.2,x1=X+cs*.2;
+    anim(1700,k=>{const e=eio(k);put(x0+(x1-x0)*e,Y-6*Math.abs(Math.sin(k*18)),14*Math.sin(k*9));},()=>loop('cBank'));}
+  else{put(X,Y);A.setAttribute('class','cPop');setTimeout(()=>loop(C.k==='jump'?'cJump':C.k==='heart'?'cHeart':'cDance'),480);
+    if(C.k==='heart')celeTimer=setInterval(()=>particle(`<path d="M0,-6 C-4,-12 -12,-9 -10,-3 C-8,2 0,7 0,7 C0,7 8,2 10,-3 C12,-9 4,-12 0,-6Z" fill="${pick(['#ff5a8a','#ff8ab0','#ff3d6e'])}" transform="scale(${rnd(1.2,2.2)})"/>`,X+rnd(30,170)*sc,Y+rnd(-10,60)*sc,'rise',1700),220);
+    if(C.k==='dance')celeTimer=setInterval(()=>particle(`<text font-size="${rnd(26,40)}" fill="${pick(['#ffd23f','#ffffff','#7fe0ff'])}" stroke="#1b2862" stroke-width="3" paint-order="stroke">${pick(['♪','♫','♬'])}</text>`,X+rnd(0,200)*sc,Y+rnd(-20,60)*sc,'rise',1700),260);
+    if(C.k==='jump')celeTimer=setInterval(()=>particle(`<path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3Z" fill="#ffd23f" transform="scale(${rnd(.8,1.6)})"/>`,X+rnd(0,200)*sc,Y+rnd(-20,80)*sc,'twinkle',900),200);}
+  confetti();
+  if(team()){G.res[G.idx]='g';G.teamGoals[t]++;}else{G.res[G.idx]=G.tries===0?'g':'y';if(G.tries===0)G.first++;}
+  drawDots();G.state='wait';setTimeout(nextKick,3400);}
+function miss(kind){const f=cur();G.tries++;
+  const k=`${lvl}/${f.m}`,t=`${f.n}/${f.d}`;
+  toast('no',kind==='weak'?'힘이 모자라요!':'힘이 너무 세요!',kind==='weak'?`채운 양 ${k} → ${t}보다 작아요`:`채운 양 ${k} → ${t}보다 커요`);
+  if(team()){G.res[G.idx]='x';drawDots();G.state='wait';
+    setTimeout(()=>{lvl=f.n*f.m/f.d;G.hint=true;drawGauge();toast('info','정답은 이만큼!',`${f.m}칸 중 ${lvl}칸 = ${t}`);},1500);setTimeout(nextKick,3600);return;}
+  G.state='wait';if(G.tries>=2)G.hint=true;
+  setTimeout(()=>{$('ball').setAttribute('opacity',1);$('bsh').setAttribute('opacity',.25);$('kpDive').setAttribute('transform','');$('kpIn').setAttribute('class','kp');
+    anim(350,k=>placeBall(BALLX,L.BY,eo(k),0,1));drawGauge();G.state='ready';if(G.hint)toast('info','힌트를 보여 줄게요','노란 화살표까지 채워 봐요');},1700);}
+function nextKick(){if(game.state!=='run')return;G.idx++;if(G.idx>=G.list.length){showResult();return;}
+  $('ball').setAttribute('opacity',1);$('bsh').setAttribute('opacity',.25);setup();}
+
+// ---------- 결과 ----------
+function showResult(){game.state='end';let title,info,st;
+  if(team()){const [a,b]=G.teamGoals;title=a>b?'🔴 1팀 승리!':b>a?'🔵 2팀 승리!':'무승부! 둘 다 최고!';st=3;info=`🔴 1팀 ${a}골 : ${b}골 🔵 2팀 · 팀마다 ${cfg.kicks}번씩 찼어요`;}
+  else{const n=G.list.length,r=G.first/n;st=r>=.85?3:r>=.55?2:1;title=st===3?'분수 슈팅 스타!':st===2?'잘했어요!':'끝까지 해냈어요!';info=`${n}골 모두 성공 · 한 번에 넣은 골 ${G.first}개`;}
+  $('resTitle').textContent=title;$('resStars').textContent=team()?'🏆':'⭐'.repeat(st)+'☆'.repeat(3-st);$('resInfo').textContent=info;$('resultOv').classList.remove('hide');sfx.done();confetti();
+  if(!team())setTimeout(()=>TMRank.finish({level:rankLv(),name:rankName(),value:G.first,t:Math.round((performance.now()-G.t0)/1000)}),700);
+  const detail={type:'tyranomath:fraction-kick-complete',mode:cfg.mode,problems:G.list.length,firstTry:G.first,teamGoals:G.teamGoals};
+  try{window.dispatchEvent(new CustomEvent('fraction-kick-complete',{detail}));}catch(e){}
+  try{if(window.parent!==window)window.parent.postMessage(detail,'*');}catch(e){}}
+function toast(cls,big,small){const t=$('toast');t.className='toast '+cls;t.innerHTML=big+(small?'<small></small>':'');if(small)t.querySelector('small').textContent=small;
+  void t.offsetWidth;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1800);}
+function confetti(){const cols=['#ff5a6e','#ffd23f','#3d8bff','#3ccf8a','#b56bff'];
+  for(let i=0;i<60;i++){const c=document.createElement('i');c.className='conf';c.style.left=rnd(2,98)+'vw';c.style.background=pick(cols);
+    c.style.setProperty('--fy',innerHeight*rnd(.8,1.1)+'px');c.style.animationDelay=rnd(0,.5)+'s';c.style.borderRadius=Math.random()<.4?'50%':'2px';document.body.appendChild(c);setTimeout(()=>c.remove(),2300);}}
+function fitFrame(){const w=$('game').querySelector('.bwrap').getBoundingClientRect();const f=$('game').querySelector('.frame');
+  const r=L.vw/L.VH,W=Math.min(w.width,w.height*r);f.style.width=W+'px';f.style.height=(W/r)+'px';}
+addEventListener('resize',()=>{if(game.state==='off')return;const was=L.port;layout();fitFrame();
+  if(was!==L.port&&G&&G.state==='ready'){drawScene();const l=lvl;setup();lvl=l;drawGauge();}});
+let kAim=600;
+addEventListener('keydown',e=>{if(game.state!=='run'||!G||G.state!=='ready'||!$('homeOv').classList.contains('hide'))return;const k=e.key;
+  if(k==='ArrowUp'){e.preventDefault();setLvl(lvl+1);}else if(k==='ArrowDown'){e.preventDefault();setLvl(lvl-1);}
+  else if(k==='ArrowLeft'||k==='ArrowRight'){e.preventDefault();kAim=clamp(kAim+(k==='ArrowLeft'?-60:60),GL+40,GR-40);drawAim({x:BALLX,y:L.BY},{x:kAim,y:(GT+GB)/2});}
+  else if(k===' '||k==='Enter'){e.preventDefault();shoot({x:kAim,y:clamp((GT+GB)/2+rnd(-60,40),GT+40,GB-40)});}});
+
+// ---------- 버튼 ----------
+$('startBtn').onclick=()=>{try{AC().resume&&actx.resume();}catch(e){}start();};
+$('againBtn').onclick=start;
+const toLobby=()=>{game.state='off';['game','resultOv','homeOv'].forEach(id=>$(id).classList.add('hide'));$('lobby').classList.remove('hide');sync();};
+$('setBtn').onclick=toLobby;$('homeBtn').onclick=()=>{if(game.state==='off')return;$('homeOv').classList.remove('hide');};
+$('homeYes').onclick=toLobby;$('homeNo').onclick=()=>$('homeOv').classList.add('hide');
+const syncSound=()=>{$('soundBtn').innerHTML=(cfg.sound?'🔊':'🔇')+'<small>소리</small>';};
+$('soundBtn').onclick=()=>{cfg.sound=!cfg.sound;syncSound();saveCfg();};syncSound();
+const root=document.documentElement,fsOK=!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
+document.querySelectorAll('.fsBtn').forEach(b=>{if(!fsOK){b.style.display='none';return;}
+  b.onclick=()=>{try{if(document.fullscreenElement||document.webkitFullscreenElement)(document.exitFullscreen||document.webkitExitFullscreen).call(document);
+    else (root.requestFullscreen||root.webkitRequestFullscreen).call(root);}catch(e){}};});
+const GAMEZONE_URL='/';
+try{if(window.top===window)$('zoneBtn').hidden=false;}catch(e){}
+document.addEventListener('contextmenu',e=>{if(e.target.tagName!=='INPUT')e.preventDefault();});
+// 🏆 랭킹: 혼자 하기 · 한 번에 넣은 골 (같으면 빨리 끝낸 사람이 앞서요 · 분모 · 게이지 · 문제 수마다 따로)
+const DNN={'6':'쉬움','10':'보통','12':'어려움'};
+function rankLv(){return `${cfg.den}|${cfg.eq}|${cfg.num}`;}
+function rankName(){return `${DNN[cfg.den]} · ${cfg.eq==='eq'?'크기 같은 분수 섞기':'분모와 같은 칸'} · ${cfg.num}문제`;}
+TMRank.setup({game:'fraction-kick',title:'분수 페널티킥',note:'혼자 하기에서 한 번에 넣은 골 순위예요 (같으면 빨리 끝낸 사람이 앞서요 · 설정마다 따로)',kind:'score',levels:[],level:rankLv,lvName:rankName,mount:['.top-btns']});
+buildLobby();
+if(/[?&]test/.test(location.search))window.__kick={get G(){return G},get lvl(){return lvl},setLvl,shoot,cur,get L(){return L}};
+})();</script></body></html>
