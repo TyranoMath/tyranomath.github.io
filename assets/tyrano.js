@@ -231,7 +231,7 @@ function openEntry(g){
   if (g.newTab){ window.open(g.file, '_blank', 'noopener'); return; }
   lastFocus = document.activeElement;
   returnHash = location.hash.startsWith('#game=') ? '' : location.hash;
-  $('#playerTitle').innerHTML = `<span aria-hidden="true">${esc(g.icon || '🎮')}</span><span>${esc(g.title)}</span>`;
+  $('#playerTitle').innerHTML = `<span aria-hidden="true">${g.icon === '🦖' ? '<svg class="dino-ico" viewBox="2 4 212 190"><use href="#dino"/></svg>' : esc(g.icon || '🎮')}</span><span>${esc(g.title)}</span>`;
   $('#playerFrame').src = g.file;
   $('#player').classList.add('open');
   document.body.classList.add('no-scroll');

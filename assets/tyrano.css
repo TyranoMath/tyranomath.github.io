@@ -629,3 +629,6 @@ footer .visitors i{font-style:normal; color:var(--muted); margin:0 2px}
 @media (max-width:720px){ footer .wrap{flex-wrap:wrap; justify-content:center} footer .visitors{margin:0 auto; order:3; white-space:normal; text-align:center} }
 html[data-device="phone"] footer .wrap{flex-wrap:wrap; justify-content:center}
 html[data-device="phone"] footer .visitors{margin:0 auto; order:3; white-space:normal; text-align:center}
+
+/* 🦖 대신 쓰는 티라노 캐릭터 아이콘 (메인 화면의 그 티라노) */
+.dino-ico{display:inline-block; width:1.3em; height:1.17em; vertical-align:-.22em; overflow:visible}

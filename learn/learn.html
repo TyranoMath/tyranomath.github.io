@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>개념 탐험대 · TyranoMath</title>
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -135,6 +136,7 @@ html.touch .ctrl input[type=range]{height:44px}
 @media (prefers-reduced-motion:reduce){ *{transition:none!important; animation:none!important} }
 @keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
 .pop{animation:pop .35s}
+.dino-ico{display:inline-block;width:1.3em;height:1.17em;vertical-align:-.22em}
 </style>
 </head>
 <body>
@@ -203,7 +205,7 @@ function home(){
   const stds = [...new Set(U.lessons.flatMap(l => l.std || []))];
   $('#app').innerHTML = `<section class="panel">
     <div class="hero"><span class="dino-logo">${DINO}</span><div>
-      <div class="kicker">🦖 개념 탐험대 · ${g}학년 ${s}학기 ${no}단원</div>
+      <div class="kicker"><img class="dino-ico" src="../assets/dino.svg" alt=""> 개념 탐험대 · ${g}학년 ${s}학기 ${no}단원</div>
       <h1>${U.title}</h1></div></div>
     <p class="intro">${U.intro}</p>
     ${U.prev ? `<div class="prev">🔙 먼저 떠올려요: ${U.prev}</div>` : ''}
