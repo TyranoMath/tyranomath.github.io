@@ -162,6 +162,11 @@ button:disabled{opacity:.45}
 .toast.ok{background:rgba(46,190,110,.95);border:3px solid #fff}.toast.no{background:rgba(255,95,95,.95);border:3px solid #fff}.toast.info{background:rgba(40,60,140,.95);border:3px solid #fff}
 .conf{position:fixed;width:10px;height:14px;top:-20px;z-index:55;pointer-events:none;animation:fall 1.6s ease-in forwards}
 @keyframes fall{to{transform:translateY(var(--fy)) rotate(600deg);opacity:.3}}
+.g6{grid-template-columns:repeat(6,1fr)}
+@media (max-width:560px){.g6{grid-template-columns:repeat(3,1fr)}}
+.chars button{padding:.3em .2em .25em;min-height:0}
+.chars button img{width:100%;max-width:70px;aspect-ratio:220/256;height:auto;display:block;margin:0 auto .15em;pointer-events:none}
+.chars button small{font-size:.78em}
 /* ---------- 모달 / 결과 ---------- */
 .overlay{position:fixed;inset:0;background:rgba(8,30,40,.55);display:flex;align-items:center;justify-content:center;padding:14px;z-index:20;font-size:var(--ui)}
 .modal{background:var(--panel);border:2px solid var(--accent-line);border-radius:calc(var(--ui)*1.2);padding:calc(var(--ui)*1.2);
@@ -203,6 +208,11 @@ button:disabled{opacity:.45}
       <div class="grid g2" id="divSeg"><button data-v="self">내가 나누기<small>− + 로 칸 수 정하기</small></button><button data-v="auto">나눠진 수영장<small>칸이 미리 나뉘어 있어요</small></button></div>
       <div class="label">정답 인정</div>
       <div class="grid g2" id="eqSeg"><button data-v="same">분모와 같은 칸 수만<small>3/4 → 4칸 중 3칸</small></button><button data-v="eq">크기가 같으면 정답<small>3/4 = 6/8 도 OK</small></button></div>
+    </section>
+    <section class="card">
+      <div class="label" id="ch1Lab">내 캐릭터 <small>정답을 맞히면 수영장에 뛰어들어요</small></div>
+      <div class="grid g6 chars" id="ch1Seg"></div>
+      
     </section>
     <section class="card">
       <div class="label">문제 수 <small>1~30문제</small></div>
@@ -285,158 +295,165 @@ const PEN=` <g transform="rotate(-33 144 120)"><rect x="139" y="98" width="10" h
  ${ring?RF:''}
  </g>`;}
 const DINO_SVG='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 20 190 166">${tyrano('L')}</svg>`);
-// ---------- 애니메이션용 고급 티라노 (도안 기반, 명암·외곽선) ----------
-function tyranoHD(p,opt={}){const pose=opt.pose||'swim',O='#1f5a33',sw=3;const jer=opt.jersey||'#ff5a5a';
- const soccer=pose==='soccer',swim=pose==='swim';
- const dy=soccer?-8:0;// 점프
- const spike=(x,y,a,s=1)=>`<g transform="translate(${x},${y}) rotate(${a}) scale(${s})"><path d="M-9,4 C-6,-6 -2,-15 1,-19 C4,-14 8,-5 9,4Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="2.4" stroke-linejoin="round"/><path d="M-3,0 C-2,-6 0,-11 1,-14" stroke="#ffe0a0" stroke-width="2" fill="none" opacity=".8"/></g>`;
- const hand=(x,y,a,fist)=>`<g transform="translate(${x},${y}) rotate(${a})">${fist?`<circle r="8.5" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/><path d="M-3,-6 q4,2 3,7 M2,-6 q4,2 3,7" stroke="${O}" stroke-width="1.8" fill="none"/>`
-   :`<path d="M-6,4 C-8,-2 -4,-8 2,-8 C8,-8 10,-2 7,4Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M-5,-6 l-3,-7 M0,-8 l0,-8 M5,-6 l4,-7" stroke="${O}" stroke-width="5.5" stroke-linecap="round"/><path d="M-5,-6 l-3,-7 M0,-8 l0,-8 M5,-6 l4,-7" stroke="#6fd36a" stroke-width="2.6" stroke-linecap="round"/>`}</g>`;
- const arm=(d,col)=>`<path d="${d}" stroke="${O}" stroke-width="15" fill="none" stroke-linecap="round"/><path d="${d}" stroke="${col}" stroke-width="9.5" fill="none" stroke-linecap="round"/>`;
- const BODY='M58,150 C50,120 64,96 92,92 C118,88 136,104 140,128 C144,154 130,178 100,180 C76,182 62,170 58,150Z';
- const ring=(front)=>{const d=front?'M26,150 A70,22 0 0 0 166,150':'M26,150 A70,22 0 0 1 166,150';return `<path d="${d}" fill="none" stroke="${O}" stroke-width="28"/><path d="${d}" fill="none" stroke="url(#${p}rw)" stroke-width="22"/><path d="${d}" fill="none" stroke="url(#${p}rr)" stroke-width="22" stroke-dasharray="30 26" stroke-dashoffset="10"/>${front?`<path d="M40,160 A58,15 0 0 0 96,171" stroke="#fff" stroke-width="4.5" fill="none" opacity=".85"/>`:''}`;};
- return `<defs>
-  <radialGradient id="${p}bd" cx=".4" cy=".28" r=".85"><stop offset="0" stop-color="#9be88a"/><stop offset=".5" stop-color="#5cc566"/><stop offset="1" stop-color="#2f9a4a"/></radialGradient>
-  <radialGradient id="${p}hd" cx=".42" cy=".25" r=".85"><stop offset="0" stop-color="#a4ee90"/><stop offset=".55" stop-color="#60c868"/><stop offset="1" stop-color="#349f4c"/></radialGradient>
-  <linearGradient id="${p}dk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4db35a"/><stop offset="1" stop-color="#2c8a42"/></linearGradient>
-  <linearGradient id="${p}bl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfde6"/><stop offset="1" stop-color="#dcefb0"/></linearGradient>
-  <linearGradient id="${p}sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc35a"/><stop offset="1" stop-color="#f27d22"/></linearGradient>
-  <radialGradient id="${p}ir" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#5a6cc8"/><stop offset=".6" stop-color="#2a3170"/><stop offset="1" stop-color="#141a40"/></radialGradient>
-  <linearGradient id="${p}jr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${jer}"/><stop offset="1" stop-color="${jer}" stop-opacity=".82"/></linearGradient>
-  <linearGradient id="${p}rw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d6e2ec"/></linearGradient>
-  <linearGradient id="${p}rr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8080"/><stop offset="1" stop-color="#e2384a"/></linearGradient>
-  <radialGradient id="${p}gl" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#eafdff"/><stop offset=".5" stop-color="#5fd3f5"/><stop offset="1" stop-color="#1b8fc6"/></radialGradient>
-  <clipPath id="${p}bc"><path d="${BODY}"/></clipPath>
- </defs>
- <g stroke-linejoin="round" transform="translate(0,${dy})">
- ${swim?ring(false):''}
- <!-- 뒤쪽 다리 / 팔 -->
- ${soccer?`<path d="M80,168 C70,176 60,180 50,180" stroke="${O}" stroke-width="20" stroke-linecap="round" fill="none"/><path d="M80,168 C70,176 60,180 50,180" stroke="url(#${p}dk)" stroke-width="14" stroke-linecap="round" fill="none"/><path d="M48,170 C40,172 36,182 40,190 C46,194 54,190 56,182Z" fill="url(#${p}dk)" stroke="${O}" stroke-width="${sw}"/>`:''}
- ${!swim&&!soccer?`<path d="M70,196 C68,186 76,180 86,182 C94,184 96,194 92,198Z" fill="url(#${p}dk)" stroke="${O}" stroke-width="${sw}"/>`:''}
- ${arm('M100,112 C92,100 88,90 84,78','url(#'+p+'dk)')}${hand(84,76,-20,soccer)}
- <!-- 꼬리 -->
- <path d="M66,126 C46,124 24,132 6,150 C4,153 6,156 10,155 C30,152 50,156 68,156Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/>
- <path d="M60,134 C44,134 30,140 18,148" stroke="#fff" stroke-width="3" opacity=".3" fill="none" stroke-linecap="round"/>
- ${spike(54,128,-70,.75)}${spike(66,108,-48,.95)}${spike(80,96,-25,1.05)}
- <!-- 몸 -->
- <path d="${BODY}" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/>
- <g clip-path="url(#${p}bc)">
-  <ellipse cx="80" cy="176" rx="40" ry="16" fill="#1f6b36" opacity=".22"/>
-  <path d="M98,104 C118,108 132,128 130,152 C128,172 112,182 98,180 C84,176 80,140 98,104Z" fill="url(#${p}bl)" stroke="#bcd88c" stroke-width="2"/>
-  ${[120,134,148,162].map((y,i)=>`<path d="M${92-i},${y} Q${110},${y+6} ${129-i*.5},${y-2}" stroke="#c6dd98" stroke-width="2.2" fill="none"/>`).join('')}
-  ${soccer?`<rect x="40" y="90" width="110" height="64" fill="url(#${p}jr)"/><rect x="84" y="90" width="8" height="64" fill="#fff" opacity=".9"/><rect x="118" y="90" width="8" height="64" fill="#fff" opacity=".9"/>
-   <rect x="40" y="152" width="110" height="40" fill="#1f2f6b"/><rect x="40" y="152" width="110" height="3.5" fill="#fff" opacity=".7"/><path d="M60,100 C80,94 110,94 132,104" stroke="#fff" stroke-width="5" opacity=".25" fill="none"/>
-   <text x="106" y="142" font-size="24" text-anchor="middle" fill="#fff" stroke="#1f2f6b" stroke-width="3.5" paint-order="stroke" font-weight="900" style="font-family:Jua,sans-serif">10</text>`:''}
-  <path d="M70,104 C80,96 96,94 108,96" stroke="#fff" stroke-width="5" opacity=".3" fill="none" stroke-linecap="round"/>
- </g>
- <path d="${BODY}" fill="none" stroke="${O}" stroke-width="${sw}"/>
- <!-- 앞쪽 다리 -->
- ${swim?'':`<ellipse cx="112" cy="168" rx="17" ry="15" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/><path d="M98,196 C96,186 104,180 116,181 C128,182 134,190 130,198Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/><path d="M106,197 l0,-5 M115,198 l0,-5 M124,197 l0,-5" stroke="${O}" stroke-width="2.4" stroke-linecap="round"/>`}
- <!-- 머리 -->
- ${spike(104,42,-14,1)}${spike(122,36,4,1.05)}${spike(141,35,18,.9)}
- <path d="M96,100 C86,72 98,40 132,35 L160,35 C179,35 190,48 190,64 L190,78 C190,94 180,104 164,106 L132,108 C114,110 100,108 96,100Z" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>
- <path d="M108,52 C116,42 134,40 152,41" stroke="#fff" stroke-width="5" opacity=".35" fill="none" stroke-linecap="round"/>
- <path d="M104,100 C112,106 130,108 150,106" stroke="#2f8a44" stroke-width="2.5" opacity=".5" fill="none"/>
- <!-- 눈 -->
- <ellipse cx="141" cy="63" rx="14" ry="15.5" fill="#fff" stroke="${O}" stroke-width="2.6"/>
- <ellipse cx="144" cy="65" rx="9.5" ry="10.5" fill="url(#${p}ir)"/><circle cx="145" cy="66" r="5" fill="#0d1030"/>
- <circle cx="148.5" cy="60.5" r="3.6" fill="#fff"/><circle cx="140.5" cy="70.5" r="1.8" fill="#fff" opacity=".9"/>
- <path d="M126,50 C134,44 148,44 156,50" stroke="${O}" stroke-width="3" fill="none" stroke-linecap="round"/>
- ${swim?`<path d="M94,46 C120,34 162,32 190,40" stroke="#1d4f8a" stroke-width="7" fill="none" stroke-linecap="round"/>
-  <g transform="rotate(-6 150 36)"><circle cx="134" cy="38" r="11" fill="url(#${p}gl)" stroke="#1d4f8a" stroke-width="4"/><circle cx="162" cy="38" r="11" fill="url(#${p}gl)" stroke="#1d4f8a" stroke-width="4"/><path d="M145,38 h6" stroke="#1d4f8a" stroke-width="4"/>
-  <path d="M128,33 a7,7 0 0 1 8,-3 M156,33 a7,7 0 0 1 8,-3" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`:''}
- <ellipse cx="178" cy="54" rx="2.4" ry="1.8" fill="${O}"/>
- <ellipse cx="128" cy="84" rx="9" ry="5.5" fill="#ff8aa0" opacity=".55"/>
- <!-- 입 -->
- <path d="M138,86 C150,92 168,92 184,82 C182,96 170,104 158,104 C148,104 140,96 138,86Z" fill="#8a2333" stroke="${O}" stroke-width="2.6"/>
- <path d="M150,98 C156,94 166,94 172,98 C168,103 156,104 150,98Z" fill="#ff8a96"/>
- <path d="M146,88.5 l3,5 l3,-4 M172,88 l3,4.5 l3,-5.5" fill="#fff" stroke="#fff" stroke-width="1" stroke-linejoin="round"/>
- <!-- 앞쪽 팔 -->
- ${swim?arm('M120,120 C134,124 150,122 168,112','url(#'+p+'bd)')+hand(170,110,60,false)
-   :soccer?arm('M120,120 C140,126 160,124 174,112','url(#'+p+'jr)')+hand(177,108,40,true)
-   :arm('M120,120 C130,126 138,128 146,126','url(#'+p+'bd)')+hand(148,124,90,false)}
- ${swim?ring(true)+`<g fill="#e8fbff" stroke="#9fd9ef" stroke-width="1.2"><path d="M180,104 q4,-8 6,0 q-3,4 -6,0Z"/><path d="M188,118 q3,-6 5,0 q-2,3 -5,0Z"/><path d="M60,74 q3,-6 5,0 q-2,3 -5,0Z"/></g>`:''}
- ${soccer?`<g stroke="#ffd23f" stroke-width="3.5" stroke-linecap="round"><path d="M184,96 l8,-6 M188,110 l9,1 M178,92 l2,-9"/><path d="M70,66 l-6,-8 M64,78 l-10,-2"/></g>`:''}
+// ================= 티라노매스 친구들 v3 (참고 그림 느낌: 넓은 볼털 머리 · 크림색 얼굴 마스크 · 통통한 몸) =================
+const CHARS={
+ tyrano:{no:7,gk:1,name:'티라노',body:'#5fbf6a',mask:'#eaf6c6'},
+ turtle:{no:3,gk:13,name:'거북이',body:'#76c79a',mask:'#f4f0c4',shell:'#b07a42'},
+ rabbit:{no:11,gk:21,name:'토끼',body:'#cfc6c0',mask:'#ffffff',inner:'#ffb3c6'},
+ baekgu:{no:9,gk:23,name:'백구',body:'#e6c896',mask:'#ffffff',inner:'#f6b2b8'},
+ sapsal:{no:5,gk:31,name:'삽살개',body:'#a87b52',mask:'#efdcb8',fur:'#c9a272'},
+ fennec:{no:17,gk:99,name:'사막여우',body:'#eab066',mask:'#fff4e2',inner:'#ffd9b8'}};
+const CHAR_KEYS=Object.keys(CHARS);
+function _mix(c,t,a){const h=x=>parseInt(x,16);const r=h(c.slice(1,3)),g=h(c.slice(3,5)),b=h(c.slice(5,7)),R=h(t.slice(1,3)),G=h(t.slice(3,5)),B=h(t.slice(5,7));
+ const f=(x,y)=>Math.round(x+(y-x)*a).toString(16).padStart(2,'0');return '#'+f(r,R)+f(g,G)+f(b,B);}
+function chara(kind,p,opt={}){const C=CHARS[kind]||CHARS.tyrano,O='#26262e',SW=4.2;
+ const pose=opt.pose||'stand',jer=opt.jersey||null,back=!!opt.back;
+ const KIT=Object.assign({stripe:'#fff',num:String(C.no),shorts:'#1f2f6b',glove:null,sock:null},opt.kit||{});
+ const col=C.body,lt=_mix(col,'#ffffff',.4),dk=_mix(col,'#000000',.25),M=C.mask,Md=_mix(M,'#8a7a60',.18);
+ let LID=0;const f=v=>v.toFixed(1);
+ // ---------- 팔다리: 통통한 원통 + 크림색 손발(손가락 선) ----------
+ function limb(P,w0,w1,o2={}){const [x0,y0,a1,b1,a2,b2,x3,y3]=P;const N=14,L=[],R=[];const id=p+'l'+(LID++);
+  const pt=t=>{const u=1-t;return [u*u*u*x0+3*u*u*t*a1+3*u*t*t*a2+t*t*t*x3,u*u*u*y0+3*u*u*t*b1+3*u*t*t*b2+t*t*t*y3];};
+  for(let i=0;i<=N;i++){const t=i/N,[x,y]=pt(t),[xa,ya]=pt(Math.max(0,t-.02)),[xb,yb]=pt(Math.min(1,t+.02));let dx=xb-xa,dy=yb-ya;const l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;
+   const w=(w0+(w1-w0)*Math.pow(t,.8))/2;L.push([x-dy*w,y+dx*w]);R.push([x+dy*w,y-dx*w]);}
+  const r=w1/2,r0=w0/2;const [ex,ey]=pt(1),[px,py]=pt(.92);let dx=ex-px,dy=ey-py;const l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;
+  const D=`M${f(R[0][0])},${f(R[0][1])} A${r0},${r0} 0 0 0 ${f(L[0][0])},${f(L[0][1])} `+L.slice(1).map(q=>`L${f(q[0])},${f(q[1])}`).join(' ')+` A${r},${r} 0 0 0 ${f(R[N][0])},${f(R[N][1])} `+R.slice(0,N).reverse().map(q=>`L${f(q[0])},${f(q[1])}`).join(' ')+'Z';
+  const tx=ex+dx*r,ty=ey+dy*r,pl=o2.paw||r*1.05,cx=tx-dx*pl,cy=ty-dy*pl;
+  const end=o2.shoe?'#23262e':(o2.glove||M);
+  const lines=o2.shoe?`<path d="M${f(tx-dy*r*.6)},${f(ty+dx*r*.6)} l${f(dx*3)},${f(dy*3)} M${f(tx)},${f(ty)} l${f(dx*3)},${f(dy*3)} M${f(tx+dy*r*.6)},${f(ty-dx*r*.6)} l${f(dx*3)},${f(dy*3)}" stroke="#c9d0d8" stroke-width="2.4" stroke-linecap="round"/>`
+   :[-.3,.3].map(k=>`<path d="M${f(tx-dy*r*2*k)},${f(ty+dx*r*2*k)} l${f(-dx*7)},${f(-dy*7)}" stroke="${O}" stroke-width="2.4" stroke-linecap="round"/>`).join('');
+  return `<clipPath id="${id}"><path d="${D}"/></clipPath><path d="${D}" fill="url(#${p}b)"/><g clip-path="url(#${id})">
+   ${o2.sleeve?`<circle cx="${x0}" cy="${y0}" r="${o2.sleeve}" fill="${jer}"/><circle cx="${x0}" cy="${y0}" r="${o2.sleeve}" fill="none" stroke="${KIT.stripe}" stroke-width="3.5"/>`:''}
+   ${o2.sock?`<circle cx="${cx}" cy="${cy}" r="${pl+11}" fill="${KIT.sock||jer}"/><circle cx="${cx}" cy="${cy}" r="${pl+6}" fill="none" stroke="#fff" stroke-width="3"/>`:''}
+   <ellipse cx="${cx}" cy="${cy}" rx="${pl*1.15}" ry="${pl}" transform="rotate(${f(Math.atan2(dy,dx)*180/Math.PI+90)} ${f(cx)} ${f(cy)})" fill="${end}"/>
+   <path d="M${f(L[2][0])},${f(L[2][1])} L${f(L[N-4][0])},${f(L[N-4][1])}" stroke="#fff" stroke-width="3" opacity=".22" stroke-linecap="round"/></g>
+   ${lines}<path d="${D}" fill="none" stroke="${O}" stroke-width="${SW}" stroke-linejoin="round"/>`;}
+ const mir=P=>P.map((v,i)=>i%2?v:200-v);
+ const AP={stand:[70,140,52,142,40,160,42,184],ready:[70,140,54,146,46,164,46,184],swim:[70,138,40,136,12,122,2,94],fists:[70,138,40,136,10,118,-2,74],
+  plane:[70,140,46,134,24,128,4,124],heart:[70,138,-10,124,-8,4,84,-2],keeper:[70,138,40,134,14,124,-6,104]};
+ let aL,aR;
+ if(pose==='dance'){aL=[70,142,52,152,38,166,24,180];aR=[130,138,164,132,190,104,198,66];}
+ else if(pose==='kick'){aL=[70,138,40,136,16,126,-4,114];aR=[130,140,148,148,156,162,160,180];}
+ else{aL=AP[pose==='kneel'?'fists':pose]||AP.stand;aR=mir(aL);}
+ const arms=[aL,aR].map(P=>limb(P,30,24,{sleeve:jer?30:0,paw:KIT.glove?15:12,glove:KIT.glove})).join('');
+ const lg=P=>limb(P,30,30,{paw:12,sock:!!jer,shoe:!!jer});
+ let legs;
+ if(pose==='kneel')legs=lg([82,184,81,192,80,198,80,206])+lg(mir([82,184,81,192,80,198,80,206]));
+ else if(pose==='plane')legs=lg([82,184,74,194,62,198,46,194])+lg([118,184,122,196,126,204,128,214]);
+ else if(pose==='fists'||pose==='dance')legs=lg([82,184,76,194,66,200,52,200])+lg(mir([82,184,82,194,82,202,82,214]));
+ else if(pose==='keeper')legs=lg([82,184,72,194,64,204,58,214])+lg(mir([82,184,72,194,64,204,58,214]));
+ else if(pose==='kick')legs=lg([82,184,82,194,82,202,82,214])+lg([118,184,128,176,136,166,140,152]);
+ else legs=lg([82,184,82,194,82,202,82,214])+lg(mir([82,184,82,194,82,202,82,214]));
+ // ---------- 머리 ----------
+ const tuft=kind==='baekgu'||kind==='fennec'||kind==='rabbit';
+ const shag=(()=>{let d='';const n=22;for(let i=0;i<=n;i++){const a=-Math.PI/2+i*2*Math.PI/n,m=a+Math.PI/n;
+   const P1=[100+74*Math.cos(a),82+58*Math.sin(a)],P2=[100+84*Math.cos(m),82+66*Math.sin(m)];
+   if(!i){d='M'+f(P1[0])+','+f(P1[1]);}else{d+=` L${f(P1[0])},${f(P1[1])}`;}
+   if(i<n)d+=` Q${f(100+80*Math.cos(a+Math.PI/n*.4))},${f(82+62*Math.sin(a+Math.PI/n*.4))} ${f(P2[0])},${f(P2[1])}`;}return d+'Z';})();
+ const HEAD={smooth:'M100,22 C142,22 172,46 172,82 C172,116 140,136 100,136 C60,136 28,116 28,82 C28,46 58,22 100,22Z',
+  tuft:'M100,22 C142,22 170,44 172,76 C174,84 176,90 184,96 C176,99 174,103 178,111 C170,111 166,114 165,119 C150,131 128,138 100,138 C72,138 50,131 35,119 C34,114 30,111 22,111 C26,103 24,99 16,96 C24,90 26,84 28,76 C30,44 58,22 100,22Z',
+  turtle:'M100,28 C138,28 164,50 164,84 C164,116 136,134 100,134 C64,134 36,116 36,84 C36,50 62,28 100,28Z'};
+ const headD=kind==='sapsal'?shag:kind==='turtle'?HEAD.turtle:tuft?HEAD.tuft:HEAD.smooth;
+ const maskD=kind==='fennec'?'M10,98 C24,74 56,66 80,76 C90,80 96,72 100,62 C104,72 110,80 120,76 C144,66 176,74 190,98 C178,130 140,144 100,144 C60,144 22,130 10,98Z'
+  :kind==='tyrano'||kind==='turtle'?'M24,106 C40,92 66,92 100,94 C134,92 160,92 176,106 C168,130 136,142 100,142 C64,142 32,130 24,106Z'
+  :'M10,92 C22,66 52,58 76,66 C88,70 94,62 100,50 C106,62 112,70 124,66 C148,58 178,66 190,92 C182,126 142,144 100,144 C58,144 18,126 10,92Z';
+ const EAR={
+  baekgu:`<path d="M38,62 C32,34 40,10 56,0 C70,8 86,26 92,38Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M50,50 C48,32 52,18 58,12 C66,20 74,30 80,38Z" fill="${C.inner}"/>
+   <path d="M162,62 C168,34 160,10 144,0 C130,8 114,26 108,38Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M150,50 C152,32 148,18 142,12 C134,20 126,30 120,38Z" fill="${C.inner}"/>`,
+  fennec:`<path d="M42,70 C22,40 12,4 18,-26 C46,-14 78,10 94,36Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M48,56 C34,34 28,10 30,-10 C50,0 70,18 82,36Z" fill="${C.inner}"/>
+   <path d="M158,70 C178,40 188,4 182,-26 C154,-14 122,10 106,36Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M152,56 C166,34 172,10 170,-10 C150,0 130,18 118,36Z" fill="${C.inner}"/>`,
+  rabbit:`<path d="M66,40 C54,10 52,-24 66,-34 C82,-30 88,4 84,36Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M70,30 C62,8 62,-16 68,-24 C76,-18 78,6 78,30Z" fill="${C.inner}"/>
+   <path d="M134,40 C146,10 148,-24 134,-34 C118,-30 112,4 116,36Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M130,30 C138,8 138,-16 132,-24 C124,-18 122,6 122,30Z" fill="${C.inner}"/>`,
+  tyrano:[[70,30,-30,1],[100,20,0,1.2],[130,30,30,1]].map(([x,y,a,s])=>`<path d="M-12,8 C-8,-4 -3,-14 0,-20 C3,-14 8,-4 12,8Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="3.6" stroke-linejoin="round" transform="translate(${x},${y}) rotate(${a}) scale(${s})"/>`).join('')};
+ const FLOP=kind==='sapsal'?`<path d="M34,54 C10,62 4,108 18,134 C28,148 46,140 48,122 C50,100 50,74 34,54Z" fill="${dk}" stroke="${O}" stroke-width="${SW}"/>
+  <path d="M166,54 C190,62 196,108 182,134 C172,148 154,140 152,122 C150,100 150,74 166,54Z" fill="${dk}" stroke="${O}" stroke-width="${SW}"/>`:'';
+ const TAIL={
+  tyrano:`<path d="M134,170 C158,176 180,168 194,148 C198,144 202,148 200,154 C192,184 164,198 132,194Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/>
+   ${[[168,170,40],[186,156,55]].map(([x,y,a])=>`<path d="M-7,5 L0,-10 L7,5Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="3" stroke-linejoin="round" transform="translate(${x},${y}) rotate(${a})"/>`).join('')}`,
+  baekgu:`<path d="M138,176 C164,180 178,160 170,142 C164,130 148,134 152,146 C156,156 148,164 138,164Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/>`,
+  fennec:`<path d="M136,188 C172,194 198,172 196,144 C194,126 176,124 174,138 C172,160 158,170 136,170Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M176,134 C178,124 194,124 196,140 C196,148 194,154 190,158 C186,150 182,142 176,134Z" fill="#3a2a22"/>`,
+  rabbit:`<circle cx="150" cy="188" r="14" fill="#fff" stroke="${O}" stroke-width="${SW}"/>`,
+  sapsal:`<path d="M138,184 C160,188 172,174 170,158 C164,166 154,170 140,170Z" fill="${C.fur}" stroke="${O}" stroke-width="${SW}"/>`,
+  turtle:`<path d="M146,188 C160,192 168,186 166,178" stroke="${O}" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M146,188 C160,192 168,186 166,178" stroke="${col}" stroke-width="6" fill="none" stroke-linecap="round"/>`};
+ const bodyD='M60,196 C42,170 46,132 72,120 L128,120 C154,132 158,170 140,196 C124,206 76,206 60,196Z';
+ const shellBack=kind==='turtle'?`<path d="M44,194 C28,152 40,112 100,108 C160,112 172,152 156,194 C130,208 70,208 44,194Z" fill="url(#${p}sh)" stroke="${O}" stroke-width="${SW}"/>
+  <path d="M50,150 l14,-8 M150,150 l-14,-8 M48,174 l14,-2 M152,174 l-14,-2" stroke="#6a4420" stroke-width="3" stroke-linecap="round"/>`:'';
+ const belly=kind==='turtle'?`<path d="M72,190 C66,160 74,132 100,130 C126,132 134,160 128,190 C116,198 84,198 72,190Z" fill="${M}" stroke="${O}" stroke-width="2.6"/><path d="M74,152 h52 M72,172 h56 M100,132 v62" stroke="#c9b25a" stroke-width="2.4"/>`
+  :`<path d="M70,188 C62,160 72,134 100,132 C128,134 138,160 130,188 C118,198 82,198 70,188Z" fill="url(#${p}m)"/>${kind==='tyrano'?`<path d="M78,152 q22,6 44,0 M74,170 q26,6 52,0" stroke="${Md}" stroke-width="2.4" fill="none"/>`:''}`;
+ const jersey=jer?`<g clip-path="url(#${p}bc)"><rect x="30" y="110" width="140" height="68" fill="${jer}"/>${back?'':`<rect x="78" y="110" width="9" height="68" fill="${KIT.stripe}" opacity=".92"/><rect x="113" y="110" width="9" height="68" fill="${KIT.stripe}" opacity=".92"/>`}
+   <rect x="30" y="176" width="140" height="36" fill="${KIT.shorts}"/><rect x="30" y="176" width="140" height="3.5" fill="#fff" opacity=".7"/></g>
+   ${back?'':`<path d="M84,122 L100,136 L116,122" stroke="${KIT.stripe}" stroke-width="6" fill="none" stroke-linejoin="round"/>`}
+   <text x="100" y="${back?170:166}" font-size="${back?40:26}" text-anchor="middle" fill="#fff" stroke="#1f2f6b" stroke-width="${back?5:4}" paint-order="stroke" font-weight="900" style="font-family:Jua,sans-serif">${KIT.num}</text>`:'';
+ // ---------- 얼굴 ----------
+ const eye=(x,y,s=1)=>`<ellipse cx="${x}" cy="${y}" rx="${7.6*s}" ry="${9.6*s}" fill="#1e1e26"/><ellipse cx="${x}" cy="${y+2*s}" rx="${5.5*s}" ry="${6.5*s}" fill="#4a3426" opacity=".55"/><circle cx="${x+2.6*s}" cy="${y-3.4*s}" r="${3.1*s}" fill="#fff"/><circle cx="${x-2.4*s}" cy="${y+4*s}" r="${1.3*s}" fill="#fff" opacity=".9"/>`;
+ const eyes=kind==='sapsal'?eye(74,94,.9)+eye(126,94,.9):eye(71,85,1.18)+eye(129,85,1.18);
+ const flatNose=kind==='tyrano'||kind==='turtle';
+ const nose=kind==='rabbit'?`<path d="M94,100 Q100,97 106,100 Q103,106 100,106 Q97,106 94,100Z" fill="#ff8aa6" stroke="${O}" stroke-width="1.8"/>`
+  :flatNose?`<ellipse cx="92" cy="102" rx="2.6" ry="1.8" fill="${O}"/><ellipse cx="108" cy="102" rx="2.6" ry="1.8" fill="${O}"/>`
+  :`<path d="M91,99 Q100,94 109,99 Q106,107 100,108 Q94,107 91,99Z" fill="${O}"/><ellipse cx="97" cy="98.5" rx="3" ry="1.4" fill="#fff" opacity=".65"/>`;
+ const mouth=`<path d="M100,${flatNose?105:107} v4" stroke="${O}" stroke-width="2.2" stroke-linecap="round"/>
+  <ellipse cx="100" cy="120" rx="7.5" ry="9" fill="#7a2230" stroke="${O}" stroke-width="2.4"/><ellipse cx="100" cy="125" rx="5" ry="3.6" fill="#f08a9a"/>
+  ${kind==='rabbit'?`<rect x="95.5" y="110" width="9" height="6" rx="1.5" fill="#fff" stroke="${O}" stroke-width="1.6"/><path d="M100,110 v6" stroke="${O}" stroke-width="1.2"/>`:''}
+  ${kind==='tyrano'?`<path d="M94,112 l2,4 l2,-3 M102,112 l2,3 l2,-4" fill="#fff" stroke="#fff" stroke-width="1"/>`:''}`;
+ const blush=`<ellipse cx="54" cy="106" rx="9" ry="5" fill="#ff8aa6" opacity=".35"/><ellipse cx="146" cy="106" rx="9" ry="5" fill="#ff8aa6" opacity=".35"/>`;
+ let extraFace='';
+ if(kind==='rabbit')extraFace=`<path d="M70,108 l-24,-4 M70,113 l-24,3 M130,108 l24,-4 M130,113 l24,3" stroke="#a9a09a" stroke-width="1.8" stroke-linecap="round"/>`;
+ if(kind==='fennec')extraFace=`<path d="M66,110 l-22,0 M68,116 l-20,6 M134,110 l22,0 M132,116 l20,6" stroke="#c9a070" stroke-width="1.6" stroke-linecap="round"/>`;
+ if(kind==='baekgu')extraFace=`<ellipse cx="74" cy="66" rx="6" ry="3.4" fill="#e3c48e"/><ellipse cx="126" cy="66" rx="6" ry="3.4" fill="#e3c48e"/>`;
+ if(kind==='tyrano')extraFace=`<path d="M58,68 q14,-8 28,0 M114,68 q14,-8 28,0" stroke="${dk}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+ if(kind==='turtle')extraFace=`<path d="M84,42 l16,-8 l16,8 l-4,14 h-24Z M60,58 l14,-8 l6,12 l-12,8Z M140,58 l-14,-8 l-6,12 l12,8Z" fill="${lt}" stroke="${dk}" stroke-width="2.4" stroke-linejoin="round" opacity=".85"/>`;
+ const bangs=kind==='sapsal'?`<path d="M26,84 C28,46 60,24 100,24 C140,24 172,46 174,84 C166,74 160,76 156,86 C150,74 142,74 138,88 C132,76 124,76 120,90 C114,78 106,76 100,90 C94,76 86,78 80,90 C76,76 68,74 62,88 C58,74 50,74 44,86 C40,76 34,74 26,84Z" fill="url(#${p}fr)" stroke="${O}" stroke-width="3.4" stroke-linejoin="round"/>
+  <path d="M54,50 q6,14 2,26 M78,38 q6,16 2,30 M100,34 q4,16 0,32 M122,38 q-6,16 -2,30 M146,50 q-6,14 -2,26" stroke="${dk}" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M64,124 q4,10 0,18 M136,124 q-4,10 0,18" stroke="${Md}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`:'';
+ const gog=opt.goggles?`<path d="M28,70 C44,50 74,42 100,42 C126,42 156,50 172,70" stroke="${O}" stroke-width="${12+SW}" fill="none"/><path d="M28,70 C44,50 74,42 100,42 C126,42 156,50 172,70" stroke="#3a3f52" stroke-width="12" fill="none"/>
+  ${[[76,46],[124,46]].map(([x,y])=>`<rect x="${x-21}" y="${y-13}" width="42" height="26" rx="13" fill="url(#${p}gl)" stroke="${O}" stroke-width="${SW}"/><rect x="${x-15}" y="${y-8}" width="30" height="16" rx="8" fill="none" stroke="#e6fbff" stroke-width="2" opacity=".6"/><path d="M${x-12},${y-4} q8,-6 18,-4" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round"/>`).join('')}
+  <path d="M97,46 h6" stroke="${O}" stroke-width="6"/>`:'';
+ const ringP=fr=>fr?'M14,170 A86,24 0 0 0 186,170':'M14,170 A86,24 0 0 1 186,170';
+ const ring=fr=>`<path d="${ringP(fr)}" fill="none" stroke="${O}" stroke-width="${28+SW*2}"/><path d="${ringP(fr)}" fill="none" stroke="url(#${p}rw)" stroke-width="28"/><path d="${ringP(fr)}" fill="none" stroke="#ff5a64" stroke-width="28" stroke-dasharray="36 30" stroke-dashoffset="${fr?14:-8}"/>${fr?`<path d="M30,178 A72,18 0 0 0 96,192" stroke="#fff" stroke-width="5" fill="none" opacity=".8" stroke-linecap="round"/>`:''}`;
+ const heart=pose==='heart'?`<path d="M100,-26 C92,-36 76,-30 80,-19 C84,-11 100,-2 100,-2 C100,-2 116,-11 120,-19 C124,-30 108,-36 100,-26Z" fill="#ff5a8a" stroke="${O}" stroke-width="3"/>`:'';
+ const defs=`<defs>
+  <radialGradient id="${p}b" cx="${back?.62:.38}" cy=".28" r=".95"><stop offset="0" stop-color="${lt}"/><stop offset=".5" stop-color="${col}"/><stop offset="1" stop-color="${dk}"/></radialGradient>
+  <radialGradient id="${p}m" cx=".5" cy=".3" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="${M}"/><stop offset="1" stop-color="${Md}"/></radialGradient>
+  <linearGradient id="${p}sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc35a"/><stop offset="1" stop-color="#f07a22"/></linearGradient>
+  <radialGradient id="${p}sh" cx=".4" cy=".3" r=".9"><stop offset="0" stop-color="#d9a066"/><stop offset=".6" stop-color="${C.shell||'#b07a42'}"/><stop offset="1" stop-color="#7a4f26"/></radialGradient>
+  <linearGradient id="${p}fr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${C.fur||col}"/><stop offset="1" stop-color="${col}"/></linearGradient>
+  <linearGradient id="${p}gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d6f6ff"/><stop offset=".5" stop-color="#6cc6f0"/><stop offset="1" stop-color="#2a6fb0"/></linearGradient>
+  <linearGradient id="${p}rw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfdbe6"/></linearGradient>
+  <clipPath id="${p}hc"><path d="${headD}"/></clipPath><clipPath id="${p}bc"><path d="${bodyD}"/></clipPath></defs>`;
+ const shadowE=opt.shadow===false?'':`<ellipse cx="100" cy="216" rx="66" ry="7" fill="#000" opacity=".22"/>`;
+ const bodyBlock=`<path d="${bodyD}" fill="url(#${p}b)"/>${back?'':belly}<g clip-path="url(#${p}bc)"><ellipse cx="100" cy="122" rx="60" ry="10" fill="#000" opacity=".16"/></g>${jersey}<path d="${bodyD}" fill="none" stroke="${O}" stroke-width="${SW}"/>`;
+ if(back){
+  const numShell=kind==='turtle'&&jer?`<circle cx="100" cy="158" r="22" fill="${jer}" stroke="#fff" stroke-width="3"/><text x="100" y="170" font-size="32" text-anchor="middle" fill="#fff" stroke="#1f2f6b" stroke-width="4.5" paint-order="stroke" font-weight="900" style="font-family:Jua,sans-serif">${KIT.num}</text>`:'';
+  const tailB={tyrano:`<path d="M84,184 C82,204 92,222 112,228 C120,230 124,224 118,220 C106,214 104,200 116,186Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/>`,
+   rabbit:`<circle cx="100" cy="194" r="14" fill="#fff" stroke="${O}" stroke-width="${SW}"/>`,
+   baekgu:`<path d="M96,198 C84,188 92,172 106,176 C116,180 114,194 104,192 C98,191 99,184 104,184" fill="none" stroke="${O}" stroke-width="16" stroke-linecap="round"/><path d="M96,198 C84,188 92,172 106,176 C116,180 114,194 104,192 C98,191 99,184 104,184" fill="none" stroke="${lt}" stroke-width="8" stroke-linecap="round"/>`,
+   fennec:`<path d="M100,182 C80,198 84,228 106,234 C126,238 134,218 122,198 C116,188 108,182 100,182Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M96,224 C98,234 116,238 124,226 C120,236 104,238 96,224Z" fill="#3a2a22"/>`,
+   sapsal:`<path d="M100,178 C86,186 86,208 100,214 C114,208 114,186 100,178Z" fill="${C.fur}" stroke="${O}" stroke-width="${SW}"/>`,
+   turtle:`<path d="M96,198 L100,214 L104,198Z" fill="${col}" stroke="${O}" stroke-width="3"/>`}[kind]||'';
+  const shellB=kind==='turtle'?`<path d="M50,194 C38,154 52,116 100,112 C148,116 162,154 150,194 C128,208 72,208 50,194Z" fill="url(#${p}sh)" stroke="${O}" stroke-width="${SW}"/>
+   <path d="M100,126 L118,138 L114,160 L86,160 L82,138Z M100,126 V114 M118,138 L142,130 M82,138 L58,130 M114,160 L134,180 M86,160 L66,180" fill="none" stroke="#6a4420" stroke-width="3" stroke-linejoin="round"/>`:'';
+  const ridge=kind==='tyrano'?[[100,20,1.2],[100,44,.8],[100,64,.6]].map(([x,y,s])=>`<path d="M-12,8 C-8,-4 -3,-14 0,-20 C3,-14 8,-4 12,8Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="3.4" stroke-linejoin="round" transform="translate(${x},${y}) scale(${s})"/>`).join(''):'';
+  const hairB=kind==='sapsal'?`<path d="M52,60 q8,12 4,24 M74,42 q8,14 4,28 M100,36 q6,16 0,32 M126,42 q-8,14 -4,28 M148,60 q-8,12 -4,24" stroke="${dk}" stroke-width="3" fill="none" stroke-linecap="round"/>`:'';
+  const earsB=kind==='tyrano'?'':(EAR[kind]||'').split(`fill="${C.inner}"`).join(`fill="${dk}" opacity=".3"`);
+  return `${defs}<g stroke-linejoin="round">${shadowE}${earsB}${FLOP}${legs}${arms}${bodyBlock}${shellB}${numShell}${tailB}
+   <path d="${headD}" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><ellipse cx="124" cy="44" rx="22" ry="9" fill="#fff" opacity=".28" transform="rotate(14 124 44)"/>${hairB}${ridge}</g>`;}
+ return `${defs}<g stroke-linejoin="round">${shadowE}
+  ${opt.ring?ring(false):''}
+  ${TAIL[kind]||''}${shellBack}${EAR[kind]||''}${FLOP}
+  ${opt.ring?'':legs}
+  ${arms}
+  ${bodyBlock}
+  <path d="${headD}" fill="url(#${p}b)"/>
+  <g clip-path="url(#${p}hc)"><path d="${maskD}" fill="url(#${p}m)"/></g>
+  <path d="${headD}" fill="none" stroke="${O}" stroke-width="${SW}"/>
+  <ellipse cx="76" cy="40" rx="22" ry="8" fill="#fff" opacity=".3" transform="rotate(-14 76 40)"/>
+  ${extraFace}${blush}${eyes}${bangs}${nose}${mouth}${gog}
+  ${heart}
+  ${opt.water?`<path d="M2,178 C30,170 54,184 80,176 C110,168 140,184 198,174 L198,232 L2,232Z" fill="#3aa8e0" opacity=".42"/>`:''}
+  ${opt.ring?ring(true):''}
+  ${opt.water?`<path d="M2,182 C30,174 54,188 80,180 M120,180 C146,188 170,174 198,182" stroke="#fff" stroke-width="3.5" fill="none" opacity=".8" stroke-linecap="round"/>`:''}
  </g>`;}
-// ---------- 수영하는 티라노 (정면, 물안경을 눈에 착용) ----------
-function tyranoSwim(p){const O='#1d5631',sw=2.8;
- const spike=(x,y,a,s)=>`<g transform="translate(${x},${y}) rotate(${a}) scale(${s})"><path d="M-10,6 C-7,-6 -2,-16 0,-21 C3,-16 8,-6 10,6Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="2.3" stroke-linejoin="round"/><path d="M-3,1 C-2,-6 -1,-11 0,-15" stroke="#ffe3a6" stroke-width="2" fill="none" stroke-linecap="round"/></g>`;
- const lens=(cx,cy,flip)=>`<g>
-   <ellipse cx="${cx}" cy="${cy+1}" rx="19" ry="17" fill="#0c3b66" opacity=".35"/>
-   <ellipse cx="${cx}" cy="${cy}" rx="16.5" ry="14.5" fill="#fff"/>
-   <circle cx="${cx+(flip?-2:2)}" cy="${cy+1}" r="8.5" fill="url(#${p}ir)"/><circle cx="${cx+(flip?-2:2)}" cy="${cy+1.5}" r="4.4" fill="#0b0e2a"/>
-   <circle cx="${cx+(flip?-5:-1)}" cy="${cy-3}" r="2.6" fill="#fff"/>
-   <ellipse cx="${cx}" cy="${cy}" rx="16.5" ry="14.5" fill="url(#${p}ln)"/>
-   <ellipse cx="${cx}" cy="${cy}" rx="18.5" ry="16.5" fill="none" stroke="url(#${p}gk)" stroke-width="6"/>
-   <ellipse cx="${cx}" cy="${cy}" rx="18.5" ry="16.5" fill="none" stroke="#0e2f5c" stroke-width="1.6" opacity=".7"/>
-   <path d="M${cx-11},${cy-7} C${cx-7},${cy-12} ${cx},${cy-13} ${cx+6},${cy-11}" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round" opacity=".9"/>
-   <circle cx="${cx+9}" cy="${cy+7}" r="1.8" fill="#fff" opacity=".8"/></g>`;
- const arm=(d)=>`<path d="${d}" stroke="${O}" stroke-width="17" fill="none" stroke-linecap="round"/><path d="${d}" stroke="url(#${p}arm)" stroke-width="11.5" fill="none" stroke-linecap="round"/>`;
- const hand=(x,y,a)=>`<g transform="translate(${x},${y}) rotate(${a})"><ellipse rx="9" ry="8" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>
-   ${[-6,0,6].map(dx=>`<path d="M${dx},-5 l${dx*.4},-9" stroke="${O}" stroke-width="6" stroke-linecap="round"/><path d="M${dx},-5 l${dx*.4},-9" stroke="#79d572" stroke-width="2.8" stroke-linecap="round"/>`).join('')}</g>`;
- const ringPath=front=>front?'M22,160 A78,24 0 0 0 178,160':'M22,160 A78,24 0 0 1 178,160';
- const ring=front=>`<path d="${ringPath(front)}" fill="none" stroke="${O}" stroke-width="30"/>
-   <path d="${ringPath(front)}" fill="none" stroke="url(#${p}rw)" stroke-width="24"/>
-   <path d="${ringPath(front)}" fill="none" stroke="url(#${p}rr)" stroke-width="24" stroke-dasharray="34 30" stroke-dashoffset="${front?14:-6}"/>
-   ${front?`<path d="M36,166 A66,18 0 0 0 100,182" stroke="#fff" stroke-width="5" fill="none" opacity=".85" stroke-linecap="round"/><path d="M30,170 A72,22 0 0 0 170,170" stroke="#000" stroke-width="5" fill="none" opacity=".12"/>`:''}`;
- return `<defs>
-  <radialGradient id="${p}hd" cx=".38" cy=".28" r=".85"><stop offset="0" stop-color="#b2f29c"/><stop offset=".45" stop-color="#66cb6c"/><stop offset="1" stop-color="#2c8f45"/></radialGradient>
-  <radialGradient id="${p}bd" cx=".4" cy=".25" r=".9"><stop offset="0" stop-color="#9ee88a"/><stop offset=".55" stop-color="#58c063"/><stop offset="1" stop-color="#2a8a42"/></radialGradient>
-  <linearGradient id="${p}arm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fe07c"/><stop offset="1" stop-color="#3fa652"/></linearGradient>
-  <radialGradient id="${p}mz" cx=".45" cy=".3" r=".8"><stop offset="0" stop-color="#c6f5ac"/><stop offset="1" stop-color="#76cf72"/></radialGradient>
-  <radialGradient id="${p}bl" cx=".45" cy=".3" r=".8"><stop offset="0" stop-color="#fffef0"/><stop offset="1" stop-color="#dcecaa"/></radialGradient>
-  <linearGradient id="${p}sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc35a"/><stop offset="1" stop-color="#ee7a20"/></linearGradient>
-  <radialGradient id="${p}ir" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#6a7ad8"/><stop offset=".6" stop-color="#2a3170"/><stop offset="1" stop-color="#141a40"/></radialGradient>
-  <linearGradient id="${p}ln" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fe6ff" stop-opacity=".45"/><stop offset=".5" stop-color="#2fb6ec" stop-opacity=".22"/><stop offset="1" stop-color="#0b6fb0" stop-opacity=".45"/></linearGradient>
-  <linearGradient id="${p}gk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f9bff"/><stop offset="1" stop-color="#1a4fb8"/></linearGradient>
-  <linearGradient id="${p}st" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d86f0"/><stop offset="1" stop-color="#1a4fb8"/></linearGradient>
-  <linearGradient id="${p}rw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#e6eef5"/><stop offset="1" stop-color="#b7c6d4"/></linearGradient>
-  <linearGradient id="${p}rr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff9090"/><stop offset=".6" stop-color="#f04a56"/><stop offset="1" stop-color="#b82432"/></linearGradient>
-  <radialGradient id="${p}wt" cx=".5" cy=".2" r=".75"><stop offset="0" stop-color="#bff3ff" stop-opacity=".2"/><stop offset=".6" stop-color="#3aa8e0" stop-opacity=".55"/><stop offset="1" stop-color="#1f86d0" stop-opacity="0"/></radialGradient>
- </defs>
- <g stroke-linejoin="round">
- <!-- 물에 비친 그림자 -->
- <ellipse cx="100" cy="176" rx="92" ry="22" fill="#0b4f86" opacity=".25"/>
- ${ring(false)}
- <!-- 꼬리 끝 (뒤쪽) -->
- <path d="M142,152 C160,148 176,136 182,118 C186,112 192,116 190,124 C186,144 170,158 154,162Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/>
- <!-- 몸통 -->
- <path d="M52,170 C46,140 62,112 100,110 C138,112 154,140 148,170Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/>
- <path d="M76,170 C72,146 82,124 100,122 C118,124 128,146 124,170Z" fill="url(#${p}bl)" stroke="#b7d488" stroke-width="2"/>
- ${[136,148,160].map(y=>`<path d="M${82},${y} Q100,${y+5} ${118},${y}" stroke="#c4db93" stroke-width="2.2" fill="none"/>`).join('')}
- <!-- 머리 아래 그림자(입체감) -->
- <ellipse cx="100" cy="118" rx="42" ry="9" fill="#1d6a35" opacity=".35"/>
- <!-- 팔 (양손 흔들기) -->
- ${arm('M62,134 C48,124 40,112 34,96')}${hand(33,92,-25)}
- ${arm('M138,134 C152,124 160,112 166,96')}${hand(167,92,25)}
- <!-- 가시 -->
- ${spike(76,30,-28,.95)}${spike(100,22,0,1.1)}${spike(124,30,28,.95)}
- <!-- 머리 -->
- <path d="M100,24 C140,24 162,46 162,74 C162,104 136,118 100,118 C64,118 38,104 38,74 C38,46 60,24 100,24Z" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>
- <ellipse cx="80" cy="40" rx="20" ry="9" fill="#fff" opacity=".35" transform="rotate(-18 80 40)"/>
- <!-- 물안경 끈: 머리 옆을 감싸 뒤로 -->
- <path d="M58,60 C48,60 41,64 38.5,70" stroke="url(#${p}st)" stroke-width="8" fill="none" stroke-linecap="round"/>
- <path d="M142,60 C152,60 159,64 161.5,70" stroke="url(#${p}st)" stroke-width="8" fill="none" stroke-linecap="round"/>
- <path d="M58,57 C50,57 44,60 41,65 M142,57 C150,57 156,60 159,65" stroke="#8cc4ff" stroke-width="1.6" fill="none" opacity=".8"/>
- <!-- 주둥이 -->
- <ellipse cx="100" cy="94" rx="40" ry="22" fill="url(#${p}mz)" stroke="#3a9a4e" stroke-width="1.6"/>
- <ellipse cx="90" cy="84" rx="3" ry="2.2" fill="${O}"/><ellipse cx="110" cy="84" rx="3" ry="2.2" fill="${O}"/>
- <!-- 입 -->
- <path d="M72,94 C84,102 116,102 128,94 C126,110 114,118 100,118 C86,118 74,110 72,94Z" fill="#8a2333" stroke="${O}" stroke-width="2.4"/>
- <path d="M86,110 C92,105 108,105 114,110 C110,116 90,116 86,110Z" fill="#ff8a96"/>
- <path d="M80,97 l3,5 l3,-4 M114,97 l3,5 l3,-4" fill="#fff" stroke="#fff" stroke-width="1" stroke-linejoin="round"/>
- <ellipse cx="60" cy="88" rx="8" ry="5" fill="#ff8aa0" opacity=".5"/><ellipse cx="140" cy="88" rx="8" ry="5" fill="#ff8aa0" opacity=".5"/>
- <!-- 물안경 (눈 위에 착용) -->
- ${lens(78,60,false)}${lens(122,60,true)}
- <path d="M95,58 C98,55 102,55 105,58" stroke="url(#${p}gk)" stroke-width="5" fill="none" stroke-linecap="round"/>
- <!-- 물 (몸 아래쪽이 물에 잠김) -->
- <path d="M10,164 C40,156 70,170 100,162 C130,154 160,168 190,160 L190,210 L10,210Z" fill="url(#${p}wt)"/>
- ${ring(true)}
- <path d="M8,170 C30,162 52,174 76,168 M124,168 C148,174 170,162 192,170" stroke="#fff" stroke-width="3" fill="none" opacity=".8" stroke-linecap="round"/>
- <!-- 물방울 -->
- <g fill="#e8fbff" stroke="#7cc8ea" stroke-width="1.2">
-  <path d="M18,90 q4,-9 7,0 q-3.5,4 -7,0Z"/><path d="M182,88 q4,-9 7,0 q-3.5,4 -7,0Z"/><path d="M10,124 q3,-6 5,0 q-2.5,3 -5,0Z"/><path d="M188,126 q3,-6 5,0 q-2.5,3 -5,0Z"/></g>
- </g>`;}
+const charIcon=k=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -36 228 262">${chara(k,'i'+k,{shadow:false})}</svg>`);
 // ================= 수영장 분수 채우기 =================
 const $=id=>document.getElementById(id);
 const KEY='tyranomath-fraction-pool-v1';
@@ -452,17 +469,22 @@ function layout(){const w=$('game').querySelector('.bwrap').getBoundingClientRec
 const xr=t=>XL+(XR-XL)*t, xf=t=>FL+(FR-FL)*t;
 
 // ---------- 설정 ----------
-let cfg={den:'10',div:'self',eq:'same',num:10,sound:true};
+let cfg={char1:'tyrano',den:'10',div:'self',eq:'same',num:10,sound:true};
 try{const o=JSON.parse(localStorage.getItem(KEY)||'null');if(o&&o.den)cfg={...cfg,...o};}catch(e){}
 const saveCfg=()=>{try{localStorage.setItem(KEY,JSON.stringify(cfg));}catch(e){}};
 const SEGS=[['denSeg','den'],['divSeg','div'],['eqSeg','eq']];
-function buildLobby(){
+
+function buildChars(){const mk=(id,key)=>{const el=$(id);if(!el)return;el.innerHTML=CHAR_KEYS.map(k=>`<button data-v="${k}"><img alt="" src="${charIcon(k)}"><small>${CHARS[k].name}</small></button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{cfg[key]=b.dataset.v;sync();});};mk('ch1Seg','char1');mk('ch2Seg','char2');}
+function syncChars(){[['ch1Seg','char1'],['ch2Seg','char2']].forEach(([id,k])=>{const el=$(id);if(el)el.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg[k]));});}
+function buildLobby(){buildChars();
   SEGS.forEach(([id,k])=>document.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{cfg[k]=b.dataset.v;sync();}));
   const setNum=v=>{cfg.num=clamp(Math.round(v)||1,1,30);sync();};
   document.querySelectorAll('.numrow .nb').forEach(b=>b.onclick=()=>setNum(cfg.num+ +b.dataset.d));
   const ni=$('numIn');ni.addEventListener('change',()=>setNum(+ni.value));ni.addEventListener('blur',()=>setNum(+ni.value));ni.addEventListener('keydown',e=>{if(e.key==='Enter')ni.blur();});
   sync();}
 function sync(){cfg.num=clamp(+cfg.num||10,1,30);
+  syncChars();
   SEGS.forEach(([id,k])=>document.querySelectorAll(`#${id} button`).forEach(b=>b.classList.toggle('on',b.dataset.v===cfg[k])));
   if(document.activeElement!==$('numIn'))$('numIn').value=cfg.num;
   document.querySelectorAll('.numrow .nb').forEach(b=>{b.disabled=(+b.dataset.d<0&&cfg.num<=1)||(+b.dataset.d>0&&cfg.num>=30);});saveCfg();}
@@ -653,9 +675,9 @@ $('nextBtn').onclick=next;
 let dinoN=0;
 function dinoJump(){const idx=[...P.sel].sort((a,b)=>a-b);const C=cols();const c=C[idx[Math.floor(idx.length/2)]];const tx=(c.x0+c.x1)/2,ty=LEVEL+70;
   const w=Math.min(220,Math.max(170,(c.x1-c.x0)*2));
-  const inner=document.createElementNS(NS,'g');inner.innerHTML=`<g transform="scale(${(w/200).toFixed(3)})">${tyranoSwim('pd'+(++dinoN))}</g>`;
+  const inner=document.createElementNS(NS,'g');inner.innerHTML=`<g transform="scale(${(w/200).toFixed(3)})">${chara(cfg.char1,'pd'+(++dinoN),{pose:'swim',goggles:true,ring:true,water:true})}</g>`;
   const wrap=document.createElementNS(NS,'g');wrap.appendChild(inner);$('fx').appendChild(wrap);
-  const sx=1120,sy=BOT-60;anim(800,k=>{const x=sx+(tx-sx)*k,y=sy+(ty-sy)*k-260*Math.sin(Math.PI*k);wrap.setAttribute('transform',`translate(${x-w/2},${y-w*.8})`);},()=>{
+  const sx=1120,sy=BOT-60;anim(800,k=>{const x=sx+(tx-sx)*k,y=sy+(ty-sy)*k-260*Math.sin(Math.PI*k);wrap.setAttribute('transform',`translate(${x-w/2},${y-w*.84})`);},()=>{
     inner.setAttribute('class','bob');inner.style.transformBox='fill-box';inner.style.transformOrigin='50% 100%';
     for(let j=0;j<3;j++){const e=document.createElementNS(NS,'ellipse');e.setAttribute('cx',tx);e.setAttribute('cy',ty+4);e.setAttribute('rx',40);e.setAttribute('ry',12);e.setAttribute('class','splash');e.style.animationDelay=j*.18+'s';$('fx').appendChild(e);}
     for(let j=0;j<14;j++){const e=document.createElementNS(NS,'circle');const x=tx+rnd(-60,60);e.setAttribute('cx',x);e.setAttribute('cy',ty-rnd(0,30));e.setAttribute('r',rnd(4,9));e.setAttribute('fill','#e8fbff');

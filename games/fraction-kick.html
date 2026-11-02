@@ -169,6 +169,11 @@ button:disabled{opacity:.45}
 @keyframes rise{to{transform:translateY(-170px) scale(1.3);opacity:0}}
 .twinkle{animation:twk .9s ease-out forwards;transform-box:fill-box;transform-origin:center}
 @keyframes twk{0%{transform:scale(0)}40%{transform:scale(1.2)}to{transform:scale(0);opacity:0}}
+.g6{grid-template-columns:repeat(6,1fr)}
+@media (max-width:560px){.g6{grid-template-columns:repeat(3,1fr)}}
+.chars button{padding:.3em .2em .25em;min-height:0}
+.chars button img{width:100%;max-width:70px;aspect-ratio:220/256;height:auto;display:block;margin:0 auto .15em;pointer-events:none}
+.chars button small{font-size:.78em}
 /* ---------- 모달 / 결과 ---------- */
 .overlay{position:fixed;inset:0;background:rgba(8,30,40,.55);display:flex;align-items:center;justify-content:center;padding:14px;z-index:20;font-size:var(--ui)}
 .modal{background:var(--panel);border:2px solid var(--accent-line);border-radius:calc(var(--ui)*1.2);padding:calc(var(--ui)*1.2);
@@ -210,6 +215,11 @@ button:disabled{opacity:.45}
       <div class="grid g3" id="denSeg"><button data-v="6">쉬움<small>분모 2~6</small></button><button data-v="10">보통<small>분모 2~10</small></button><button data-v="12">어려움<small>분모 2~12</small></button></div>
       <div class="label">힘 게이지 칸</div>
       <div class="grid g2" id="eqSeg"><button data-v="same">분모와 같은 칸<small>2/6 → 6칸 중 2칸</small></button><button data-v="eq">크기가 같은 분수 섞기<small>1/3 → 6칸 중 2칸</small></button></div>
+    </section>
+    <section class="card">
+      <div class="label" id="ch1Lab">내 캐릭터 <small>공을 차고, 골을 넣으면 세리머니를 해요</small></div>
+      <div class="grid g6 chars" id="ch1Seg"></div>
+      <div id="ch2Wrap"><div class="label" id="ch2Lab">🧤 상대 골키퍼</div><div class="grid g6 chars" id="ch2Seg"></div></div>
     </section>
     <section class="card">
       <div class="label"><span id="numLab">문제 수</span> <small id="numHint">1~30</small></div>
@@ -290,151 +300,165 @@ const PEN=` <g transform="rotate(-33 144 120)"><rect x="139" y="98" width="10" h
  ${ring?RF:''}
  </g>`;}
 const DINO_SVG='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 20 190 166">${tyrano('L')}</svg>`);
-// ---------- 애니메이션용 고급 티라노 (도안 기반, 명암·외곽선) ----------
-function tyranoHD(p,opt={}){const pose=opt.pose||'swim',O='#1f5a33',sw=3;const jer=opt.jersey||'#ff5a5a';
- const soccer=pose==='soccer',swim=pose==='swim';
- const dy=soccer?-8:0;// 점프
- const spike=(x,y,a,s=1)=>`<g transform="translate(${x},${y}) rotate(${a}) scale(${s})"><path d="M-9,4 C-6,-6 -2,-15 1,-19 C4,-14 8,-5 9,4Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="2.4" stroke-linejoin="round"/><path d="M-3,0 C-2,-6 0,-11 1,-14" stroke="#ffe0a0" stroke-width="2" fill="none" opacity=".8"/></g>`;
- const hand=(x,y,a,fist)=>`<g transform="translate(${x},${y}) rotate(${a})">${fist?`<circle r="8.5" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/><path d="M-3,-6 q4,2 3,7 M2,-6 q4,2 3,7" stroke="${O}" stroke-width="1.8" fill="none"/>`
-   :`<path d="M-6,4 C-8,-2 -4,-8 2,-8 C8,-8 10,-2 7,4Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M-5,-6 l-3,-7 M0,-8 l0,-8 M5,-6 l4,-7" stroke="${O}" stroke-width="5.5" stroke-linecap="round"/><path d="M-5,-6 l-3,-7 M0,-8 l0,-8 M5,-6 l4,-7" stroke="#6fd36a" stroke-width="2.6" stroke-linecap="round"/>`}</g>`;
- const arm=(d,col)=>`<path d="${d}" stroke="${O}" stroke-width="15" fill="none" stroke-linecap="round"/><path d="${d}" stroke="${col}" stroke-width="9.5" fill="none" stroke-linecap="round"/>`;
- const BODY='M58,150 C50,120 64,96 92,92 C118,88 136,104 140,128 C144,154 130,178 100,180 C76,182 62,170 58,150Z';
- const ring=(front)=>{const d=front?'M26,150 A70,22 0 0 0 166,150':'M26,150 A70,22 0 0 1 166,150';return `<path d="${d}" fill="none" stroke="${O}" stroke-width="28"/><path d="${d}" fill="none" stroke="url(#${p}rw)" stroke-width="22"/><path d="${d}" fill="none" stroke="url(#${p}rr)" stroke-width="22" stroke-dasharray="30 26" stroke-dashoffset="10"/>${front?`<path d="M40,160 A58,15 0 0 0 96,171" stroke="#fff" stroke-width="4.5" fill="none" opacity=".85"/>`:''}`;};
- return `<defs>
-  <radialGradient id="${p}bd" cx=".4" cy=".28" r=".85"><stop offset="0" stop-color="#9be88a"/><stop offset=".5" stop-color="#5cc566"/><stop offset="1" stop-color="#2f9a4a"/></radialGradient>
-  <radialGradient id="${p}hd" cx=".42" cy=".25" r=".85"><stop offset="0" stop-color="#a4ee90"/><stop offset=".55" stop-color="#60c868"/><stop offset="1" stop-color="#349f4c"/></radialGradient>
-  <linearGradient id="${p}dk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4db35a"/><stop offset="1" stop-color="#2c8a42"/></linearGradient>
-  <linearGradient id="${p}bl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfde6"/><stop offset="1" stop-color="#dcefb0"/></linearGradient>
-  <linearGradient id="${p}sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc35a"/><stop offset="1" stop-color="#f27d22"/></linearGradient>
-  <radialGradient id="${p}ir" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#5a6cc8"/><stop offset=".6" stop-color="#2a3170"/><stop offset="1" stop-color="#141a40"/></radialGradient>
-  <linearGradient id="${p}jr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${jer}"/><stop offset="1" stop-color="${jer}" stop-opacity=".82"/></linearGradient>
-  <linearGradient id="${p}rw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d6e2ec"/></linearGradient>
-  <linearGradient id="${p}rr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8080"/><stop offset="1" stop-color="#e2384a"/></linearGradient>
-  <radialGradient id="${p}gl" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#eafdff"/><stop offset=".5" stop-color="#5fd3f5"/><stop offset="1" stop-color="#1b8fc6"/></radialGradient>
-  <clipPath id="${p}bc"><path d="${BODY}"/></clipPath>
- </defs>
- <g stroke-linejoin="round" transform="translate(0,${dy})">
- ${swim?ring(false):''}
- <!-- 뒤쪽 다리 / 팔 -->
- ${soccer?`<path d="M80,168 C70,176 60,180 50,180" stroke="${O}" stroke-width="20" stroke-linecap="round" fill="none"/><path d="M80,168 C70,176 60,180 50,180" stroke="url(#${p}dk)" stroke-width="14" stroke-linecap="round" fill="none"/><path d="M48,170 C40,172 36,182 40,190 C46,194 54,190 56,182Z" fill="url(#${p}dk)" stroke="${O}" stroke-width="${sw}"/>`:''}
- ${!swim&&!soccer?`<path d="M70,196 C68,186 76,180 86,182 C94,184 96,194 92,198Z" fill="url(#${p}dk)" stroke="${O}" stroke-width="${sw}"/>`:''}
- ${arm('M100,112 C92,100 88,90 84,78','url(#'+p+'dk)')}${hand(84,76,-20,soccer)}
- <!-- 꼬리 -->
- <path d="M66,126 C46,124 24,132 6,150 C4,153 6,156 10,155 C30,152 50,156 68,156Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/>
- <path d="M60,134 C44,134 30,140 18,148" stroke="#fff" stroke-width="3" opacity=".3" fill="none" stroke-linecap="round"/>
- ${spike(54,128,-70,.75)}${spike(66,108,-48,.95)}${spike(80,96,-25,1.05)}
- <!-- 몸 -->
- <path d="${BODY}" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/>
- <g clip-path="url(#${p}bc)">
-  <ellipse cx="80" cy="176" rx="40" ry="16" fill="#1f6b36" opacity=".22"/>
-  <path d="M98,104 C118,108 132,128 130,152 C128,172 112,182 98,180 C84,176 80,140 98,104Z" fill="url(#${p}bl)" stroke="#bcd88c" stroke-width="2"/>
-  ${[120,134,148,162].map((y,i)=>`<path d="M${92-i},${y} Q${110},${y+6} ${129-i*.5},${y-2}" stroke="#c6dd98" stroke-width="2.2" fill="none"/>`).join('')}
-  ${soccer?`<rect x="40" y="90" width="110" height="64" fill="url(#${p}jr)"/><rect x="84" y="90" width="8" height="64" fill="#fff" opacity=".9"/><rect x="118" y="90" width="8" height="64" fill="#fff" opacity=".9"/>
-   <rect x="40" y="152" width="110" height="40" fill="#1f2f6b"/><rect x="40" y="152" width="110" height="3.5" fill="#fff" opacity=".7"/><path d="M60,100 C80,94 110,94 132,104" stroke="#fff" stroke-width="5" opacity=".25" fill="none"/>
-   <text x="106" y="142" font-size="24" text-anchor="middle" fill="#fff" stroke="#1f2f6b" stroke-width="3.5" paint-order="stroke" font-weight="900" style="font-family:Jua,sans-serif">10</text>`:''}
-  <path d="M70,104 C80,96 96,94 108,96" stroke="#fff" stroke-width="5" opacity=".3" fill="none" stroke-linecap="round"/>
- </g>
- <path d="${BODY}" fill="none" stroke="${O}" stroke-width="${sw}"/>
- <!-- 앞쪽 다리 -->
- ${swim?'':`<ellipse cx="112" cy="168" rx="17" ry="15" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/><path d="M98,196 C96,186 104,180 116,181 C128,182 134,190 130,198Z" fill="url(#${p}bd)" stroke="${O}" stroke-width="${sw}"/><path d="M106,197 l0,-5 M115,198 l0,-5 M124,197 l0,-5" stroke="${O}" stroke-width="2.4" stroke-linecap="round"/>`}
- <!-- 머리 -->
- ${spike(104,42,-14,1)}${spike(122,36,4,1.05)}${spike(141,35,18,.9)}
- <path d="M96,100 C86,72 98,40 132,35 L160,35 C179,35 190,48 190,64 L190,78 C190,94 180,104 164,106 L132,108 C114,110 100,108 96,100Z" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>
- <path d="M108,52 C116,42 134,40 152,41" stroke="#fff" stroke-width="5" opacity=".35" fill="none" stroke-linecap="round"/>
- <path d="M104,100 C112,106 130,108 150,106" stroke="#2f8a44" stroke-width="2.5" opacity=".5" fill="none"/>
- <!-- 눈 -->
- <ellipse cx="141" cy="63" rx="14" ry="15.5" fill="#fff" stroke="${O}" stroke-width="2.6"/>
- <ellipse cx="144" cy="65" rx="9.5" ry="10.5" fill="url(#${p}ir)"/><circle cx="145" cy="66" r="5" fill="#0d1030"/>
- <circle cx="148.5" cy="60.5" r="3.6" fill="#fff"/><circle cx="140.5" cy="70.5" r="1.8" fill="#fff" opacity=".9"/>
- <path d="M126,50 C134,44 148,44 156,50" stroke="${O}" stroke-width="3" fill="none" stroke-linecap="round"/>
- ${swim?`<path d="M94,46 C120,34 162,32 190,40" stroke="#1d4f8a" stroke-width="7" fill="none" stroke-linecap="round"/>
-  <g transform="rotate(-6 150 36)"><circle cx="134" cy="38" r="11" fill="url(#${p}gl)" stroke="#1d4f8a" stroke-width="4"/><circle cx="162" cy="38" r="11" fill="url(#${p}gl)" stroke="#1d4f8a" stroke-width="4"/><path d="M145,38 h6" stroke="#1d4f8a" stroke-width="4"/>
-  <path d="M128,33 a7,7 0 0 1 8,-3 M156,33 a7,7 0 0 1 8,-3" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`:''}
- <ellipse cx="178" cy="54" rx="2.4" ry="1.8" fill="${O}"/>
- <ellipse cx="128" cy="84" rx="9" ry="5.5" fill="#ff8aa0" opacity=".55"/>
- <!-- 입 -->
- <path d="M138,86 C150,92 168,92 184,82 C182,96 170,104 158,104 C148,104 140,96 138,86Z" fill="#8a2333" stroke="${O}" stroke-width="2.6"/>
- <path d="M150,98 C156,94 166,94 172,98 C168,103 156,104 150,98Z" fill="#ff8a96"/>
- <path d="M146,88.5 l3,5 l3,-4 M172,88 l3,4.5 l3,-5.5" fill="#fff" stroke="#fff" stroke-width="1" stroke-linejoin="round"/>
- <!-- 앞쪽 팔 -->
- ${swim?arm('M120,120 C134,124 150,122 168,112','url(#'+p+'bd)')+hand(170,110,60,false)
-   :soccer?arm('M120,120 C140,126 160,124 174,112','url(#'+p+'jr)')+hand(177,108,40,true)
-   :arm('M120,120 C130,126 138,128 146,126','url(#'+p+'bd)')+hand(148,124,90,false)}
- ${swim?ring(true)+`<g fill="#e8fbff" stroke="#9fd9ef" stroke-width="1.2"><path d="M180,104 q4,-8 6,0 q-3,4 -6,0Z"/><path d="M188,118 q3,-6 5,0 q-2,3 -5,0Z"/><path d="M60,74 q3,-6 5,0 q-2,3 -5,0Z"/></g>`:''}
- ${soccer?`<g stroke="#ffd23f" stroke-width="3.5" stroke-linecap="round"><path d="M184,96 l8,-6 M188,110 l9,1 M178,92 l2,-9"/><path d="M70,66 l-6,-8 M64,78 l-10,-2"/></g>`:''}
+// ================= 티라노매스 친구들 v3 (참고 그림 느낌: 넓은 볼털 머리 · 크림색 얼굴 마스크 · 통통한 몸) =================
+const CHARS={
+ tyrano:{no:7,gk:1,name:'티라노',body:'#5fbf6a',mask:'#eaf6c6'},
+ turtle:{no:3,gk:13,name:'거북이',body:'#76c79a',mask:'#f4f0c4',shell:'#b07a42'},
+ rabbit:{no:11,gk:21,name:'토끼',body:'#cfc6c0',mask:'#ffffff',inner:'#ffb3c6'},
+ baekgu:{no:9,gk:23,name:'백구',body:'#e6c896',mask:'#ffffff',inner:'#f6b2b8'},
+ sapsal:{no:5,gk:31,name:'삽살개',body:'#a87b52',mask:'#efdcb8',fur:'#c9a272'},
+ fennec:{no:17,gk:99,name:'사막여우',body:'#eab066',mask:'#fff4e2',inner:'#ffd9b8'}};
+const CHAR_KEYS=Object.keys(CHARS);
+function _mix(c,t,a){const h=x=>parseInt(x,16);const r=h(c.slice(1,3)),g=h(c.slice(3,5)),b=h(c.slice(5,7)),R=h(t.slice(1,3)),G=h(t.slice(3,5)),B=h(t.slice(5,7));
+ const f=(x,y)=>Math.round(x+(y-x)*a).toString(16).padStart(2,'0');return '#'+f(r,R)+f(g,G)+f(b,B);}
+function chara(kind,p,opt={}){const C=CHARS[kind]||CHARS.tyrano,O='#26262e',SW=4.2;
+ const pose=opt.pose||'stand',jer=opt.jersey||null,back=!!opt.back;
+ const KIT=Object.assign({stripe:'#fff',num:String(C.no),shorts:'#1f2f6b',glove:null,sock:null},opt.kit||{});
+ const col=C.body,lt=_mix(col,'#ffffff',.4),dk=_mix(col,'#000000',.25),M=C.mask,Md=_mix(M,'#8a7a60',.18);
+ let LID=0;const f=v=>v.toFixed(1);
+ // ---------- 팔다리: 통통한 원통 + 크림색 손발(손가락 선) ----------
+ function limb(P,w0,w1,o2={}){const [x0,y0,a1,b1,a2,b2,x3,y3]=P;const N=14,L=[],R=[];const id=p+'l'+(LID++);
+  const pt=t=>{const u=1-t;return [u*u*u*x0+3*u*u*t*a1+3*u*t*t*a2+t*t*t*x3,u*u*u*y0+3*u*u*t*b1+3*u*t*t*b2+t*t*t*y3];};
+  for(let i=0;i<=N;i++){const t=i/N,[x,y]=pt(t),[xa,ya]=pt(Math.max(0,t-.02)),[xb,yb]=pt(Math.min(1,t+.02));let dx=xb-xa,dy=yb-ya;const l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;
+   const w=(w0+(w1-w0)*Math.pow(t,.8))/2;L.push([x-dy*w,y+dx*w]);R.push([x+dy*w,y-dx*w]);}
+  const r=w1/2,r0=w0/2;const [ex,ey]=pt(1),[px,py]=pt(.92);let dx=ex-px,dy=ey-py;const l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;
+  const D=`M${f(R[0][0])},${f(R[0][1])} A${r0},${r0} 0 0 0 ${f(L[0][0])},${f(L[0][1])} `+L.slice(1).map(q=>`L${f(q[0])},${f(q[1])}`).join(' ')+` A${r},${r} 0 0 0 ${f(R[N][0])},${f(R[N][1])} `+R.slice(0,N).reverse().map(q=>`L${f(q[0])},${f(q[1])}`).join(' ')+'Z';
+  const tx=ex+dx*r,ty=ey+dy*r,pl=o2.paw||r*1.05,cx=tx-dx*pl,cy=ty-dy*pl;
+  const end=o2.shoe?'#23262e':(o2.glove||M);
+  const lines=o2.shoe?`<path d="M${f(tx-dy*r*.6)},${f(ty+dx*r*.6)} l${f(dx*3)},${f(dy*3)} M${f(tx)},${f(ty)} l${f(dx*3)},${f(dy*3)} M${f(tx+dy*r*.6)},${f(ty-dx*r*.6)} l${f(dx*3)},${f(dy*3)}" stroke="#c9d0d8" stroke-width="2.4" stroke-linecap="round"/>`
+   :[-.3,.3].map(k=>`<path d="M${f(tx-dy*r*2*k)},${f(ty+dx*r*2*k)} l${f(-dx*7)},${f(-dy*7)}" stroke="${O}" stroke-width="2.4" stroke-linecap="round"/>`).join('');
+  return `<clipPath id="${id}"><path d="${D}"/></clipPath><path d="${D}" fill="url(#${p}b)"/><g clip-path="url(#${id})">
+   ${o2.sleeve?`<circle cx="${x0}" cy="${y0}" r="${o2.sleeve}" fill="${jer}"/><circle cx="${x0}" cy="${y0}" r="${o2.sleeve}" fill="none" stroke="${KIT.stripe}" stroke-width="3.5"/>`:''}
+   ${o2.sock?`<circle cx="${cx}" cy="${cy}" r="${pl+11}" fill="${KIT.sock||jer}"/><circle cx="${cx}" cy="${cy}" r="${pl+6}" fill="none" stroke="#fff" stroke-width="3"/>`:''}
+   <ellipse cx="${cx}" cy="${cy}" rx="${pl*1.15}" ry="${pl}" transform="rotate(${f(Math.atan2(dy,dx)*180/Math.PI+90)} ${f(cx)} ${f(cy)})" fill="${end}"/>
+   <path d="M${f(L[2][0])},${f(L[2][1])} L${f(L[N-4][0])},${f(L[N-4][1])}" stroke="#fff" stroke-width="3" opacity=".22" stroke-linecap="round"/></g>
+   ${lines}<path d="${D}" fill="none" stroke="${O}" stroke-width="${SW}" stroke-linejoin="round"/>`;}
+ const mir=P=>P.map((v,i)=>i%2?v:200-v);
+ const AP={stand:[70,140,52,142,40,160,42,184],ready:[70,140,54,146,46,164,46,184],swim:[70,138,40,136,12,122,2,94],fists:[70,138,40,136,10,118,-2,74],
+  plane:[70,140,46,134,24,128,4,124],heart:[70,138,-10,124,-8,4,84,-2],keeper:[70,138,40,134,14,124,-6,104]};
+ let aL,aR;
+ if(pose==='dance'){aL=[70,142,52,152,38,166,24,180];aR=[130,138,164,132,190,104,198,66];}
+ else if(pose==='kick'){aL=[70,138,40,136,16,126,-4,114];aR=[130,140,148,148,156,162,160,180];}
+ else{aL=AP[pose==='kneel'?'fists':pose]||AP.stand;aR=mir(aL);}
+ const arms=[aL,aR].map(P=>limb(P,30,24,{sleeve:jer?30:0,paw:KIT.glove?15:12,glove:KIT.glove})).join('');
+ const lg=P=>limb(P,30,30,{paw:12,sock:!!jer,shoe:!!jer});
+ let legs;
+ if(pose==='kneel')legs=lg([82,184,81,192,80,198,80,206])+lg(mir([82,184,81,192,80,198,80,206]));
+ else if(pose==='plane')legs=lg([82,184,74,194,62,198,46,194])+lg([118,184,122,196,126,204,128,214]);
+ else if(pose==='fists'||pose==='dance')legs=lg([82,184,76,194,66,200,52,200])+lg(mir([82,184,82,194,82,202,82,214]));
+ else if(pose==='keeper')legs=lg([82,184,72,194,64,204,58,214])+lg(mir([82,184,72,194,64,204,58,214]));
+ else if(pose==='kick')legs=lg([82,184,82,194,82,202,82,214])+lg([118,184,128,176,136,166,140,152]);
+ else legs=lg([82,184,82,194,82,202,82,214])+lg(mir([82,184,82,194,82,202,82,214]));
+ // ---------- 머리 ----------
+ const tuft=kind==='baekgu'||kind==='fennec'||kind==='rabbit';
+ const shag=(()=>{let d='';const n=22;for(let i=0;i<=n;i++){const a=-Math.PI/2+i*2*Math.PI/n,m=a+Math.PI/n;
+   const P1=[100+74*Math.cos(a),82+58*Math.sin(a)],P2=[100+84*Math.cos(m),82+66*Math.sin(m)];
+   if(!i){d='M'+f(P1[0])+','+f(P1[1]);}else{d+=` L${f(P1[0])},${f(P1[1])}`;}
+   if(i<n)d+=` Q${f(100+80*Math.cos(a+Math.PI/n*.4))},${f(82+62*Math.sin(a+Math.PI/n*.4))} ${f(P2[0])},${f(P2[1])}`;}return d+'Z';})();
+ const HEAD={smooth:'M100,22 C142,22 172,46 172,82 C172,116 140,136 100,136 C60,136 28,116 28,82 C28,46 58,22 100,22Z',
+  tuft:'M100,22 C142,22 170,44 172,76 C174,84 176,90 184,96 C176,99 174,103 178,111 C170,111 166,114 165,119 C150,131 128,138 100,138 C72,138 50,131 35,119 C34,114 30,111 22,111 C26,103 24,99 16,96 C24,90 26,84 28,76 C30,44 58,22 100,22Z',
+  turtle:'M100,28 C138,28 164,50 164,84 C164,116 136,134 100,134 C64,134 36,116 36,84 C36,50 62,28 100,28Z'};
+ const headD=kind==='sapsal'?shag:kind==='turtle'?HEAD.turtle:tuft?HEAD.tuft:HEAD.smooth;
+ const maskD=kind==='fennec'?'M10,98 C24,74 56,66 80,76 C90,80 96,72 100,62 C104,72 110,80 120,76 C144,66 176,74 190,98 C178,130 140,144 100,144 C60,144 22,130 10,98Z'
+  :kind==='tyrano'||kind==='turtle'?'M24,106 C40,92 66,92 100,94 C134,92 160,92 176,106 C168,130 136,142 100,142 C64,142 32,130 24,106Z'
+  :'M10,92 C22,66 52,58 76,66 C88,70 94,62 100,50 C106,62 112,70 124,66 C148,58 178,66 190,92 C182,126 142,144 100,144 C58,144 18,126 10,92Z';
+ const EAR={
+  baekgu:`<path d="M38,62 C32,34 40,10 56,0 C70,8 86,26 92,38Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M50,50 C48,32 52,18 58,12 C66,20 74,30 80,38Z" fill="${C.inner}"/>
+   <path d="M162,62 C168,34 160,10 144,0 C130,8 114,26 108,38Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M150,50 C152,32 148,18 142,12 C134,20 126,30 120,38Z" fill="${C.inner}"/>`,
+  fennec:`<path d="M42,70 C22,40 12,4 18,-26 C46,-14 78,10 94,36Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M48,56 C34,34 28,10 30,-10 C50,0 70,18 82,36Z" fill="${C.inner}"/>
+   <path d="M158,70 C178,40 188,4 182,-26 C154,-14 122,10 106,36Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M152,56 C166,34 172,10 170,-10 C150,0 130,18 118,36Z" fill="${C.inner}"/>`,
+  rabbit:`<path d="M66,40 C54,10 52,-24 66,-34 C82,-30 88,4 84,36Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M70,30 C62,8 62,-16 68,-24 C76,-18 78,6 78,30Z" fill="${C.inner}"/>
+   <path d="M134,40 C146,10 148,-24 134,-34 C118,-30 112,4 116,36Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M130,30 C138,8 138,-16 132,-24 C124,-18 122,6 122,30Z" fill="${C.inner}"/>`,
+  tyrano:[[70,30,-30,1],[100,20,0,1.2],[130,30,30,1]].map(([x,y,a,s])=>`<path d="M-12,8 C-8,-4 -3,-14 0,-20 C3,-14 8,-4 12,8Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="3.6" stroke-linejoin="round" transform="translate(${x},${y}) rotate(${a}) scale(${s})"/>`).join('')};
+ const FLOP=kind==='sapsal'?`<path d="M34,54 C10,62 4,108 18,134 C28,148 46,140 48,122 C50,100 50,74 34,54Z" fill="${dk}" stroke="${O}" stroke-width="${SW}"/>
+  <path d="M166,54 C190,62 196,108 182,134 C172,148 154,140 152,122 C150,100 150,74 166,54Z" fill="${dk}" stroke="${O}" stroke-width="${SW}"/>`:'';
+ const TAIL={
+  tyrano:`<path d="M134,170 C158,176 180,168 194,148 C198,144 202,148 200,154 C192,184 164,198 132,194Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/>
+   ${[[168,170,40],[186,156,55]].map(([x,y,a])=>`<path d="M-7,5 L0,-10 L7,5Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="3" stroke-linejoin="round" transform="translate(${x},${y}) rotate(${a})"/>`).join('')}`,
+  baekgu:`<path d="M138,176 C164,180 178,160 170,142 C164,130 148,134 152,146 C156,156 148,164 138,164Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/>`,
+  fennec:`<path d="M136,188 C172,194 198,172 196,144 C194,126 176,124 174,138 C172,160 158,170 136,170Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M176,134 C178,124 194,124 196,140 C196,148 194,154 190,158 C186,150 182,142 176,134Z" fill="#3a2a22"/>`,
+  rabbit:`<circle cx="150" cy="188" r="14" fill="#fff" stroke="${O}" stroke-width="${SW}"/>`,
+  sapsal:`<path d="M138,184 C160,188 172,174 170,158 C164,166 154,170 140,170Z" fill="${C.fur}" stroke="${O}" stroke-width="${SW}"/>`,
+  turtle:`<path d="M146,188 C160,192 168,186 166,178" stroke="${O}" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M146,188 C160,192 168,186 166,178" stroke="${col}" stroke-width="6" fill="none" stroke-linecap="round"/>`};
+ const bodyD='M60,196 C42,170 46,132 72,120 L128,120 C154,132 158,170 140,196 C124,206 76,206 60,196Z';
+ const shellBack=kind==='turtle'?`<path d="M44,194 C28,152 40,112 100,108 C160,112 172,152 156,194 C130,208 70,208 44,194Z" fill="url(#${p}sh)" stroke="${O}" stroke-width="${SW}"/>
+  <path d="M50,150 l14,-8 M150,150 l-14,-8 M48,174 l14,-2 M152,174 l-14,-2" stroke="#6a4420" stroke-width="3" stroke-linecap="round"/>`:'';
+ const belly=kind==='turtle'?`<path d="M72,190 C66,160 74,132 100,130 C126,132 134,160 128,190 C116,198 84,198 72,190Z" fill="${M}" stroke="${O}" stroke-width="2.6"/><path d="M74,152 h52 M72,172 h56 M100,132 v62" stroke="#c9b25a" stroke-width="2.4"/>`
+  :`<path d="M70,188 C62,160 72,134 100,132 C128,134 138,160 130,188 C118,198 82,198 70,188Z" fill="url(#${p}m)"/>${kind==='tyrano'?`<path d="M78,152 q22,6 44,0 M74,170 q26,6 52,0" stroke="${Md}" stroke-width="2.4" fill="none"/>`:''}`;
+ const jersey=jer?`<g clip-path="url(#${p}bc)"><rect x="30" y="110" width="140" height="68" fill="${jer}"/>${back?'':`<rect x="78" y="110" width="9" height="68" fill="${KIT.stripe}" opacity=".92"/><rect x="113" y="110" width="9" height="68" fill="${KIT.stripe}" opacity=".92"/>`}
+   <rect x="30" y="176" width="140" height="36" fill="${KIT.shorts}"/><rect x="30" y="176" width="140" height="3.5" fill="#fff" opacity=".7"/></g>
+   ${back?'':`<path d="M84,122 L100,136 L116,122" stroke="${KIT.stripe}" stroke-width="6" fill="none" stroke-linejoin="round"/>`}
+   <text x="100" y="${back?170:166}" font-size="${back?40:26}" text-anchor="middle" fill="#fff" stroke="#1f2f6b" stroke-width="${back?5:4}" paint-order="stroke" font-weight="900" style="font-family:Jua,sans-serif">${KIT.num}</text>`:'';
+ // ---------- 얼굴 ----------
+ const eye=(x,y,s=1)=>`<ellipse cx="${x}" cy="${y}" rx="${7.6*s}" ry="${9.6*s}" fill="#1e1e26"/><ellipse cx="${x}" cy="${y+2*s}" rx="${5.5*s}" ry="${6.5*s}" fill="#4a3426" opacity=".55"/><circle cx="${x+2.6*s}" cy="${y-3.4*s}" r="${3.1*s}" fill="#fff"/><circle cx="${x-2.4*s}" cy="${y+4*s}" r="${1.3*s}" fill="#fff" opacity=".9"/>`;
+ const eyes=kind==='sapsal'?eye(74,94,.9)+eye(126,94,.9):eye(71,85,1.18)+eye(129,85,1.18);
+ const flatNose=kind==='tyrano'||kind==='turtle';
+ const nose=kind==='rabbit'?`<path d="M94,100 Q100,97 106,100 Q103,106 100,106 Q97,106 94,100Z" fill="#ff8aa6" stroke="${O}" stroke-width="1.8"/>`
+  :flatNose?`<ellipse cx="92" cy="102" rx="2.6" ry="1.8" fill="${O}"/><ellipse cx="108" cy="102" rx="2.6" ry="1.8" fill="${O}"/>`
+  :`<path d="M91,99 Q100,94 109,99 Q106,107 100,108 Q94,107 91,99Z" fill="${O}"/><ellipse cx="97" cy="98.5" rx="3" ry="1.4" fill="#fff" opacity=".65"/>`;
+ const mouth=`<path d="M100,${flatNose?105:107} v4" stroke="${O}" stroke-width="2.2" stroke-linecap="round"/>
+  <ellipse cx="100" cy="120" rx="7.5" ry="9" fill="#7a2230" stroke="${O}" stroke-width="2.4"/><ellipse cx="100" cy="125" rx="5" ry="3.6" fill="#f08a9a"/>
+  ${kind==='rabbit'?`<rect x="95.5" y="110" width="9" height="6" rx="1.5" fill="#fff" stroke="${O}" stroke-width="1.6"/><path d="M100,110 v6" stroke="${O}" stroke-width="1.2"/>`:''}
+  ${kind==='tyrano'?`<path d="M94,112 l2,4 l2,-3 M102,112 l2,3 l2,-4" fill="#fff" stroke="#fff" stroke-width="1"/>`:''}`;
+ const blush=`<ellipse cx="54" cy="106" rx="9" ry="5" fill="#ff8aa6" opacity=".35"/><ellipse cx="146" cy="106" rx="9" ry="5" fill="#ff8aa6" opacity=".35"/>`;
+ let extraFace='';
+ if(kind==='rabbit')extraFace=`<path d="M70,108 l-24,-4 M70,113 l-24,3 M130,108 l24,-4 M130,113 l24,3" stroke="#a9a09a" stroke-width="1.8" stroke-linecap="round"/>`;
+ if(kind==='fennec')extraFace=`<path d="M66,110 l-22,0 M68,116 l-20,6 M134,110 l22,0 M132,116 l20,6" stroke="#c9a070" stroke-width="1.6" stroke-linecap="round"/>`;
+ if(kind==='baekgu')extraFace=`<ellipse cx="74" cy="66" rx="6" ry="3.4" fill="#e3c48e"/><ellipse cx="126" cy="66" rx="6" ry="3.4" fill="#e3c48e"/>`;
+ if(kind==='tyrano')extraFace=`<path d="M58,68 q14,-8 28,0 M114,68 q14,-8 28,0" stroke="${dk}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+ if(kind==='turtle')extraFace=`<path d="M84,42 l16,-8 l16,8 l-4,14 h-24Z M60,58 l14,-8 l6,12 l-12,8Z M140,58 l-14,-8 l-6,12 l12,8Z" fill="${lt}" stroke="${dk}" stroke-width="2.4" stroke-linejoin="round" opacity=".85"/>`;
+ const bangs=kind==='sapsal'?`<path d="M26,84 C28,46 60,24 100,24 C140,24 172,46 174,84 C166,74 160,76 156,86 C150,74 142,74 138,88 C132,76 124,76 120,90 C114,78 106,76 100,90 C94,76 86,78 80,90 C76,76 68,74 62,88 C58,74 50,74 44,86 C40,76 34,74 26,84Z" fill="url(#${p}fr)" stroke="${O}" stroke-width="3.4" stroke-linejoin="round"/>
+  <path d="M54,50 q6,14 2,26 M78,38 q6,16 2,30 M100,34 q4,16 0,32 M122,38 q-6,16 -2,30 M146,50 q-6,14 -2,26" stroke="${dk}" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M64,124 q4,10 0,18 M136,124 q-4,10 0,18" stroke="${Md}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`:'';
+ const gog=opt.goggles?`<path d="M28,70 C44,50 74,42 100,42 C126,42 156,50 172,70" stroke="${O}" stroke-width="${12+SW}" fill="none"/><path d="M28,70 C44,50 74,42 100,42 C126,42 156,50 172,70" stroke="#3a3f52" stroke-width="12" fill="none"/>
+  ${[[76,46],[124,46]].map(([x,y])=>`<rect x="${x-21}" y="${y-13}" width="42" height="26" rx="13" fill="url(#${p}gl)" stroke="${O}" stroke-width="${SW}"/><rect x="${x-15}" y="${y-8}" width="30" height="16" rx="8" fill="none" stroke="#e6fbff" stroke-width="2" opacity=".6"/><path d="M${x-12},${y-4} q8,-6 18,-4" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round"/>`).join('')}
+  <path d="M97,46 h6" stroke="${O}" stroke-width="6"/>`:'';
+ const ringP=fr=>fr?'M14,170 A86,24 0 0 0 186,170':'M14,170 A86,24 0 0 1 186,170';
+ const ring=fr=>`<path d="${ringP(fr)}" fill="none" stroke="${O}" stroke-width="${28+SW*2}"/><path d="${ringP(fr)}" fill="none" stroke="url(#${p}rw)" stroke-width="28"/><path d="${ringP(fr)}" fill="none" stroke="#ff5a64" stroke-width="28" stroke-dasharray="36 30" stroke-dashoffset="${fr?14:-8}"/>${fr?`<path d="M30,178 A72,18 0 0 0 96,192" stroke="#fff" stroke-width="5" fill="none" opacity=".8" stroke-linecap="round"/>`:''}`;
+ const heart=pose==='heart'?`<path d="M100,-26 C92,-36 76,-30 80,-19 C84,-11 100,-2 100,-2 C100,-2 116,-11 120,-19 C124,-30 108,-36 100,-26Z" fill="#ff5a8a" stroke="${O}" stroke-width="3"/>`:'';
+ const defs=`<defs>
+  <radialGradient id="${p}b" cx="${back?.62:.38}" cy=".28" r=".95"><stop offset="0" stop-color="${lt}"/><stop offset=".5" stop-color="${col}"/><stop offset="1" stop-color="${dk}"/></radialGradient>
+  <radialGradient id="${p}m" cx=".5" cy=".3" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="${M}"/><stop offset="1" stop-color="${Md}"/></radialGradient>
+  <linearGradient id="${p}sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc35a"/><stop offset="1" stop-color="#f07a22"/></linearGradient>
+  <radialGradient id="${p}sh" cx=".4" cy=".3" r=".9"><stop offset="0" stop-color="#d9a066"/><stop offset=".6" stop-color="${C.shell||'#b07a42'}"/><stop offset="1" stop-color="#7a4f26"/></radialGradient>
+  <linearGradient id="${p}fr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${C.fur||col}"/><stop offset="1" stop-color="${col}"/></linearGradient>
+  <linearGradient id="${p}gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d6f6ff"/><stop offset=".5" stop-color="#6cc6f0"/><stop offset="1" stop-color="#2a6fb0"/></linearGradient>
+  <linearGradient id="${p}rw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfdbe6"/></linearGradient>
+  <clipPath id="${p}hc"><path d="${headD}"/></clipPath><clipPath id="${p}bc"><path d="${bodyD}"/></clipPath></defs>`;
+ const shadowE=opt.shadow===false?'':`<ellipse cx="100" cy="216" rx="66" ry="7" fill="#000" opacity=".22"/>`;
+ const bodyBlock=`<path d="${bodyD}" fill="url(#${p}b)"/>${back?'':belly}<g clip-path="url(#${p}bc)"><ellipse cx="100" cy="122" rx="60" ry="10" fill="#000" opacity=".16"/></g>${jersey}<path d="${bodyD}" fill="none" stroke="${O}" stroke-width="${SW}"/>`;
+ if(back){
+  const numShell=kind==='turtle'&&jer?`<circle cx="100" cy="158" r="22" fill="${jer}" stroke="#fff" stroke-width="3"/><text x="100" y="170" font-size="32" text-anchor="middle" fill="#fff" stroke="#1f2f6b" stroke-width="4.5" paint-order="stroke" font-weight="900" style="font-family:Jua,sans-serif">${KIT.num}</text>`:'';
+  const tailB={tyrano:`<path d="M84,184 C82,204 92,222 112,228 C120,230 124,224 118,220 C106,214 104,200 116,186Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/>`,
+   rabbit:`<circle cx="100" cy="194" r="14" fill="#fff" stroke="${O}" stroke-width="${SW}"/>`,
+   baekgu:`<path d="M96,198 C84,188 92,172 106,176 C116,180 114,194 104,192 C98,191 99,184 104,184" fill="none" stroke="${O}" stroke-width="16" stroke-linecap="round"/><path d="M96,198 C84,188 92,172 106,176 C116,180 114,194 104,192 C98,191 99,184 104,184" fill="none" stroke="${lt}" stroke-width="8" stroke-linecap="round"/>`,
+   fennec:`<path d="M100,182 C80,198 84,228 106,234 C126,238 134,218 122,198 C116,188 108,182 100,182Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M96,224 C98,234 116,238 124,226 C120,236 104,238 96,224Z" fill="#3a2a22"/>`,
+   sapsal:`<path d="M100,178 C86,186 86,208 100,214 C114,208 114,186 100,178Z" fill="${C.fur}" stroke="${O}" stroke-width="${SW}"/>`,
+   turtle:`<path d="M96,198 L100,214 L104,198Z" fill="${col}" stroke="${O}" stroke-width="3"/>`}[kind]||'';
+  const shellB=kind==='turtle'?`<path d="M50,194 C38,154 52,116 100,112 C148,116 162,154 150,194 C128,208 72,208 50,194Z" fill="url(#${p}sh)" stroke="${O}" stroke-width="${SW}"/>
+   <path d="M100,126 L118,138 L114,160 L86,160 L82,138Z M100,126 V114 M118,138 L142,130 M82,138 L58,130 M114,160 L134,180 M86,160 L66,180" fill="none" stroke="#6a4420" stroke-width="3" stroke-linejoin="round"/>`:'';
+  const ridge=kind==='tyrano'?[[100,20,1.2],[100,44,.8],[100,64,.6]].map(([x,y,s])=>`<path d="M-12,8 C-8,-4 -3,-14 0,-20 C3,-14 8,-4 12,8Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="3.4" stroke-linejoin="round" transform="translate(${x},${y}) scale(${s})"/>`).join(''):'';
+  const hairB=kind==='sapsal'?`<path d="M52,60 q8,12 4,24 M74,42 q8,14 4,28 M100,36 q6,16 0,32 M126,42 q-8,14 -4,28 M148,60 q-8,12 -4,24" stroke="${dk}" stroke-width="3" fill="none" stroke-linecap="round"/>`:'';
+  const earsB=kind==='tyrano'?'':(EAR[kind]||'').split(`fill="${C.inner}"`).join(`fill="${dk}" opacity=".3"`);
+  return `${defs}<g stroke-linejoin="round">${shadowE}${earsB}${FLOP}${legs}${arms}${bodyBlock}${shellB}${numShell}${tailB}
+   <path d="${headD}" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><ellipse cx="124" cy="44" rx="22" ry="9" fill="#fff" opacity=".28" transform="rotate(14 124 44)"/>${hairB}${ridge}</g>`;}
+ return `${defs}<g stroke-linejoin="round">${shadowE}
+  ${opt.ring?ring(false):''}
+  ${TAIL[kind]||''}${shellBack}${EAR[kind]||''}${FLOP}
+  ${opt.ring?'':legs}
+  ${arms}
+  ${bodyBlock}
+  <path d="${headD}" fill="url(#${p}b)"/>
+  <g clip-path="url(#${p}hc)"><path d="${maskD}" fill="url(#${p}m)"/></g>
+  <path d="${headD}" fill="none" stroke="${O}" stroke-width="${SW}"/>
+  <ellipse cx="76" cy="40" rx="22" ry="8" fill="#fff" opacity=".3" transform="rotate(-14 76 40)"/>
+  ${extraFace}${blush}${eyes}${bangs}${nose}${mouth}${gog}
+  ${heart}
+  ${opt.water?`<path d="M2,178 C30,170 54,184 80,176 C110,168 140,184 198,174 L198,232 L2,232Z" fill="#3aa8e0" opacity=".42"/>`:''}
+  ${opt.ring?ring(true):''}
+  ${opt.water?`<path d="M2,182 C30,174 54,188 80,180 M120,180 C146,188 170,174 198,182" stroke="#fff" stroke-width="3.5" fill="none" opacity=".8" stroke-linecap="round"/>`:''}
  </g>`;}
-// ---------- 골 세리머니 티라노 (정면, 유니폼) ----------
-function tyranoKick(p,jer='#ff4d5a',pose='fists'){const O='#1d5631',sw=2.8;
- const spike=(x,y,a,s)=>`<g transform="translate(${x},${y}) rotate(${a}) scale(${s})"><path d="M-10,6 C-7,-6 -2,-16 0,-21 C3,-16 8,-6 10,6Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="2.3" stroke-linejoin="round"/><path d="M-3,1 C-2,-6 -1,-11 0,-15" stroke="#ffe3a6" stroke-width="2" fill="none" stroke-linecap="round"/></g>`;
- const eye=(cx,cy,f)=>`<ellipse cx="${cx}" cy="${cy}" rx="14" ry="15.5" fill="#fff" stroke="${O}" stroke-width="2.4"/>
-   <circle cx="${cx+f*2}" cy="${cy+1}" r="8.5" fill="url(#${p}ir)"/><circle cx="${cx+f*2}" cy="${cy+1.5}" r="4.4" fill="#0b0e2a"/>
-   <circle cx="${cx+f*2-3}" cy="${cy-3}" r="2.8" fill="#fff"/><circle cx="${cx+f*2+3}" cy="${cy+5}" r="1.3" fill="#fff" opacity=".9"/>
-   <path d="M${cx-13},${cy-20} C${cx-6},${cy-25} ${cx+6},${cy-25} ${cx+13},${cy-19}" stroke="${O}" stroke-width="3.4" fill="none" stroke-linecap="round" transform="rotate(${f*-8} ${cx} ${cy-20})"/>`;
- const arm=d=>`<path d="${d}" stroke="${O}" stroke-width="18" fill="none" stroke-linecap="round"/><path d="${d}" stroke="url(#${p}arm)" stroke-width="12.5" fill="none" stroke-linecap="round"/>`;
- const sleeve=(x,y,a)=>`<g transform="translate(${x},${y}) rotate(${a})"><path d="M-12,-9 L12,-9 L10,9 L-10,9Z" fill="url(#${p}jr)" stroke="${O}" stroke-width="2.4"/><rect x="-10" y="5" width="20" height="3.5" fill="#fff"/></g>`;
- const fist=(x,y,a)=>`<g transform="translate(${x},${y}) rotate(${a})"><ellipse rx="11" ry="10" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>
-   <path d="M-7,-4 q3.5,-4 7,0 M0,-4 q3.5,-4 7,0" stroke="${O}" stroke-width="2" fill="none"/><path d="M-9,3 q-3,-3 0,-6" stroke="${O}" stroke-width="2" fill="none"/></g>`;
- const leg=(d,sock)=>`<path d="${d}" stroke="${O}" stroke-width="20" fill="none" stroke-linecap="round"/><path d="${d}" stroke="url(#${p}arm)" stroke-width="14.5" fill="none" stroke-linecap="round"/>`;
-const L1=(d,sx,sy,sa)=>arm(d)+sleeve(sx,sy,sa);
- const openHand=(x,y,a)=>`<g transform="translate(${x},${y}) rotate(${a})"><ellipse rx="10" ry="9" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>${[-6,0,6].map(dx=>`<path d="M${dx},-6 l${dx*.4},-9" stroke="${O}" stroke-width="6.5" stroke-linecap="round"/><path d="M${dx},-6 l${dx*.4},-9" stroke="#79d572" stroke-width="3" stroke-linecap="round"/>`).join('')}</g>`;
- const point=(x,y,a)=>`<g transform="translate(${x},${y}) rotate(${a})"><path d="M0,-8 L0,-24" stroke="${O}" stroke-width="8.5" stroke-linecap="round"/><path d="M0,-8 L0,-24" stroke="#79d572" stroke-width="4.2" stroke-linecap="round"/><ellipse rx="10.5" ry="9.5" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/><path d="M-6,-2 q3,-3 6,0 M0,-2 q3,-3 6,0" stroke="${O}" stroke-width="1.8" fill="none"/></g>`;
- const ARMS=pose==='plane'?L1('M62,130 C44,128 26,126 6,122',60,128,80)+openHand(0,121,-90)+L1('M138,130 C156,128 174,126 194,122',140,128,-80)+openHand(200,121,90)
-  :pose==='heart'?L1('M62,130 C16,112 16,16 86,2',58,126,40)+L1('M138,130 C184,112 184,16 114,2',142,126,-40)+fist(90,0,30)+fist(110,0,-30)+`<path d="M100,-26 C92,-36 78,-30 82,-20 C86,-12 100,-4 100,-4 C100,-4 114,-12 118,-20 C122,-30 108,-36 100,-26Z" fill="#ff5a8a" stroke="#c22a5a" stroke-width="2"/><path d="M88,-24 q2,-5 7,-4" stroke="#fff" stroke-width="2.4" fill="none"/>`
-  :pose==='dance'?L1('M62,130 C50,146 38,160 26,170',58,134,130)+point(22,174,200)+L1('M138,130 C156,112 168,86 176,58',142,128,-50)+point(178,52,25)
-  :pose==='point'?L1('M62,130 C46,140 44,156 58,162',58,132,120)+fist(60,162,0)+L1('M138,130 C148,110 154,80 156,44',140,128,-30)+point(156,40,5)
-  :L1('M62,130 C44,124 30,104 24,62',58,128,55)+fist(22,52,-15)+L1('M138,130 C156,124 170,104 176,62',142,128,-55)+fist(178,52,15);
- const LEGS=` ${leg('M84,176 C80,188 74,194 66,198')}${leg('M116,176 C118,190 120,200 120,206')}
- <path d="M76,190 L68,196" stroke="#fff" stroke-width="9" stroke-linecap="round"/><path d="M73,192 L64,199" stroke="${jer}" stroke-width="9" stroke-linecap="round"/>
- <path d="M120,192 L120,202" stroke="#fff" stroke-width="10" stroke-linecap="butt"/><path d="M120,194 L120,204" stroke="${jer}" stroke-width="10" stroke-linecap="butt"/>
- <path d="M48,200 C48,192 58,190 68,193 C74,196 72,204 66,205 L52,206Z" fill="#1b2433" stroke="${O}" stroke-width="2"/><path d="M52,206 l0,3 M60,206 l0,3 M67,205 l0,3" stroke="#c8d0da" stroke-width="2.2"/>
- <path d="M108,212 C106,204 114,201 124,202 C134,203 138,210 134,213Z" fill="#1b2433" stroke="${O}" stroke-width="2"/><path d="M112,213 l0,3 M121,213 l0,3 M130,213 l0,3" stroke="#c8d0da" stroke-width="2.2"/>
- <path d="M112,206 C118,205 126,205 130,207" stroke="#fff" stroke-width="2" opacity=".6"/>
-`,KNEEL=` <path d="M84,176 C80,188 78,196 78,202" stroke="${O}" stroke-width="20" fill="none" stroke-linecap="round"/><path d="M84,176 C80,188 78,196 78,202" stroke="url(#${p}arm)" stroke-width="14.5" fill="none" stroke-linecap="round"/>
- <path d="M116,176 C120,188 122,196 122,202" stroke="${O}" stroke-width="20" fill="none" stroke-linecap="round"/><path d="M116,176 C120,188 122,196 122,202" stroke="url(#${p}arm)" stroke-width="14.5" fill="none" stroke-linecap="round"/>
- <ellipse cx="78" cy="204" rx="10" ry="6" fill="#3a8a3a" stroke="${O}" stroke-width="2"/><ellipse cx="122" cy="204" rx="10" ry="6" fill="#3a8a3a" stroke="${O}" stroke-width="2"/>`,RUN=` <path d="M84,176 C76,188 64,192 54,190" stroke="${O}" stroke-width="20" fill="none" stroke-linecap="round"/><path d="M84,176 C76,188 64,192 54,190" stroke="url(#${p}arm)" stroke-width="14.5" fill="none" stroke-linecap="round"/>
- <path d="M60,184 L52,190" stroke="${jer}" stroke-width="9" stroke-linecap="round"/><path d="M38,186 C38,178 48,178 56,182 C60,186 58,194 52,194 L40,194Z" fill="#1b2433" stroke="${O}" stroke-width="2"/>
- <path d="M116,176 C122,190 128,200 132,208" stroke="${O}" stroke-width="20" fill="none" stroke-linecap="round"/><path d="M116,176 C122,190 128,200 132,208" stroke="url(#${p}arm)" stroke-width="14.5" fill="none" stroke-linecap="round"/>
- <path d="M126,196 L131,206" stroke="${jer}" stroke-width="10" stroke-linecap="round"/><path d="M120,214 C118,206 126,203 136,204 C146,205 150,212 146,215Z" fill="#1b2433" stroke="${O}" stroke-width="2"/>`;
- return `<defs>
-  <radialGradient id="${p}hd" cx=".38" cy=".28" r=".85"><stop offset="0" stop-color="#b2f29c"/><stop offset=".45" stop-color="#66cb6c"/><stop offset="1" stop-color="#2c8f45"/></radialGradient>
-  <linearGradient id="${p}arm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fe07c"/><stop offset="1" stop-color="#3fa652"/></linearGradient>
-  <radialGradient id="${p}mz" cx=".45" cy=".3" r=".8"><stop offset="0" stop-color="#c6f5ac"/><stop offset="1" stop-color="#76cf72"/></radialGradient>
-  <linearGradient id="${p}sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc35a"/><stop offset="1" stop-color="#ee7a20"/></linearGradient>
-  <radialGradient id="${p}ir" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#6a7ad8"/><stop offset=".6" stop-color="#2a3170"/><stop offset="1" stop-color="#141a40"/></radialGradient>
-  <radialGradient id="${p}jr" cx=".4" cy=".25" r=".95"><stop offset="0" stop-color="#fff" stop-opacity=".15"/><stop offset=".25" stop-color="${jer}"/><stop offset="1" stop-color="${jer}"/></radialGradient>
-  <linearGradient id="${p}js" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset=".3" stop-color="#000" stop-opacity="0"/><stop offset=".75" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></linearGradient>
-  <linearGradient id="${p}sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3d86"/><stop offset="1" stop-color="#16225a"/></linearGradient>
-  <clipPath id="${p}jc"><path d="M56,176 C50,146 60,120 100,116 C140,120 150,146 144,176Z"/></clipPath>
- </defs>
- <g stroke-linejoin="round" stroke-linecap="round">
- <ellipse cx="100" cy="214" rx="62" ry="7" fill="#000" opacity=".22"/>
- <!-- 꼬리 -->
- <path d="M138,170 C158,172 176,166 190,150 C194,146 198,150 196,156 C188,176 166,188 140,186Z" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>
-${pose==='kneel'?KNEEL:pose==='plane'?RUN:LEGS}
- <!-- 반바지 -->
- <path d="M60,164 L140,164 L144,184 C130,190 112,188 104,182 L96,182 C88,188 70,190 56,184Z" fill="url(#${p}sh)" stroke="${O}" stroke-width="${sw}"/>
- <path d="M60,168 L140,168" stroke="#fff" stroke-width="2" opacity=".5"/>
- <!-- 몸통 + 유니폼 -->
- <path d="M56,176 C50,146 60,120 100,116 C140,120 150,146 144,176Z" fill="url(#${p}jr)" stroke="${O}" stroke-width="${sw}"/>
- <g clip-path="url(#${p}jc)"><rect x="78" y="110" width="9" height="70" fill="#fff" opacity=".92"/><rect x="113" y="110" width="9" height="70" fill="#fff" opacity=".92"/><rect x="40" y="110" width="120" height="70" fill="url(#${p}js)"/></g>
- <path d="M86,118 L100,134 L114,118" stroke="#fff" stroke-width="6" fill="none"/><path d="M88,117 L100,131 L112,117" fill="url(#${p}hd)" stroke="none"/>
- <text x="100" y="164" font-size="25" text-anchor="middle" fill="#fff" stroke="#1f2f6b" stroke-width="3.5" paint-order="stroke" font-weight="900" style="font-family:Jua,sans-serif">10</text>
- ${ARMS}
- <!-- 머리 -->
- <ellipse cx="100" cy="120" rx="34" ry="7" fill="#1d6a35" opacity=".3"/>
- ${spike(76,30,-28,.95)}${spike(100,22,0,1.1)}${spike(124,30,28,.95)}
- <path d="M100,24 C140,24 162,46 162,74 C162,104 136,118 100,118 C64,118 38,104 38,74 C38,46 60,24 100,24Z" fill="url(#${p}hd)" stroke="${O}" stroke-width="${sw}"/>
- <ellipse cx="80" cy="40" rx="20" ry="9" fill="#fff" opacity=".35" transform="rotate(-18 80 40)"/>
- <ellipse cx="100" cy="94" rx="40" ry="22" fill="url(#${p}mz)" stroke="#3a9a4e" stroke-width="1.6"/>
- ${eye(78,62,1)}${eye(122,62,-1)}
- <ellipse cx="90" cy="82" rx="3" ry="2.2" fill="${O}"/><ellipse cx="110" cy="82" rx="3" ry="2.2" fill="${O}"/>
- <path d="M70,92 C84,100 116,100 130,92 C128,112 116,120 100,120 C84,120 72,112 70,92Z" fill="#8a2333" stroke="${O}" stroke-width="2.4"/>
- <path d="M84,111 C92,105 108,105 116,111 C110,118 90,118 84,111Z" fill="#ff8a96"/>
- <path d="M78,95 l3,5.5 l3,-4.5 M116,95 l3,5.5 l3,-4.5" fill="#fff" stroke="#fff" stroke-width="1"/>
- <ellipse cx="58" cy="88" rx="8" ry="5" fill="#ff8aa0" opacity=".5"/><ellipse cx="142" cy="88" rx="8" ry="5" fill="#ff8aa0" opacity=".5"/>
- <!-- 환호 효과 -->
- ${pose==="plane"||pose==="heart"?"":`<g stroke="#ffd23f" stroke-width="3.5"><path d="M8,40 l-6,-6 M10,56 l-8,1 M20,32 l-3,-8"/><path d="M192,40 l6,-6 M190,56 l8,1 M180,32 l3,-8"/></g>`}
- </g>`;}
+const charIcon=k=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -36 228 262">${chara(k,'i'+k,{shadow:false})}</svg>`);
 // ---------- 멋진 골키퍼 (트리케라톱스, 입체 스타일) ----------
 function keeperSVG(p){const O='#1a1f45',sw=2.8;
  const limb=(d,w,fill)=>`<path d="${d}" stroke="${O}" stroke-width="${w+6}" fill="none" stroke-linecap="round"/><path d="${d}" stroke="${fill}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
@@ -549,18 +573,23 @@ function layout(){const w=$('game').querySelector('.bwrap').getBoundingClientRec
   svg.setAttribute('viewBox',`${L.vx} ${L.Y0} ${L.vw} ${L.VH}`);}
 
 // ---------- 설정 ----------
-let cfg={mode:'solo',den:'10',eq:'same',num:10,kicks:5,sound:true};
+let cfg={char1:'tyrano',char2:'fennec',mode:'solo',den:'10',eq:'same',num:10,kicks:5,sound:true};
 try{const o=JSON.parse(localStorage.getItem(KEY)||'null');if(o&&o.den)cfg={...cfg,...o};}catch(e){}
 const saveCfg=()=>{try{localStorage.setItem(KEY,JSON.stringify(cfg));}catch(e){}};
 const SEGS=[['modeSeg','mode'],['denSeg','den'],['eqSeg','eq']];
 const team=()=>cfg.mode==='team',maxNum=()=>team()?15:30,numKey=()=>team()?'kicks':'num';
-function buildLobby(){
+
+function buildChars(){const mk=(id,key)=>{const el=$(id);if(!el)return;el.innerHTML=CHAR_KEYS.map(k=>`<button data-v="${k}"><img alt="" src="${charIcon(k)}"><small>${CHARS[k].name}</small></button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{cfg[key]=b.dataset.v;sync();});};mk('ch1Seg','char1');mk('ch2Seg','char2');}
+function syncChars(){[['ch1Seg','char1'],['ch2Seg','char2']].forEach(([id,k])=>{const el=$(id);if(el)el.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg[k]));});}
+function buildLobby(){buildChars();
   SEGS.forEach(([id,k])=>document.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{cfg[k]=b.dataset.v;sync();}));
   const setNum=v=>{cfg[numKey()]=clamp(Math.round(v)||1,1,maxNum());sync();};
   document.querySelectorAll('.numrow .nb').forEach(b=>b.onclick=()=>setNum(cfg[numKey()]+ +b.dataset.d));
   const ni=$('numIn');ni.addEventListener('change',()=>setNum(+ni.value));ni.addEventListener('blur',()=>setNum(+ni.value));ni.addEventListener('keydown',e=>{if(e.key==='Enter')ni.blur();});
   sync();}
 function sync(){const k=numKey();cfg[k]=clamp(+cfg[k]||5,1,maxNum());
+  syncChars();$('ch2Lab').textContent=team()?'🔵 2팀 캐릭터':'🧤 상대 골키퍼';$('ch1Lab').firstChild.textContent=team()?'🔴 1팀 캐릭터 ':'내 캐릭터 ';
   SEGS.forEach(([id,kk])=>document.querySelectorAll(`#${id} button`).forEach(b=>b.classList.toggle('on',b.dataset.v===cfg[kk])));
   $('numLab').textContent=team()?'팀마다 차는 횟수':'문제 수';$('numHint').textContent=team()?'1~15번 (두 팀이 번갈아)':'1~30문제';$('numUnit').textContent=team()?'번씩':'문제';
   $('numIn').max=maxNum();if(document.activeElement!==$('numIn'))$('numIn').value=cfg[k];
@@ -640,17 +669,25 @@ function start(){$('lobby').classList.add('hide');$('game').classList.remove('hi
   const n=team()?cfg.kicks*2:cfg.num;G={list:makeList(n),idx:0,res:[],teamGoals:[0,0],first:0,tries:0};
   game.state='run';G.t0=performance.now();layout();fitFrame();drawScene();setup();if(!team())TMRank.start(rankLv(),rankName());}
 function drawScene(){const g=goalSVG();
-  svg.innerHTML=scenery()+g.net+`<g id="kpPos"><g id="kpDive"><g class="kp" id="kpIn">${keeperSVG('k')}</g></g></g>`+g.posts+
-   `<g id="aim"></g><ellipse id="bsh" rx="${L.BR*.9}" ry="${L.BR*.25}" fill="#000" opacity=".25"/><g id="ball"><g id="ballRot">${ballSVG(L.BR,'b')}</g></g>
+  svg.innerHTML=scenery()+g.net+`<g id="kpPos"><g id="kpDive"><g class="kp" id="kpIn"></g></g></g>`+g.posts+
+   `<g id="aim"></g><ellipse id="bsh" rx="${L.BR*.9}" ry="${L.BR*.25}" fill="#000" opacity=".25"/><g id="ball"><g id="ballRot">${ballSVG(L.BR,'b')}</g></g><g id="kicker" pointer-events="none"></g>
    <g id="gauge"></g><g id="banner"></g><g id="cele"></g><g id="fx"></g>
-   <text id="hintTxt" x="600" y="${L.hy}" font-size="${L.port?32:24}" text-anchor="middle" fill="#fff" stroke="#1b4a22" stroke-width="5" paint-order="stroke" opacity=".95">게이지를 채우고 · 공을 골대 쪽으로 밀어 차요</text>`;
-  const s=KS;$('kpPos').setAttribute('transform',`translate(${600-110*s},${GB+8-228*s}) scale(${s})`);
+   <text id="hintTxt" x="${L.port?600:800}" y="${L.port?L.BY-290:L.hy}" font-size="${L.port?32:24}" text-anchor="middle" fill="#fff" stroke="#1b4a22" stroke-width="5" paint-order="stroke" opacity=".95">게이지를 채우고 · 공을 골대 쪽으로 밀어 차요</text>`;
+  const s=KS;$('kpPos').setAttribute('transform',`translate(${600-100*s},${GB+8-216*s}) scale(${s})`);
   bindPitch();}
 function cur(){return G.list[G.idx];}
+const TEAMC=['#ff4d5a','#3d8bff'];
+function sides(){const t=team()?turnTeam():0;return {t,kc:t===1?cfg.char2:cfg.char1,gc:t===1?cfg.char1:cfg.char2,kj:TEAMC[t],gk:TEAMC[1-t]};}
+function kickerPos(){const ks=L.port?1.25:1.0;return {ks,x:BALLX-(L.port?215:180),y:L.BY+L.BR+(L.port?70:58)-216*ks};}
+function drawKicker(pose,dx=0,dy=0){const S=sides(),k=kickerPos(),el=$('kicker');el.setAttribute('transform',`translate(${k.x-100*k.ks+dx},${k.y+dy}) scale(${k.ks})`);
+  el.innerHTML=chara(S.kc,'kk'+pose,{back:true,pose,jersey:S.kj});el.setAttribute('opacity',1);}
+function drawKeeper(){const S=sides();$('kpIn').innerHTML=chara(S.gc,'gk',{pose:'keeper',jersey:'#2b2f45',kit:{stripe:S.gk,num:String(CHARS[S.gc].gk),shorts:'#15172e',glove:'#c6f53a',sock:'#2b2f45'}});}
+function runUp(done){const k=kickerPos();anim(300,q=>{const e=eio(q);drawKickerPos(e*(L.port?110:90),-e*14-Math.abs(Math.sin(q*Math.PI*2))*8);},()=>{drawKicker('kick',L.port?110:90,-14);done();});}
+function drawKickerPos(dx,dy){const k=kickerPos();$('kicker').setAttribute('transform',`translate(${k.x-100*k.ks+dx},${k.y+dy}) scale(${k.ks})`);}
 const turnTeam=()=>G.idx%2;
 function setup(){const f=cur();lvl=0;G.tries=0;G.state='ready';G.hint=false;
   clearInterval(celeTimer);$('crowd').classList.remove('cheer');$('cele').innerHTML='';$('fx').innerHTML='';$('hintTxt').setAttribute('opacity',.95);$('aim').innerHTML='';$('kpDive').setAttribute('transform','');$('kpIn').setAttribute('class','kp');
-  placeBall(BALLX,L.BY,1,0,1);drawBanner();drawGauge();drawDots();sfx.whistle();}
+  placeBall(BALLX,L.BY,1,0,1);drawKeeper();drawKicker('ready');drawBanner();drawGauge();drawDots();sfx.whistle();}
 function drawBanner(){const f=cur(),s=L.bs,w=360*s,h=150*s,x=600-w/2,y=L.by;const t=team()?(turnTeam()?'🔵 2팀 차례':'🔴 1팀 차례'):'게이지를 채워요';
   $('banner').innerHTML=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${22*s}" fill="#1b2862" opacity=".92" stroke="#5fd3f5" stroke-width="${4*s}"/>
    <text x="600" y="${y+34*s}" font-size="${24*s}" text-anchor="middle" fill="#bfe9ff">${t}</text>
@@ -701,7 +738,8 @@ function gaugeAt(p,first){const f=cur(),m=f.m,{gy,gh,gw}=L,pad=gw*.12;const rel=
 // ---------- 슛 ----------
 function shoot(tg){if(G.state!=='ready')return;const f=cur();
   if(lvl===0){toast('info','게이지를 먼저 채워요',`${f.n}/${f.d}만큼 칸을 눌러요`);return;}
-  G.state='fly';$('aim').innerHTML='';sfx.kick();const cmp=lvl*f.d-f.n*f.m;const B0={x:BALLX,y:L.BY};
+  G.state='fly';$('aim').innerHTML='';runUp(()=>launch(tg,f));}
+function launch(tg,f){sfx.kick();const cmp=lvl*f.d-f.n*f.m;const B0={x:BALLX,y:L.BY};
   $('kpIn').setAttribute('class','');
   if(cmp===0){const side=Math.abs(tg.x-600)<70?(Math.random()<.5?-1:1):(tg.x>600?-1:1);const ctl={x:(B0.x+tg.x)/2,y:Math.min(B0.y,tg.y)-90};
     diveKeeper(side,false);
@@ -714,18 +752,18 @@ function shoot(tg){if(G.state!=='ready')return;const f=cur();
     jumpKeeper();
     anim(850,k=>{const e=eo(k),u=1-e;const x=u*u*B0.x+2*u*e*ctl.x+e*e*ex,y=u*u*B0.y+2*u*e*ctl.y+e*e*ey;placeBall(x,y,1-e*.7,k*1100,L.BY+(GB-20-L.BY)*e);$('ball').setAttribute('opacity',k>.8?1-(k-.8)*4:1);},()=>{
       $('ball').setAttribute('opacity',0);$('bsh').setAttribute('opacity',0);sfx.aww();miss('over');});}}
-function diveKeeper(side,save){anim(480,k=>{const e=eo(k);$('kpDive').setAttribute('transform',`translate(${side*170*e},${-40*Math.sin(Math.PI*Math.min(1,k*1.2))+30*e}) rotate(${side*72*e} 110 200)`);});}
+function diveKeeper(side,save){anim(480,k=>{const e=eo(k);$('kpDive').setAttribute('transform',`translate(${side*170*e},${-40*Math.sin(Math.PI*Math.min(1,k*1.2))+30*e}) rotate(${side*72*e} 100 200)`);});}
 function jumpKeeper(){anim(700,k=>{$('kpDive').setAttribute('transform',`translate(0,${-60*Math.sin(Math.PI*k)})`);},()=>$('kpIn').setAttribute('class','kp'));}
 const CELES=[{k:'jump',name:'🙌 만세 점프 세리머니!',pose:'fists'},{k:'slide',name:'🦵 무릎 슬라이딩 세리머니!',pose:'kneel'},
   {k:'plane',name:'✈️ 비행기 세리머니!',pose:'plane'},{k:'heart',name:'💖 하트 세리머니!',pose:'heart'},{k:'dance',name:'🕺 댄스 세리머니!',pose:'dance'}];
 let celeBag=[],celeTimer=null;
 function nextCele(){if(!celeBag.length)celeBag=shuffle(CELES.map((_,i)=>i));return CELES[celeBag.pop()];}
 function particle(html,x,y,cls,life){const g=document.createElementNS(NS,'g');g.setAttribute('transform',`translate(${x},${y})`);g.innerHTML=`<g class="${cls}">${html}</g>`;$('cele').appendChild(g);setTimeout(()=>g.remove(),life);}
-function goal(tg){$('hintTxt').setAttribute('opacity',0);const crowd=$('crowd');crowd.classList.remove('cheer');void crowd.getBBox();crowd.classList.add('cheer');
+function goal(tg){$('kicker').setAttribute('opacity',0);$('hintTxt').setAttribute('opacity',0);const crowd=$('crowd');crowd.classList.remove('cheer');void crowd.getBBox();crowd.classList.add('cheer');
   const C=nextCele();const big=L.port?170:120,by=L.port?560:400;
-  $('fx').innerHTML=`<text class="big" x="600" y="${by}" font-size="${big}">골인!</text><text class="cname" x="600" y="${by-(L.port?170:118)}" font-size="${L.port?52:38}">${C.name}</text>`;
+  $('fx').innerHTML=`<text class="big" x="600" y="${by}" font-size="${big}">골인!</text>`;
   const t=team()?turnTeam():-1;const cs=L.cs,sc=cs/200,X=L.cx+cs*.1,Y=L.Y0+L.VH-cs*1.12;
-  $('cele').innerHTML=`<g id="celeW"><g id="celeA">${tyranoKick('c'+G.idx,t===1?'#3d8bff':'#ff4d5a',C.pose)}</g></g>`;
+  $('cele').innerHTML=`<g id="celeW"><g id="celeA">${chara(t===1?cfg.char2:cfg.char1,'c'+G.idx,{pose:C.pose,jersey:t===1?'#3d8bff':'#ff4d5a'})}</g></g>`;
   const W=$('celeW'),A=$('celeA');const put=(x,y,rot=0)=>W.setAttribute('transform',`translate(${x},${y}) rotate(${rot} ${100*sc} ${200*sc}) scale(${sc})`);
   const loop=(cls)=>{A.setAttribute('class',cls);};
   clearInterval(celeTimer);
@@ -747,7 +785,7 @@ function miss(kind){const f=cur();G.tries++;
   if(team()){G.res[G.idx]='x';drawDots();G.state='wait';
     setTimeout(()=>{lvl=f.n*f.m/f.d;G.hint=true;drawGauge();toast('info','정답은 이만큼!',`${f.m}칸 중 ${lvl}칸 = ${t}`);},1500);setTimeout(nextKick,3600);return;}
   G.state='wait';if(G.tries>=2)G.hint=true;
-  setTimeout(()=>{$('ball').setAttribute('opacity',1);$('bsh').setAttribute('opacity',.25);$('kpDive').setAttribute('transform','');$('kpIn').setAttribute('class','kp');
+  setTimeout(()=>{drawKicker('ready');$('ball').setAttribute('opacity',1);$('bsh').setAttribute('opacity',.25);$('kpDive').setAttribute('transform','');$('kpIn').setAttribute('class','kp');
     anim(350,k=>placeBall(BALLX,L.BY,eo(k),0,1));drawGauge();G.state='ready';if(G.hint)toast('info','힌트를 보여 줄게요','노란 화살표까지 채워 봐요');},1700);}
 function nextKick(){if(game.state!=='run')return;G.idx++;if(G.idx>=G.list.length){showResult();return;}
   $('ball').setAttribute('opacity',1);$('bsh').setAttribute('opacity',.25);setup();}
