@@ -256,6 +256,57 @@ html[data-device="phone"] .key.fn{font-size:calc(14px*var(--scale))}
 html[data-device="phone"] .stage.duo .qbox{font-size:calc(20px*var(--scale))}
 html[data-device="phone"] .pmsg{font-size:12px}
 html[data-device="board"] .panel{border-width:5px}
+
+/* ---------- 🌐 온라인 대회 ---------- */
+.live-entry h3 small{font-family:var(--body);font-size:13px;color:var(--muted);margin-left:6px}
+.live-entry .liverow{display:flex;gap:10px;flex-wrap:wrap}
+.live-entry .liverow .btn{flex:1;min-width:200px;flex-direction:column;gap:2px;padding:10px 18px}
+.live-entry .liverow .btn small{font-family:var(--body);font-size:13px;opacity:.92}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.sheet.host-cfg .solo-only,.sheet.host-cfg .live-entry{display:none}
+.dialog.live{max-width:560px}
+.dialog.live.wide{max-width:1120px}
+.lvpane{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.lvpane h2{margin:0}
+.lvform{display:grid;gap:12px;width:min(100%,360px)}
+.lvform label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--muted);text-align:left;min-width:0}
+.lvform input{width:100%;box-sizing:border-box;font-family:var(--display);font-size:26px;padding:10px 14px;border-radius:16px;border:3px solid var(--line);color:var(--ink);background:var(--card);text-align:center;min-width:0;-webkit-user-select:text;user-select:text}
+#lvCode{font-family:var(--num);font-weight:700;letter-spacing:.3em;font-size:40px}
+.bigcode{font-family:var(--num);font-weight:700;font-size:clamp(60px,9vw,140px);letter-spacing:.12em;color:var(--orange-d);line-height:1.05;background:var(--orange-l);border:4px dashed var(--orange);border-radius:24px;padding:4px 26px;display:inline-block}
+.lvhostgrid{display:grid;grid-template-columns:auto 1fr;gap:16px 28px;align-items:center;width:100%;text-align:left}
+.lvqr:empty,#lvQR:empty{display:none}
+#lvQR svg,#lvQR img{width:clamp(130px,15vw,220px);height:auto;display:block;border-radius:14px;border:3px solid var(--line);background:#fff}
+.lvhow{font-size:clamp(14px,1.2vw,19px);line-height:1.6;margin:0}
+.lvset{font-family:var(--display);color:var(--blue-d);font-size:clamp(15px,1.25vw,21px);margin:0}
+.lvchips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-height:26vh;overflow:auto;width:100%}
+.lvchips span{font-family:var(--display);background:var(--leaf);border:2px solid var(--green);color:var(--green-d);border-radius:999px;padding:3px 12px;font-size:clamp(14px,1.1vw,18px);animation:lvpop .35s}
+.lvchips span.me{background:var(--orange);border-color:var(--orange-d);color:#fff}
+@keyframes lvpop{0%{transform:scale(.4)}70%{transform:scale(1.12)}}
+.lvcount{font-family:var(--display);font-size:clamp(18px,1.6vw,26px);color:var(--green-d)}
+.stage.live{display:flex}
+.lvboard{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;gap:8px;background:var(--card);border:3px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:10px 14px}
+.lvbar{display:flex;align-items:center;gap:14px;font-family:var(--display);font-size:clamp(15px,1.3vw,22px);flex-wrap:wrap}
+.lvbar b{font-family:var(--num);color:var(--orange-d);font-size:1.25em;letter-spacing:.08em}
+.lvbar .sp{flex:1}
+.lvbar .btn{padding:6px 16px;font-size:clamp(14px,1.1vw,18px);box-shadow:0 4px 0 var(--green-d)}
+.lvlanes{flex:1;min-height:0;display:grid;grid-auto-flow:column;gap:3px 18px}
+.lvempty{flex:1;display:grid;place-items:center;color:var(--muted);font-family:var(--display);font-size:clamp(18px,1.8vw,30px);text-align:center}
+.lrow{display:grid;grid-template-columns:2em minmax(3.5em,6.5em) minmax(0,1fr) 4.4em;align-items:center;gap:.5em;min-height:0;font-family:var(--display);font-size:var(--lf,18px)}
+.lrk{text-align:center;font-family:var(--num);font-weight:700}
+.lnm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ltrack{position:relative;height:72%;min-height:1em;max-height:2.4em;border-radius:.55em;background:linear-gradient(180deg,#D9534A,#B83F37);box-shadow:inset 0 -3px 0 rgba(0,0,0,.14)}
+.ltrack::before{content:'';position:absolute;left:0;right:0;top:50%;border-top:2px dashed rgba(255,255,255,.45)}
+.ltrack::after{content:'';position:absolute;right:.35em;top:0;bottom:0;width:.45em;background:repeating-linear-gradient(0deg,#fff 0 .3em,#22314A .3em .6em)}
+.ldino{position:absolute;top:50%;height:var(--dh,170%);aspect-ratio:1.1;transform:translate(-50%,-62%);z-index:1}
+.lvlanes.c2{--dh:150%} .lvlanes.c3{--dh:128%}
+.stage.live ~ .foot{visibility:hidden}
+.ldino svg{width:100%;height:100%;display:block;overflow:visible}
+.lrow.run .ldino svg{animation:lvrun .32s ease-in-out infinite alternate}
+@keyframes lvrun{to{transform:translateY(-8%) rotate(-4deg)}}
+.lrow.fin .ldino svg{animation:lvhop .5s ease-in-out infinite alternate}
+@keyframes lvhop{to{transform:translateY(-22%)}}
+.lval{font-family:var(--num);font-weight:700;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.lrow.fin .lval{color:var(--green-d)}
 </style>
 </head>
 <body>
@@ -269,6 +320,7 @@ html[data-device="board"] .panel{border-width:5px}
       <button class="tool" id="btnFull" aria-label="전체 화면">⛶<span class="txt"> 전체 화면</span></button>
       <button class="tool" id="btnPause" aria-label="일시정지" disabled>⏸<span class="txt"> 일시정지</span></button>
       <button class="tool set" id="btnSettings" aria-label="설정">⚙️<span class="txt"> 설정</span></button>
+      <button class="tool" id="btnLiveExit" aria-label="대회 나가기" hidden>🚪<span class="txt"> 나가기</span></button>
     </div>
   </div>
   <div class="board">
@@ -302,20 +354,28 @@ html[data-device="board"] .panel{border-width:5px}
         <div class="fontbtns"><button id="fontDown" aria-label="글자 작게">가−</button><span id="fontVal">100%</span><button id="fontUp" aria-label="글자 크게">가+</button></div>
       </div>
     </section>
-    <section class="wide">
+    <section class="wide live-entry">
+      <h3>🌐 온라인 대회 <small>여러 기기에서 같은 문제로 함께 달려요</small></h3>
+      <div class="liverow">
+        <button class="btn" id="btnHost">📺 대회 열기<small>선생님 화면 (전자칠판)</small></button>
+        <button class="btn orange" id="btnJoin">📱 대회 참가<small>방 코드를 넣고 들어가요</small></button>
+      </div>
+      <p class="hint" id="liveHint"></p>
+    </section>
+    <section class="wide solo-only">
       <h3>몇 명이 달릴까요?</h3>
       <div class="chips big" data-key="players" data-type="num">
         <button data-v="1">🦖 1인용<small>컴퓨터 티라노와 달리기 시합</small></button>
         <button data-v="2">🦖🦖 2인용<small>친구와 각자 문제를 풀며 동시에 달려요</small></button>
       </div>
     </section>
-    <section>
+    <section class="solo-only">
       <h3>함께 달릴 컴퓨터 티라노</h3>
       <div class="chips" data-key="cpu" data-type="num">
         <button data-v="0">없음</button><button data-v="1">1마리</button><button data-v="2">2마리</button><button data-v="3">3마리</button>
       </div>
     </section>
-    <section>
+    <section class="solo-only">
       <h3>컴퓨터 티라노 빠르기</h3>
       <div class="chips" data-key="cpuSpeed">
         <button data-v="slow">🐢 느긋<small>한 문제에 약 5초</small></button><button data-v="mid">🏃 보통<small>약 3.5초</small></button>
@@ -363,7 +423,7 @@ html[data-device="board"] .panel{border-width:5px}
       </div>
       <p class="hint">트랙이 길면 화면이 내 티라노를 따라 움직여요. 위쪽 작은 지도에서 모두의 위치를 볼 수 있어요.</p>
     </section>
-    <section class="wide">
+    <section class="wide solo-only">
       <h3>이름</h3>
       <div class="names">
         <label id="lab0">왼쪽 · 초록 티라노<input id="name0" maxlength="8" value="초록팀" autocomplete="off"></label>
@@ -416,9 +476,55 @@ html[data-device="board"] .panel{border-width:5px}
   </div>
 </div>
 
+<!-- 🌐 온라인 대회 -->
+<div class="overlay" id="liveOv" hidden>
+  <div class="dialog live" id="liveDlg">
+    <span class="dino-logo"></span>
+    <div class="lvpane" id="lvJoin" hidden>
+      <h2>대회 참가</h2>
+      <p class="eyebrow">선생님 화면에 나온 방 코드와 내 이름을 써요</p>
+      <div class="lvform">
+        <label>방 코드 (숫자 4자리)<input id="lvCode" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="0000"></label>
+        <label>내 이름<input id="lvName" maxlength="8" autocomplete="off" placeholder="예) 번개티라노"></label>
+      </div>
+      <p class="hint" id="lvJoinMsg"></p>
+      <div class="row"><button class="btn orange" id="lvJoinGo">들어가기 🦖</button><button class="btn alt" id="lvJoinBack">돌아가기</button></div>
+    </div>
+    <div class="lvpane" id="lvWait" hidden>
+      <p class="eyebrow">방 코드 <b id="lvWaitCode"></b></p>
+      <h2 id="lvWaitTitle">입장 완료!</h2>
+      <p class="lvhow" id="lvWaitMsg">선생님이 시작하면 바로 달려요! 🦖</p>
+      <p class="lvset" id="lvWaitSet"></p>
+      <div class="lvcount" id="lvWaitCnt"></div>
+      <div class="lvchips" id="lvWaitList"></div>
+      <div class="row"><button class="btn alt" id="lvLeave">나가기</button></div>
+    </div>
+    <div class="lvpane" id="lvHost" hidden>
+      <div class="lvhostgrid">
+        <div class="lvqr"><div id="lvQR"></div></div>
+        <div>
+          <p class="eyebrow" style="text-align:left">🌐 온라인 대회 방 코드</p>
+          <div class="bigcode" id="lvCodeBig">----</div>
+          <p class="lvhow">학생: <b>TyranoMath → 티라노 게임존 → 티라노 달리기 연산 대회 → 📱 대회 참가</b> → 방 코드 입력<span id="lvQRhint"><br>(태블릿 카메라로 왼쪽 QR 코드를 찍어도 들어와요)</span></p>
+          <p class="lvset" id="lvHostSet"></p>
+        </div>
+      </div>
+      <div class="lvcount" id="lvHostCnt">아직 들어온 학생이 없어요</div>
+      <div class="lvchips" id="lvHostList"></div>
+      <p class="hint" id="lvHostMsg"></p>
+      <div class="row">
+        <button class="btn orange" id="lvStart">모두 출발! 🏁</button>
+        <button class="btn alt" id="lvSet">⚙️ 문제 설정</button>
+        <button class="btn alt" id="lvClose">방 닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <canvas id="confetti" hidden></canvas>
 
 <script src="../assets/rank.js"></script>
+<script src="../assets/live.js"></script>
 <script>
 (() => {
 const $ = s => document.querySelector(s);
@@ -452,6 +558,9 @@ try { if (window.top === window) $('#btnZone').hidden = false; } catch (e) {}
 /* ---------------- 설정 ---------------- */
 let cfg = { players: 1, cpu: 3, cpuSpeed: 'mid', ops: ['+', '−'], form: 'two', d1: 1, d2: 1, goal: 15, len: 300, names: ['초록팀', '주황팀'] };
 try { const s = JSON.parse(localStorage.getItem('tyrano-race-cfg') || 'null'); if (s && Array.isArray(s.ops) && s.ops.length) cfg = Object.assign(cfg, s); } catch (e) {}
+/* 🌐 온라인 대회 상태 (아래 '온라인 대회' 부분에서 채워요) */
+const LIVE = { role: null, ghosts: [], rng: null, report() {}, result() {}, board() {} };
+const withRng = (rng, fn) => { const r = Math.random; Math.random = rng; try { return fn(); } finally { Math.random = r; } };
 const save = () => { try { localStorage.setItem('tyrano-race-cfg', JSON.stringify(cfg)); } catch (e) {} };
 const solo = () => cfg.players === 1;
 const nameOf = i => (cfg.names[i] || '').trim() || (i ? '주황팀' : '초록팀');
@@ -694,7 +803,7 @@ function makeField() {
   G.runners = []; G.humans = []; G.order = [];
   const hum = solo() ? [0] : [0, 1];
   hum.forEach(i => G.runners.push({ k: G.runners.length, human: true, i, pal: i, name: nameOf(i) }));
-  for (let c = 0; c < cfg.cpu; c++) G.runners.push({ k: G.runners.length, human: false, pal: 2 + c, name: CPU_NAMES[c] });
+  for (let c = 0; c < cfg.cpu; c++) G.runners.push({ k: G.runners.length, human: false, pal: 2 + c, name: (LIVE.ghosts[c] && LIVE.ghosts[c].n) || CPU_NAMES[c], ghost: LIVE.ghosts[c] ? LIVE.ghosts[c].id : null });
   // 사람 선수를 가운데 레인에 두어요
   lanes = G.runners.length;
   const order = solo() ? [G.runners.slice(1, 2), G.runners.slice(0, 1), G.runners.slice(2)].flat() : [G.runners.slice(2, 3), G.runners.slice(0, 2), G.runners.slice(3)].flat();
@@ -781,7 +890,7 @@ function camera(dt, snap) {
   }
 }
 function newProblem(R) {
-  R.prob = makeProblem(R.prob); R.input = '';
+  R.prob = LIVE.rng ? withRng(LIVE.rng, () => makeProblem(R.prob)) : makeProblem(R.prob); R.input = '';
   const q = R.panel.querySelector('.qbox');
   const len = R.prob.tokens.join('').length;
   q.className = 'qbox' + (len > 9 ? ' l3' : len > 6 ? ' l2' : '');
@@ -820,7 +929,7 @@ function check(R) {
     R.panel.classList.add('stun');
     setTimeout(() => { R.input = ''; showInput(R); R.panel.classList.remove('stun'); }, 800);
   }
-  updateCombo(R); renderBoard();
+  updateCombo(R); renderBoard(); LIVE.report(R);
 }
 function updateCombo(R) {
   if (!R.panel) return;
@@ -859,7 +968,7 @@ function tick(now) {
     G.runners.forEach(R => {
       if (R.stun > 0) R.stun -= dt;
       // 컴퓨터 티라노: 일정한 간격으로 문제를 풀어요 (가끔 틀려요)
-      if (!R.human && !R.finished) {
+      if (!R.human && !R.finished && !R.ghost) {
         R.nextT -= dt;
         if (R.nextT <= 0) {
           if (Math.random() < cpuLv().acc) { R.right++; R.combo++; R.best = Math.max(R.best, R.combo); R.target = Math.min(1, R.target + stepOf(R)); if (R.combo >= 3 && R.combo % 3 === 0) comboFx(R); }
@@ -885,6 +994,7 @@ function tick(now) {
 }
 function finish(R) {
   R.finished = true; R.finishT = G.elapsed; G.order.push(R);
+  if (R.human) LIVE.report(R);
   const place = G.order.length;
   R.el.querySelector('.place').textContent = ['🥇', '🥈', '🥉'][place - 1] || `${place}등`;
   if (R.human) {
@@ -911,6 +1021,7 @@ function renderBoard() {
   const s1 = $('#side1');
   if (solo()) { const b = getBest(); s1.className = 'sc best'; $('#bn1').textContent = '최고 기록'; $('#sc1').textContent = b ? fmtTime(b) : '-'; $('#tl1').textContent = ''; }
   else { s1.className = 'sc s1'; $('#bn1').textContent = nameOf(1); bump($('#sc1'), hs[1].right); $('#tl1').textContent = tl(hs[1]); }
+  if (LIVE.role === 'player') LIVE.board();
 }
 function updateClock() { const el = $('#clock'), t = fmtTime(G.elapsed); if (el.textContent !== t) el.textContent = t; }
 
@@ -930,7 +1041,7 @@ function startGame() {
   ov.hidden = false;
   [3, 2, 1].forEach((n, k) => later(() => { show(n); sfx.beep(); }, k * 700));
   later(() => { show('탕! 출발!', true); sfx.gun(); crowdEvent('cheer'); }, 2100);
-  later(() => { ov.hidden = true; G.phase = 'play'; $('#btnPause').disabled = false; G.last = performance.now(); if (solo()) TMRank.start(rankLv(), rankName()); }, 2600);
+  later(() => { ov.hidden = true; G.phase = 'play'; $('#btnPause').disabled = false; G.last = performance.now(); if (solo() && !LIVE.role) TMRank.start(rankLv(), rankName()); }, 2600);
 }
 function endGame() {
   if (G.phase !== 'play') return;
@@ -943,6 +1054,7 @@ function statHTML(R, cls) {
     기록 ${fmtTime(R.finishT)} · 정답 ${R.right}개 · 오답 ${R.wrong}개<br>최고 콤보 ${R.best} · 정확도 ${acc}</div>`;
 }
 function showResult() {
+  if (LIVE.role === 'player') return LIVE.result();
   const hs = G.runners.filter(R => R.human), st = $('#winStats');
   const all = [...G.order, ...G.runners.filter(R => !R.finished).sort((a, b) => b.pos - a.pos)];
   if (solo()) {
@@ -963,7 +1075,7 @@ function showResult() {
   $('#winOv').hidden = false;
   if (solo() && hs[0].finished && hs[0].finishT > 0) TMRank.finish({ level: rankLv(), name: rankName(), value: Math.round(hs[0].finishT * 10) / 10 });
 }
-function pause() { if (G.phase !== 'play') return; G.phase = 'paused'; $('#pauseOv').hidden = false; }
+function pause() { if (G.phase !== 'play' || LIVE.role) return; G.phase = 'paused'; $('#pauseOv').hidden = false; }
 /* 🏆 랭킹: 1인용 결승선 도착 시간 (설정마다 따로, 빠를수록 위) */
 const FORM_NM = { two:'', three:' · 세 수', paren:' · 괄호' };
 const rankLv = () => bestKey();
@@ -1067,6 +1179,365 @@ function confetti(el) {
     if (now - t0 < 1400) requestAnimationFrame(f); else { x.clearRect(0, 0, c.width, c.height); c.hidden = true; }
   })(t0);
 }
+
+/* =========================================================
+   🌐 온라인 대회 (여러 기기 · 실시간)
+   - 선생님: 📺 대회 열기 → 방 코드 → 학생이 들어오면 "모두 출발!" → 전광판에 반 전체 달리기 · 순위
+   - 학생: 📱 대회 참가 → 방 코드 + 이름 → 선생님이 출발시키면 모두 '같은 문제'를 '같은 순서'로 풀어요
+   - 기록은 각자 기기에서 잰 '결승선까지 걸린 시간'이라 인터넷이 조금 느려도 공평해요
+   - 서버: Firebase 실시간 데이터베이스 (assets/live.js · data.js 의 liveUrl)
+   방 구조  rooms/{코드} = { game, created, state:'lobby'|'run'|'end', round, seed, cfg, players:{id:{n,j}}, prog:{id:{p,r,w,b,f,rd}} }
+   ========================================================= */
+const LV = { code: '', me: '', name: '', room: null, stop: null, round: 0, saved: null, url: '', ending: false, t0: 0, running: false, rows: {}, armed: 0 };
+const L$ = id => document.getElementById(id);
+const roomPath = (...a) => ['rooms', LV.code, ...a].join('/');
+const pickCfg = () => ({ ops: cfg.ops.slice(), form: cfg.form, d1: cfg.d1, d2: cfg.d2, goal: cfg.goal, len: cfg.len });
+const cfgName = c => c ? `${c.ops.join(' ')} · ${c.d1}자리와 ${c.d2}자리${FORM_NM[c.form] || ''} · ${c.goal}문제 · ${c.len}m` : '';
+const lvPane = which => {
+  ['lvJoin', 'lvWait', 'lvHost'].forEach(id => L$(id).hidden = id !== which);
+  L$('liveOv').hidden = !which; L$('liveDlg').classList.toggle('wide', which === 'lvHost');
+};
+const medal = i => ['🥇', '🥈', '🥉'][i] || (i + 1) + '';
+TMLive.ready().then(u => {
+  LV.url = u;
+  if (!u) { L$('btnHost').disabled = L$('btnJoin').disabled = true; L$('liveHint').textContent = '온라인 대회는 선생님이 실시간 서버를 연결하면 쓸 수 있어요. (선생님용 안내: google-sheet/온라인-대결-설정-방법.md)'; }
+});
+
+/* 순위: 도착한 사람은 시간 순, 아직 달리는 사람은 많이 간 순 */
+function liveOrder(room) {
+  const ps = (room && room.players) || {}, pr = (room && room.prog) || {};
+  return Object.entries(ps).map(([id, p]) => {
+    const g = pr[id] && pr[id].rd === room.round ? pr[id] : null;
+    return { id, n: p.n || '티라노', j: p.j || 0, p: g ? (g.f ? 1 : Math.min(1, g.p || 0)) : 0, f: (g && g.f) || 0, r: g ? g.r || 0 : 0, w: g ? g.w || 0 : 0, b: g ? g.b || 0 : 0, go: !!g };
+  }).sort((a, b) => (a.f && b.f) ? a.f - b.f : a.f ? -1 : b.f ? 1 : (b.p - a.p) || (b.r - a.r) || (a.j - b.j));
+}
+const chipsHTML = (room, me) => Object.entries((room && room.players) || {}).sort((a, b) => (a[1].j || 0) - (b[1].j || 0))
+  .map(([id, p]) => `<span class="${id === me ? 'me' : ''}">${esc(p.n || '티라노')}</span>`).join('');
+
+/* ---------- 공통: 들어가기 · 나가기 ---------- */
+function liveEnter(role) {
+  LV.saved = JSON.stringify(cfg); LIVE.role = role; LV.ending = false; LV.round = role === 'host' ? 0 : -1;
+  clearTimers(); hideAll(); G.phase = 'live';
+  $('#btnSettings').hidden = true; $('#btnPause').hidden = true;
+  $('#btnLiveExit').hidden = false;
+  $('#btnLiveExit').innerHTML = role === 'host' ? '🚪<span class="txt"> 대회 닫기</span>' : '🚪<span class="txt"> 나가기</span>';
+}
+function liveExit(note) {
+  const role = LIVE.role; if (!role) return;
+  if (LV.stop) { LV.stop(); LV.stop = null; }
+  if (role === 'host' && LV.code) TMLive.del(roomPath()).catch(() => {});
+  if (role === 'player' && LV.code && LV.me) { TMLive.del(roomPath('players', LV.me)).catch(() => {}); TMLive.del(roomPath('prog', LV.me)).catch(() => {}); try { sessionStorage.removeItem('tm-live-me'); } catch (e) {} }
+  LIVE.role = null; LIVE.ghosts = []; LIVE.rng = null; LV.code = ''; LV.room = null; LV.running = false;
+  try { const o = JSON.parse(LV.saved || 'null'); if (o) Object.assign(cfg, o); } catch (e) {}
+  $('#btnSettings').hidden = false; $('#btnPause').hidden = false; $('#btnLiveExit').hidden = true;
+  $('#btnAgain').hidden = false; $('#btnAgain').textContent = '다시 달리기'; $('#btnWinSetup').textContent = '설정 바꾸기';
+  $('#setup .sheet').classList.remove('host-cfg');
+  lvPane(null); clearTimers(); hideAll();
+  G.phase = 'setup'; openSettings();
+  L$('liveHint').textContent = note || '';
+}
+$('#btnLiveExit').onclick = () => {
+  if (LIVE.role === 'host') {           // 실수로 닫지 않게 두 번 눌러요
+    if (Date.now() - LV.armed > 3000) { LV.armed = Date.now(); $('#btnLiveExit').innerHTML = '❗<span class="txt"> 한 번 더 누르면 닫혀요</span>'; setTimeout(() => { if (LIVE.role === 'host') $('#btnLiveExit').innerHTML = '🚪<span class="txt"> 대회 닫기</span>'; }, 3000); return; }
+  }
+  liveExit();
+};
+addEventListener('pagehide', () => {
+  if (!LV.url || !LV.code) return;
+  const path = LIVE.role === 'host' ? roomPath() : LIVE.role === 'player' ? roomPath('players', LV.me) : '';
+  if (path) try { fetch(`${LV.url}/${path}.json`, { method: 'DELETE', keepalive: true }); } catch (e) {}
+});
+
+/* =================== 📺 선생님 =================== */
+async function hostOpen() {
+  const h = L$('liveHint'); h.textContent = '대회 방을 만들고 있어요…'; L$('btnHost').disabled = true;
+  try {
+    const code = await TMLive.newCode();
+    await TMLive.put('rooms/' + code, { game: 'tyrano-race', created: Date.now(), state: 'lobby', round: 0, seed: 0, cfg: pickCfg() });
+    liveEnter('host'); LV.code = code; h.textContent = '';
+    hostBoardBuild(); hostLobby();
+    LV.stop = TMLive.listen('rooms/' + code, onHostData, st => { if (st === 'retry') L$('lvHostMsg').textContent = '연결이 잠깐 끊겼어요. 다시 연결하는 중…'; else if (st === 'ok') L$('lvHostMsg').textContent = ''; });
+    requestAnimationFrame(hostLoop);
+  } catch (e) { h.textContent = TMLive.msg(e); }
+  L$('btnHost').disabled = !LV.url;
+}
+function hostLobby() {
+  lvPane('lvHost'); $('#winOv').hidden = true;
+  L$('lvCodeBig').textContent = LV.code;
+  L$('lvHostSet').textContent = '문제: ' + cfgName(pickCfg());
+  hostLobbyList();
+  const url = location.origin + location.pathname + '?join=' + LV.code;
+  L$('lvQR').innerHTML = ''; L$('lvQRhint').hidden = true;
+  loadQR().then(ok => {
+    if (!ok || LIVE.role !== 'host') return;
+    try { const q = qrcode(0, 'M'); q.addData(url); q.make(); L$('lvQR').innerHTML = q.createSvgTag(6, 3); L$('lvQRhint').hidden = false; } catch (e) {}
+  });
+}
+function loadQR() {
+  if (window.qrcode) return Promise.resolve(true);
+  if (loadQR.p) return loadQR.p;
+  return (loadQR.p = new Promise(res => {
+    const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+    s.onload = () => res(!!window.qrcode); s.onerror = () => res(false); document.head.appendChild(s);
+    setTimeout(() => res(!!window.qrcode), 6000);
+  }));
+}
+function hostLobbyList() {
+  const n = Object.keys((LV.room && LV.room.players) || {}).length;
+  L$('lvHostCnt').textContent = n ? `🦖 ${n}명이 들어왔어요` : '아직 들어온 학생이 없어요';
+  L$('lvHostList').innerHTML = chipsHTML(LV.room);
+  L$('lvStart').disabled = !n;
+}
+function onHostData(room) {
+  LV.room = room;
+  if (!room) { liveExit('대회 방이 사라졌어요. 다시 열어 주세요.'); return; }
+  if (!L$('lvHost').hidden) hostLobbyList();
+  hostBoard();
+  if (!$('#winOv').hidden && room.state === 'end') hostResultList();
+  // 모두 도착하면 잠시 뒤 경기 끝
+  if (room.state === 'run' && LV.running && !LV.ending) {
+    const list = liveOrder(room);
+    if (list.length && list.every(x => x.f)) { LV.ending = true; later(hostEnd, 2500); }
+  }
+}
+async function hostStart() {
+  const n = Object.keys((LV.room && LV.room.players) || {}).length;
+  if (!n) { L$('lvHostMsg').textContent = '아직 들어온 학생이 없어요.'; return; }
+  const round = ((LV.room && LV.room.round) || 0) + 1;
+  L$('lvStart').disabled = true; $('#btnAgain').disabled = true;
+  try { await TMLive.patch(roomPath(), { state: 'run', round, seed: Math.floor(Math.random() * 2147483647), prog: null, cfg: pickCfg(), go: Date.now() }); }
+  catch (e) { L$('lvHostMsg').textContent = TMLive.msg(e); L$('lvStart').disabled = false; $('#btnAgain').disabled = false; return; }
+  $('#btnAgain').disabled = false;
+  LV.round = round; LV.ending = false; LV.running = false; LV.rows = {};
+  lvPane(null); hideAll(); ensureAudio(); hostBoardBuild(); hostBoard();
+  const cn = $('#countNum'), ov = $('#countOv');
+  const show = (t, go) => { cn.textContent = t; cn.className = go ? 'go' : ''; cn.style.animation = 'none'; void cn.offsetWidth; cn.style.animation = ''; };
+  ov.hidden = false;
+  [3, 2, 1].forEach((k, i) => later(() => { show(k); sfx.beep(); }, i * 700));
+  later(() => { show('탕! 출발!', true); sfx.gun(); }, 2100);
+  later(() => { ov.hidden = true; LV.running = true; LV.t0 = performance.now(); }, 2600);
+}
+async function hostEnd() {
+  LV.running = false; clearTimers();
+  try { await TMLive.patch(roomPath(), { state: 'end' }); } catch (e) {}
+  const list = liveOrder(LV.room);
+  $('#winWhy').textContent = '🌐 온라인 대회 · 경기 끝!';
+  $('#winTitle').textContent = list[0] && list[0].f ? `🏆 ${list[0].n} 우승!` : '경기 끝!';
+  $('#btnAgain').hidden = false; $('#btnAgain').textContent = '같은 방에서 다시 달리기 🏁';
+  $('#btnWinSetup').textContent = '대기실로';
+  hostResultList(); sfx.win(); confetti();
+  $('#winOv').hidden = false;
+}
+function hostResultList() {
+  const list = liveOrder(LV.room), len = (LV.room && LV.room.cfg && LV.room.cfg.len) || cfg.len, fin = list.filter(x => x.f).length;
+  $('#winStats').className = 'stats one';
+  $('#winStats').innerHTML = `<div class="stat s0"><strong>참가 ${list.length}명 · 도착 ${fin}명</strong><br>${esc(cfgName(LV.room && LV.room.cfg))}</div>`;
+  $('#podium').innerHTML = list.map((x, i) => `<div class="prow"><span>${x.f ? medal(i) : '–'}</span><b>${esc(x.n)}</b><span>${x.f ? fmtTime(x.f) : Math.round(x.p * len) + 'm'}</span></div>`).join('');
+}
+async function hostToLobby() {
+  try { await TMLive.patch(roomPath(), { state: 'lobby', prog: null }); } catch (e) {}
+  LV.running = false; LV.rows = {}; hostBoardBuild(); hostBoard(); hostLobby();
+}
+/* 전광판 */
+const DSTY = PAL.map((_, i) => dinoStyle(i, '.lp' + i)).join('');
+function hostBoardBuild() {
+  stage.className = 'stage live';
+  stage.innerHTML = `<div class="lvboard">${DSTY}<div class="lvbar"><span>🌐 방 코드 <b>${esc(LV.code)}</b></span><span id="lvBarCnt"></span><span class="sp"></span>
+    <button class="btn alt" id="lvBarLobby">대기실 보기</button><button class="btn" id="lvBarEnd">🏁 경기 끝내기</button></div><div class="lvlanes" id="lvLanes"></div></div>`;
+  L$('lvBarEnd').onclick = () => { if (LV.room && LV.room.state === 'run') hostEnd(); };
+  L$('lvBarLobby').onclick = () => { if (LV.room && LV.room.state === 'run') return; hostLobby(); };
+  LV.rows = {};
+}
+function hostBoard() {
+  const lanes = L$('lvLanes'); if (!lanes || !LV.room) return;
+  const room = LV.room, list = liveOrder(room), n = list.length, len = (room.cfg && room.cfg.len) || cfg.len;
+  const running = room.state === 'run';
+  L$('lvBarEnd').hidden = !running; L$('lvBarLobby').hidden = running;
+  // 점수판
+  $('#bn0').textContent = '🌐 참가'; $('#sc0').textContent = n; $('#tl0').textContent = '방 코드 ' + LV.code;
+  $('#side1').className = 'sc best'; $('#bn1').textContent = '도착'; $('#sc1').textContent = list.filter(x => x.f).length; $('#tl1').textContent = '';
+  $('#rngTag').textContent = cfgName(room.cfg);
+  if (!n) { lanes.innerHTML = '<div class="lvempty">학생들이 들어오면 여기에 티라노가 줄을 서요 🦖</div>'; lanes.style.display = 'grid'; LV.rows = {}; return; }
+  if (lanes.querySelector('.lvempty')) lanes.innerHTML = '';
+  const cols = n > 26 ? 3 : n > 12 ? 2 : 1, per = Math.ceil(n / cols);
+  lanes.style.gridTemplateColumns = `repeat(${cols},minmax(0,1fr))`; lanes.className = 'lvlanes c' + cols;
+  lanes.style.gridTemplateRows = `repeat(${per},minmax(0,1fr))`;
+  const rh = lanes.clientHeight / per;
+  lanes.style.setProperty('--lf', Math.max(11, Math.min(24, rh * .42)).toFixed(1) + 'px');
+  L$('lvBarCnt').textContent = `참가 ${n}명 · 도착 ${list.filter(x => x.f).length}명`;
+  const byJoin = list.slice().sort((a, b) => a.j - b.j).map(x => x.id);
+  const seen = new Set();
+  list.forEach((x, i) => {
+    seen.add(x.id);
+    let r = LV.rows[x.id];
+    if (!r) {
+      const el = document.createElement('div'); el.className = 'lrow';
+      const pal = byJoin.indexOf(x.id) % PAL.length;
+      el.innerHTML = `<span class="lrk"></span><span class="lnm"></span><div class="ltrack"><div class="ldino"><svg viewBox="0 0 220 200" aria-hidden="true"><g class="lp${pal}">${DINO_PARTS}</g></svg></div></div><span class="lval"></span>`;
+      lanes.appendChild(el);
+      r = LV.rows[x.id] = { el, cur: x.p, rk: el.querySelector('.lrk'), nm: el.querySelector('.lnm'), dino: el.querySelector('.ldino'), val: el.querySelector('.lval') };
+    }
+    r.tgt = x.p; r.el.style.order = i;
+    r.el.classList.toggle('fin', !!x.f);
+    r.rk.textContent = x.f || (running && x.go) ? medal(i) : '·';
+    if (r.nm.textContent !== x.n) r.nm.textContent = x.n;
+    r.val.textContent = x.f ? fmtTime(x.f) : running ? Math.round(x.p * len) + 'm' : (room.state === 'end' ? Math.round(x.p * len) + 'm' : '준비');
+  });
+  Object.keys(LV.rows).forEach(id => { if (!seen.has(id)) { LV.rows[id].el.remove(); delete LV.rows[id]; } });
+}
+function hostLoop(now) {
+  if (LIVE.role !== 'host') return;
+  if (LV.running) { G.elapsed = (now - LV.t0) / 1000; updateClock(); }
+  else if (!LV.room || LV.room.state === 'lobby') { if ($('#clock').textContent !== '00:00.00') $('#clock').textContent = '00:00.00'; }
+  for (const id in LV.rows) {
+    const r = LV.rows[id], d = (r.tgt || 0) - r.cur;
+    if (Math.abs(d) > .0005) r.cur += d * .12; else r.cur = r.tgt || 0;
+    r.el.classList.toggle('run', Math.abs(d) > .003);
+    r.dino.style.left = `calc(1.4em + ${(r.cur * 100).toFixed(2)}% - ${(r.cur * 2.8).toFixed(3)}em)`;
+  }
+  requestAnimationFrame(hostLoop);
+}
+function hostApplySet() {
+  $('#setup').hidden = true; $('#setup .sheet').classList.remove('host-cfg'); setMid(false);
+  TMLive.patch(roomPath(), { cfg: pickCfg() }).catch(() => {});
+  hostBoardBuild(); hostBoard(); hostLobby();
+}
+L$('btnHost').onclick = hostOpen;
+L$('lvStart').onclick = hostStart;
+L$('lvSet').onclick = () => {
+  lvPane(null); syncChips(); $('#setup .sheet').classList.add('host-cfg');
+  $('#btnStart').textContent = '✔ 이 문제로 대회하기'; $('#btnBack').hidden = true; $('#setup').hidden = false;
+};
+L$('lvClose').onclick = () => liveExit();
+
+/* =================== 📱 학생 =================== */
+function joinOpen(code) {
+  lvPane('lvJoin'); $('#setup').hidden = true;
+  const nm = (cfg.names[0] || '').trim();
+  if (!L$('lvName').value) L$('lvName').value = nm && nm !== '초록팀' ? nm : '';
+  if (code) L$('lvCode').value = code;
+  L$('lvJoinMsg').textContent = ''; L$('lvJoinMsg').classList.remove('warn');
+  setTimeout(() => (L$('lvCode').value.length === 4 ? L$('lvName') : L$('lvCode')).focus(), 50);
+}
+async function joinGo() {
+  const code = L$('lvCode').value.replace(/\D/g, '').slice(0, 4), name = L$('lvName').value.trim().slice(0, 8), m = L$('lvJoinMsg');
+  const warn = t => { m.textContent = t; m.classList.add('warn'); };
+  if (code.length !== 4) return warn('방 코드 숫자 4자리를 써 주세요.');
+  if (!name) return warn('내 이름을 써 주세요.');
+  m.classList.remove('warn'); m.textContent = '들어가는 중…'; L$('lvJoinGo').disabled = true;
+  try {
+    const room = await TMLive.get('rooms/' + code);
+    if (!room || room.game !== 'tyrano-race') { L$('lvJoinGo').disabled = false; return warn('그런 방이 없어요. 방 코드를 다시 확인해 주세요.'); }
+    let me = '';
+    try { const s = JSON.parse(sessionStorage.getItem('tm-live-me') || 'null'); if (s && s.code === code && room.players && room.players[s.id]) me = s.id; } catch (e) {}
+    me = me || TMLive.uid();
+    const j = (room.players && room.players[me] && room.players[me].j) || Date.now();
+    await TMLive.put(`rooms/${code}/players/${me}`, { n: name, j });
+    try { sessionStorage.setItem('tm-live-me', JSON.stringify({ code, id: me })); } catch (e) {}
+    liveEnter('player'); LV.code = code; LV.me = me; LV.name = name;
+    cfg.names[0] = name; try { const o = JSON.parse(LV.saved); o.names[0] = name; LV.saved = JSON.stringify(o); save(); } catch (e) {}
+    showWait();
+    LV.stop = TMLive.listen('rooms/' + code, onPlayerData, st => { if (st === 'retry') L$('lvWaitMsg').dataset.net = '1'; });
+  } catch (e) { warn(TMLive.msg(e)); }
+  L$('lvJoinGo').disabled = false;
+}
+function showWait() {
+  const room = LV.room;
+  lvPane('lvWait'); $('#winOv').hidden = true;
+  L$('lvWaitCode').textContent = LV.code;
+  L$('lvWaitTitle').textContent = `${LV.name} 입장 완료!`;
+  L$('lvWaitMsg').textContent = room && room.state === 'end' ? '이번 경기는 끝났어요. 선생님이 다음 경기를 시작하면 바로 달려요! 🦖' : '선생님이 시작하면 바로 달려요! 🦖';
+  L$('lvWaitSet').textContent = room && room.cfg ? '문제: ' + cfgName(room.cfg) : '';
+  const n = Object.keys((room && room.players) || {}).length;
+  L$('lvWaitCnt').textContent = n ? `함께 달릴 친구 ${n}명` : '';
+  L$('lvWaitList').innerHTML = chipsHTML(room, LV.me);
+}
+function onPlayerData(room) {
+  LV.room = room;
+  if (!room) { liveExit('선생님이 대회를 닫았어요.'); return; }
+  if (!room.players || !room.players[LV.me]) { liveExit('대회에서 나왔어요. 다시 들어가려면 방 코드를 넣어 주세요.'); return; }
+  const racing = G.phase === 'play' || G.phase === 'count';
+  if (room.state === 'lobby') { if (racing || !$('#winOv').hidden) { clearTimers(); hideAll(); G.phase = 'live'; } showWait(); return; }
+  if (room.state === 'run') {
+    if (LV.round !== room.round) { playerStart(room); return; }
+    updateGhosts(room); renderBoard();
+  }
+  if (room.state === 'end') {
+    if (LV.round !== room.round) { showWait(); return; }
+    if (racing) { clearTimers(); hideAll(); LV.forced = true; G.phase = 'play'; endGame(); return; }
+  }
+  if (!$('#winOv').hidden) playerResultList();
+  if (!L$('lvWait').hidden) showWait();
+}
+function playerStart(room) {
+  LV.round = room.round; LV.forced = false;
+  lvPane(null); hideAll();
+  const c = room.cfg || pickCfg();
+  Object.assign(cfg, { ops: c.ops.slice(), form: c.form, d1: c.d1, d2: c.d2, goal: c.goal, len: c.len, players: 1 });
+  const others = Object.entries(room.players).filter(([id]) => id !== LV.me).map(([id, p]) => ({ id, n: p.n || '친구' }));
+  for (let i = others.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [others[i], others[j]] = [others[j], others[i]]; }
+  LIVE.ghosts = others.slice(0, 3); cfg.cpu = LIVE.ghosts.length; cfg.names[0] = LV.name;
+  LIVE.rng = TMLive.seeded(room.seed || 1);
+  startGame();
+  updateGhosts(room);
+}
+function updateGhosts(room) {
+  const pr = room.prog || {};
+  G.runners.forEach(R => {
+    if (!R.ghost) return;
+    const g = pr[R.ghost];
+    if (!g || g.rd !== room.round) return;
+    R.target = Math.max(R.target, g.f ? 1 : Math.min(1, g.p || 0)); R.right = g.r || 0;
+  });
+}
+LIVE.report = R => {
+  if (LIVE.role !== 'player' || !R.human || !LV.code) return;
+  const data = { p: +R.target.toFixed(4), r: R.right, w: R.wrong, b: R.best, f: R.finished ? Math.round(R.finishT * 100) / 100 : 0, rd: LV.round };
+  const send = k => TMLive.patch(roomPath('prog', LV.me), data).catch(() => { if (R.finished && k < 4) setTimeout(() => send(k + 1), 800 * (k + 1)); });
+  send(0);
+};
+LIVE.board = () => {
+  if (!LV.room) return;
+  const list = liveOrder(LV.room), R = G.humans[0], n = list.length;
+  let rk = list.findIndex(x => x.id === LV.me) + 1;
+  if (R && !R.finished) rk = 1 + list.filter(x => x.id !== LV.me && (x.f || x.p > R.target)).length;   // 내 기록은 내 기기가 더 빨라요
+  $('#side1').className = 'sc best'; $('#bn1').textContent = '실시간 순위'; $('#sc1').textContent = rk ? rk + '등' : '-'; $('#tl1').textContent = `${n}명 중`;
+};
+LIVE.result = () => {
+  const R = G.humans[0];
+  $('#winWhy').textContent = LV.forced ? '⏱ 선생님이 경기를 끝냈어요' : '🏁 도착! 친구들의 기록을 기다려요';
+  $('#btnAgain').hidden = true; $('#btnWinSetup').textContent = '대회 나가기';
+  playerResultList(); sfx.win(); if (R && R.finished) confetti();
+  $('#winOv').hidden = false;
+};
+function playerResultList() {
+  const R = G.humans[0]; if (!R || !LV.room) return;
+  const list = liveOrder(LV.room), len = cfg.len, idx = list.findIndex(x => x.id === LV.me);
+  const rk = idx + 1, running = list.filter(x => !x.f).length;
+  $('#winTitle').textContent = R.finished ? `${rk}등! 크앙!` : '경기 끝!';
+  if (LV.room.state === 'end') $('#winWhy').textContent = '🌐 경기 끝! 모두 수고했어요';
+  else if (R.finished) $('#winWhy').textContent = running ? `🏁 도착! ${running}명이 아직 달리고 있어요` : '🏁 모두 도착했어요!';
+  const tot = R.right + R.wrong, acc = tot ? Math.round(R.right / tot * 100) + '%' : '-';
+  $('#winStats').className = 'stats one';
+  $('#winStats').innerHTML = `<div class="stat s0"><strong>${esc(LV.name)}</strong><span class="bigs">${rk}등</span><br>기록 ${R.finished ? fmtTime(R.finishT) : Math.round(R.target * len) + 'm'} · 정답 ${R.right}개 · 오답 ${R.wrong}개<br>최고 콤보 ${R.best} · 정확도 ${acc}</div>`;
+  const show = list.slice(0, 10); if (idx >= 10) show.push(list[idx]);
+  $('#podium').innerHTML = show.map(x => { const i = list.indexOf(x); return `<div class="prow${x.id === LV.me ? ' me' : ''}"><span>${x.f ? medal(i) : '–'}</span><b>${esc(x.n)}</b><span>${x.f ? fmtTime(x.f) : Math.round(x.p * len) + 'm'}</span></div>`; }).join('');
+}
+L$('btnJoin').onclick = () => joinOpen('');
+L$('lvJoinGo').onclick = joinGo;
+['lvCode', 'lvName'].forEach(id => L$(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); joinGo(); } }));
+L$('lvCode').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4); });
+L$('lvJoinBack').onclick = () => { lvPane(null); $('#setup').hidden = false; };
+L$('lvLeave').onclick = () => liveExit();
+
+/* 버튼 나눠 쓰기 (온라인일 때는 다르게 움직여요) */
+$('#btnStart').onclick = () => LIVE.role === 'host' ? hostApplySet() : startGame();
+$('#btnAgain').onclick = () => LIVE.role === 'host' ? hostStart() : LIVE.role ? null : startGame();
+$('#btnWinSetup').onclick = () => LIVE.role === 'host' ? hostToLobby() : LIVE.role === 'player' ? liveExit() : openSettings();
+
+/* QR 코드로 들어오면 (…tyrano-race.html?join=1234) 바로 참가 화면 */
+{ const jc = (new URLSearchParams(location.search).get('join') || '').replace(/\D/g, '').slice(0, 4);
+  if (jc.length === 4) TMLive.ready().then(u => { if (u) joinOpen(jc); }); }
 
 /* 첫 화면: 선수들이 출발선에 선 상태로 설정 창 표시 */
 applyMode(); resetGame(); syncChips();
