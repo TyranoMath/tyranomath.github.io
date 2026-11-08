@@ -160,7 +160,9 @@ const GAMES = [
   { title:'수영장 분수 채우기',     desc:'수영장을 똑같이 나누고 분수만큼 물을 채워요! 밸브를 돌려 물이 차오르면 티라노가 풍덩~', grade:'3~4학년', area:'수와 연산', icon:'🏊', image:'games/thumbs/fraction-pool.svg', color:'#D6F0FF', date:'2026-11-02', file:'games/fraction-pool.html' },
   { title:'분수 그림 퍼즐',         desc:'분수와 같은 크기의 막대·수직선·원 카드를 찾아 숨은 야생화와 동물 그림을 완성해요!', grade:'3~4학년', area:'수와 연산', icon:'🧩', image:'games/thumbs/fraction-picture.svg', color:'#FFEBD6', date:'2026-11-02', file:'games/fraction-picture.html' },
   { title:'분수 페널티킥',          desc:'힘 게이지를 분수만큼 채우고 슛! 혼자 골인 도전 또는 두 팀으로 나눠 승부차기 대결.', grade:'3~4학년', area:'수와 연산', icon:'⚽', image:'games/thumbs/fraction-kick.svg', color:'#DDF5E0', date:'2026-11-02', file:'games/fraction-kick.html' },
-  { title:'숫자 비행단',            desc:'홀수·짝수·배수 규칙에 맞는 숫자는 피하고 나머지 적기는 격파해요! 조종사를 골라 출격하는 슈팅 게임.', grade:'3~5학년', area:'수와 연산', icon:'✈️', image:'games/thumbs/number-squadron.svg', color:'#14303F', date:'2026-11-02', file:'games/number-squadron.html' }
+  { title:'숫자 비행단',            desc:'홀수·짝수·배수 규칙에 맞는 숫자는 피하고 나머지 적기는 격파해요! 조종사를 골라 출격하는 슈팅 게임.', grade:'3~5학년', area:'수와 연산', icon:'✈️', image:'games/thumbs/number-squadron.svg', color:'#14303F', date:'2026-11-02', file:'games/number-squadron.html' },
+  { title:'자릿값 낚시',            desc:'수를 자릿값으로 가르는 물고기를 낚아요! 95라면 90과 5. 헷갈리는 물고기는 놓아주고 바구니를 채워요. 혼자 또는 최대 4명이 함께.', grade:'1~3학년', area:'수와 연산', icon:'🎣', image:'games/thumbs/place-fishing.svg', color:'#D6EEFF', date:'2026-11-08', file:'games/place-fishing.html' },
+  { title:'티라노 사다리 게임',      desc:'주사위 3개를 던져 나온 수를 더한 만큼 앞으로! 사다리는 올라가고 터널은 내려가요. 100칸을 지나 먼저 도착하면 승리.', grade:'1~3학년', area:'수와 연산', icon:'🪜', image:'games/thumbs/ladder.svg', color:'#FFF1D6', date:'2026-11-08', file:'games/ladder.html' }
 ];
 
 /* ---------------------------------------------------------

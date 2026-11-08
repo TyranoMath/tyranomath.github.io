@@ -45,7 +45,7 @@
   <div class="stage">
     <div class="play" id="play"></div>
     <div class="last" id="last">버튼을 눌러 시작해요!</div>
-    <svg id="chart" viewBox="0 0 760 220" preserveAspectRatio="xMidYMid meet" aria-label="나온 횟수 그래프"></svg>
+    <svg id="chart" viewBox="0 0 760 240" preserveAspectRatio="xMidYMid meet" aria-label="나온 횟수 그래프"></svg>
   </div>
   <div class="side">
     <div class="box">
@@ -246,7 +246,7 @@ function renderChart(){
     g += `<rect x="${x}" y="${B - h}" width="${w}" height="${h}" fill="${color}" stroke="#22314A" stroke-width="1.5" rx="4"/>`;
     g += `<text x="${x + w / 2}" y="${B - h - 6}" text-anchor="middle" font-size="16" font-weight="700" fill="#22314A">${v}</text>`;
     g += `<text x="${x + w / 2}" y="${B + 24}" text-anchor="middle" font-size="${n > 8 ? 15 : 18}" fill="#22314A" font-family="Jua">${esc(o)}</text>`;
-    if (total) g += `<text x="${x + w / 2}" y="${B + 42}" text-anchor="middle" font-size="12" fill="#5D6C83">${Math.round(v / total * 100)}%</text>`;
+    if (total) g += `<text x="${x + w / 2}" y="${B + 46}" text-anchor="middle" font-size="15" font-weight="700" fill="#5D6C83" font-family="Fredoka, Jua, sans-serif">${Math.round(v / total * 100)}%</text>`;
   });
   $('#chart').innerHTML = g;
   $('#cnt').textContent = total;
