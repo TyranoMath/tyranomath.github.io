@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>티라노 분수 수학 도구 · TyranoMath</title>
+<title>티라노 분수 도구 · TyranoMath</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap">
@@ -152,7 +152,7 @@ html[data-device="phone"] .copy{font-size:10px;padding:0 10px 4px}
 @media (max-height:600px){ .brand small,.foot{display:none} .app{gap:4px} .board{padding-block:2px} }
 @media (max-width:820px){ .sheet{grid-template-columns:minmax(0,1fr)} .ctlhelp,.rulehelp{grid-template-columns:1fr} .starts.two{grid-template-columns:1fr} }
 @media (max-width:520px){ .names,.stats{grid-template-columns:1fr} .sheet header svg{width:60px} }
-/* ---------- 분수 수학 도구: 왼쪽 도구 상자 + 오른쪽 작업판 ---------- */
+/* ---------- 분수 도구: 왼쪽 도구 상자 + 오른쪽 작업판 ---------- */
 .main{flex:1;min-height:0;display:grid;grid-template-columns:clamp(250px,21vw,340px) minmax(0,1fr);gap:clamp(8px,1vw,14px)}
 .side{min-height:0;overflow:auto;background:var(--card);border:3px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:12px;display:flex;flex-direction:column;gap:12px}
 .side h3{margin:0 0 6px;font-family:var(--display);font-weight:400;font-size:calc(clamp(15px,1.15vw,19px)*var(--scale));color:var(--green-d);display:flex;align-items:center;gap:6px}
@@ -289,7 +289,7 @@ html[data-layout="stack"] .toolbar{order:3;flex-basis:100%;flex-wrap:wrap}
 <body>
 <div class="app" id="app">
   <div class="topbar">
-    <div class="brand"><span class="dino-logo"></span><span>Tyrano<b>Math</b></span><small>분수 수학 도구</small></div>
+    <div class="brand"><span class="dino-logo"></span><span>Tyrano<b>Math</b></span><small>분수 도구</small></div>
     <div class="toolbar">
       <div class="grp">
         <button class="tb" id="tbSelect" aria-pressed="true" title="고르기 · 옮기기 (V)"><span class="ic">✋</span><span class="tx">옮기기</span></button>
@@ -354,7 +354,7 @@ html[data-layout="stack"] .toolbar{order:3;flex-basis:100%;flex-wrap:wrap}
     <header>
       <span class="dino-logo"></span>
       <div>
-        <h2 id="setupTitle">티라노 <b>분수 수학 도구</b> 설정</h2>
+        <h2 id="setupTitle">티라노 <b>분수 도구</b> 설정</h2>
         <p class="lead">분수 막대 · 분수 원 · 조각 타일 · 수직선 · 묶음 모델로 분수를 직접 만들고 비교해요.</p>
       </div>
     </header>
@@ -419,7 +419,7 @@ html[data-layout="stack"] .toolbar{order:3;flex-basis:100%;flex-wrap:wrap}
 <div class="overlay" id="helpOv" hidden>
   <div class="dialog wide">
     <span class="dino-logo"></span>
-    <h2>분수 수학 도구 사용법</h2>
+    <h2>분수 도구 사용법</h2>
     <div class="helpgrid">
       <div><b>① 꺼내기</b>분모(몇 조각)를 고르고 막대 · 원 · 타일 · 다각형 · 수직선 · 알 묶음 · 넓이 모델 · 분수 쓰기를 누르면 작업판에 나와요. 단추를 작업판으로 끌어다 놓아도 돼요.</div>
       <div><b>② 색칠하기</b>조각을 톡 누르면 색칠되고, 한 번 더 누르면 지워져요. 위에 지금 나타낸 분수가 보여요.</div>
@@ -1438,7 +1438,7 @@ $('#fileIn').addEventListener('change', () => {
   rd.onload = () => {
     let d; try { d = JSON.parse(rd.result); } catch (e) { d = null; }
     const bd = d && cleanBoard(d.board || d);
-    if (!bd) { msg.className = 'hint warn'; msg.textContent = '분수 수학 도구에서 내보낸 파일이 아니에요.'; return; }
+    if (!bd) { msg.className = 'hint warn'; msg.textContent = '분수 도구에서 내보낸 파일이 아니에요.'; return; }
     const name = (typeof d.name === 'string' && d.name.trim() ? d.name.trim() : f.name.replace(/\.json$/i, '')).slice(0, 40);
     applyBoard(bd, cleanView(d.view));
     const a = loadSaves().filter(s => s.name !== name);
