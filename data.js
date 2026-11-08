@@ -162,7 +162,7 @@ const GAMES = [
   { title:'분수 페널티킥',          desc:'힘 게이지를 분수만큼 채우고 슛! 혼자 골인 도전 또는 두 팀으로 나눠 승부차기 대결.', grade:'3~4학년', area:'수와 연산', icon:'⚽', image:'games/thumbs/fraction-kick.svg', color:'#DDF5E0', date:'2026-11-02', file:'games/fraction-kick.html' },
   { title:'숫자 비행단',            desc:'홀수·짝수·배수 규칙에 맞는 숫자는 피하고 나머지 적기는 격파해요! 조종사를 골라 출격하는 슈팅 게임.', grade:'3~5학년', area:'수와 연산', icon:'✈️', image:'games/thumbs/number-squadron.svg', color:'#14303F', date:'2026-11-02', file:'games/number-squadron.html' },
   { title:'자릿값 낚시',            desc:'수를 자릿값으로 가르는 물고기를 낚아요! 95라면 90과 5. 헷갈리는 물고기는 놓아주고 바구니를 채워요. 혼자 또는 최대 4명이 함께.', grade:'1~3학년', area:'수와 연산', icon:'🎣', image:'games/thumbs/place-fishing.svg', color:'#D6EEFF', date:'2026-11-08', file:'games/place-fishing.html' },
-  { title:'티라노 사다리 게임',      desc:'주사위 3개를 던져 나온 수를 더한 만큼 앞으로! 사다리는 올라가고 터널은 내려가요. 100칸을 지나 먼저 도착하면 승리.', grade:'1~3학년', area:'수와 연산', icon:'🪜', image:'games/thumbs/ladder.svg', color:'#FFF1D6', date:'2026-11-08', file:'games/ladder.html' }
+  { title:'티라노 사다리 게임',      desc:'주사위 3개를 던져 나온 수를 더한 만큼 앞으로! 사다리는 올라가고 터널은 내려가요. 판 크기 100~1000칸, 카드 아이템, 컴퓨터 티라노와 함께 4마리가 달려요.', grade:'1~3학년', area:'수와 연산', icon:'🪜', image:'games/thumbs/ladder.svg', color:'#FFF1D6', date:'2026-11-08', file:'games/ladder.html' }
 ];
 
 /* ---------------------------------------------------------
