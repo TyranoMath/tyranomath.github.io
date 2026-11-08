@@ -15,7 +15,12 @@ const CONFIG = {
 
   // 📈 구글 시트 플레이 수 집계 주소 (Apps Script 웹 앱 URL, .../exec 로 끝나요)
   //    넣으면 모든 학생의 플레이 수로 인기 게임 BEST 10 이 정해져요. 비우면 기기별 집계.
-  statsUrl: 'https://script.google.com/macros/s/AKfycbzXiOkpy83QWP7IH5TtvasGvP7D4ftbgGplOq9LghoUJ9lo7V01O3MnFmMIsKfWRJLjcw/exec'
+  statsUrl: 'https://script.google.com/macros/s/AKfycbzXiOkpy83QWP7IH5TtvasGvP7D4ftbgGplOq9LghoUJ9lo7V01O3MnFmMIsKfWRJLjcw/exec',
+
+  // 🌐 온라인 실시간 대결 서버 (Firebase 실시간 데이터베이스 주소)
+  //    예: 'https://tyranomath-xxxx-default-rtdb.asia-southeast1.firebasedatabase.app'
+  //    비워 두면 온라인 대회 버튼이 '준비 중'으로 보여요. 설정 방법: google-sheet/온라인-대결-설정-방법.md
+  liveUrl: 'https://tyranomath-default-rtdb.asia-southeast1.firebasedatabase.app'
 };
 
 /* ---------------------------------------------------------
@@ -148,7 +153,7 @@ const GAMES = [
   { title:'티라노 징검다리',       desc:'더 큰 수(또는 더 작은 수)가 적힌 돌만 밟고 강을 건너요! 혼자 기록 도전 또는 친구와 대결.', grade:'1~4학년', area:'수와 연산', icon:'🪨', image:'games/thumbs/stepping-stones.svg', color:'#CDEBFF', date:'2026-10-18', file:'games/stepping-stones.html' },
   { title:'티라노 로켓 어림하기',   desc:'올림·버림·반올림한 수를 찾아 로켓을 발사해요! 혼자 기록 도전 또는 친구와 대결.', grade:'4~6학년', area:'수와 연산', icon:'🚀', image:'games/thumbs/rocket-rounding.svg', color:'#2B2F5C', date:'2026-10-18', file:'games/rocket-rounding.html' },
   { title:'티라노 코코넛 맞히기',   desc:'짝수·홀수·배수·약수… 조건에 맞는 수가 적힌 코코넛만 골라 맞혀요! 혼자 기록 도전 또는 친구와 대결.', grade:'1~5학년', area:'수와 연산', icon:'🥥', image:'games/thumbs/coconut-shy.svg', color:'#FFF1C9', date:'2026-10-18', file:'games/coconut-shy.html' },
-  { title:'티라노 달리기 연산 대회', desc:'문제를 맞힐 때마다 티라노가 달려요! 컴퓨터 티라노와 경주하거나 친구와 대결해 결승선까지 먼저 도착해요.', grade:'1~6학년', area:'수와 연산', icon:'🏃', image:'games/thumbs/tyrano-race.svg', color:'#E4F5D6', date:'2026-10-19', file:'games/tyrano-race.html' },
+  { title:'티라노 달리기 연산 대회', desc:'문제를 맞힐 때마다 티라노가 달려요! 컴퓨터 티라노와 경주하거나 친구와 대결하고, 🌐 온라인 대회로 반 전체가 각자 기기에서 같은 문제로 실시간 경주해요.', grade:'1~6학년', area:'수와 연산', icon:'🏃', image:'games/thumbs/tyrano-race.svg', color:'#E4F5D6', date:'2026-10-19', file:'games/tyrano-race.html' },
   { title:'티라노 분수 줄다리기',   desc:'분수 문제를 맞힐 때마다 줄을 당겨요! 분수 알아보기부터 분수의 덧셈·뺄셈까지, 컴퓨터나 친구와 대결해요.', grade:'3~4학년', area:'수와 연산', icon:'🪢', image:'games/thumbs/fraction-tug.svg', color:'#FFE3EA', date:'2026-10-20', file:'games/fraction-tug.html' },
   { title:'티라노 크기 비교 양궁',   desc:'두 수의 크기를 비교해 알맞은 기호(>, =, <) 과녁에 화살을 쏴요! 가운데에 맞힐수록 점수가 높아요.', grade:'1~4학년', area:'수와 연산', icon:'🏹', image:'games/thumbs/compare-archery.svg', color:'#DDF0FF', date:'2026-10-20', file:'games/compare-archery.html' },
   { title:'티라노 숫자 카드 로켓',   desc:'숫자 카드로 미션에 맞는 수(가장 큰 수, 가장 작은 짝수…)를 만들어 로켓을 달까지 쏘아 올려요!', grade:'1~4학년', area:'수와 연산', icon:'🚀', image:'games/thumbs/digit-rocket.svg', color:'#1F2552', date:'2026-10-20', file:'games/digit-rocket.html' },
