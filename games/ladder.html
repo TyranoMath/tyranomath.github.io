@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap">
 <style>
-/* Layout: TyranoMath 놀이판 — 왼쪽 세로줄에 도착(위)·출발(아래) 공간 + 100칸 판, 오른쪽 플레이어·주사위 3개·계산 패널. 세로 화면은 판 위, 패널 아래 */
+/* Layout: TyranoMath 놀이판 — 왼쪽 10줄 창으로 보는 판(100~1000칸, 현재 티라노를 따라 위아래로 움직임) + 출발·도착 공간, 오른쪽 4인 플레이어·진행 막대·주사위 3개·계산 패널 */
 :root{
   color-scheme: light;
   --bg:#FFF8EC; --card:#FFFFFF; --ink:#22314A; --muted:#5D6C83; --line:#ECDFC8;
@@ -21,7 +21,7 @@
   --display:"Jua","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
   --body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
   --num:"Fredoka","Jua",system-ui,sans-serif;
-  --scale:1; --ds:clamp(56px,5.6vw,104px);
+  --scale:1; --ds:clamp(56px,5.2vw,100px);
 }
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);overflow:hidden;display:flex;flex-direction:column;
@@ -30,16 +30,26 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 button:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
 
-/* 플레이어 색 */
+/* 플레이어 색 (c4·c5는 구경꾼 티라노) */
 .c0{--d-main:#5CC46F;--d-tail:#4CB963;--d-leg:#3A9D51;--d-belly:#E8F7C8;--d-spike:#FF9F43;--d-line:#2E6B3A;--pc:#4CB963;--pd:#2F8A47;--pl:#E4F5D6}
 .c1{--d-main:#FFAE5C;--d-tail:#FF9F43;--d-leg:#E0801F;--d-belly:#FFF2DC;--d-spike:#4CB963;--d-line:#8A4A12;--pc:#FF9F43;--pd:#C9671A;--pl:#FFE7CC}
 .c2{--d-main:#B86BDD;--d-tail:#A75BCC;--d-leg:#7E3A9E;--d-belly:#F4E5FB;--d-spike:#FFD43B;--d-line:#5A2672;--pc:#A75BCC;--pd:#7E3A9E;--pl:#F1E2FA}
 .c3{--d-main:#F7CB3A;--d-tail:#EDBB22;--d-leg:#C99A12;--d-belly:#FFF6D2;--d-spike:#5CC46F;--d-line:#7A5A08;--pc:#E8B51C;--pd:#A9800A;--pl:#FFF4C9}
+.c4{--d-main:#7FC8E8;--d-tail:#6AB8DB;--d-leg:#3E8DB3;--d-belly:#E6F6FD;--d-spike:#FF8FA3;--d-line:#24607E}
+.c5{--d-main:#FF9DB4;--d-tail:#F58AA3;--d-leg:#D9637F;--d-belly:#FFEAF0;--d-spike:#7FC8E8;--d-line:#8E3550}
 .d-main{fill:var(--d-main)} .d-tail{fill:var(--d-tail)} .d-leg{fill:var(--d-leg)} .d-belly{fill:var(--d-belly)}
 .d-spike{fill:var(--d-spike)} .d-eye{fill:#fff;stroke:var(--d-line);stroke-width:2} .d-pupil{fill:var(--ink)}
 .d-hl{fill:#fff} .d-cheek{fill:var(--pink);opacity:.65} .d-mouth{fill:none;stroke:var(--d-line);stroke-width:3.5;stroke-linecap:round}
 .d-open{fill:#9E2A3A;stroke:var(--d-line);stroke-width:3} .d-tongue{fill:#FF8FA3} .d-brow{fill:none;stroke:var(--d-line);stroke-width:4;stroke-linecap:round}
 .d-tear{fill:#7CC4F5}
+/* 꼬리 살랑살랑 + 불 뿜기 */
+.token svg,.decor svg,.r-dino svg{overflow:visible}
+.d-tail{transform-box:view-box;transform-origin:62px 128px;animation:wag .7s ease-in-out infinite alternate}
+@keyframes wag{from{transform:rotate(-16deg)}to{transform:rotate(12deg)}}
+.fire{transform-box:view-box;transform-origin:200px 86px;transform:scale(0);opacity:0}
+.fire .f1{fill:#FF6A1A} .fire .f2{fill:#FFB020} .fire .f3{fill:#FFE66D}
+.breath .fire{animation:fire 1.1s ease-out}
+@keyframes fire{0%{transform:scale(.1);opacity:0}15%{transform:scale(1.1,1);opacity:1}35%{transform:scale(.92,1.06)}55%{transform:scale(1.05,.95);opacity:1}80%{transform:scale(1.15);opacity:.8}100%{transform:scale(1.25);opacity:0}}
 
 /* ---------- 위쪽 줄 ---------- */
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:clamp(8px,1vw,14px) 16px 0}
@@ -56,15 +66,21 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline
 .app{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) clamp(330px,34vw,680px);
   gap:clamp(10px,1.4vw,22px);padding-block:clamp(8px,1vw,14px) 4px;padding-inline:16px}
 .board-area{min-width:0;min-height:0;container-type:size;display:grid;place-items:center}
-/* 판 좌표: 가로 1150(왼쪽 150 = 출발·도착 공간) × 세로 1000 */
+/* 판 창: 가로 1150 × 세로 1000(10줄). 왼쪽 150은 출발·도착 공간 */
 .board{position:relative;width:min(100cqw,115cqh);aspect-ratio:115/100;border-radius:22px;background:var(--card);
-  border:5px solid var(--line);box-shadow:var(--shadow);overflow:hidden;box-sizing:border-box;container-type:inline-size}
-.cells{position:absolute;left:13.0435%;top:0;width:86.9565%;height:100%;display:grid;grid-template-columns:repeat(10,1fr);grid-template-rows:repeat(10,1fr)}
+  border:5px solid var(--line);box-shadow:var(--shadow);overflow:hidden;box-sizing:border-box;container-type:inline-size;touch-action:none}
+.world{position:absolute;left:0;top:0;width:100%;height:100%;will-change:transform}
+.cells{position:absolute;left:13.0435%;top:0;width:86.9565%;height:100%;display:grid;grid-template-columns:repeat(10,1fr)}
 .cell{position:relative;background:var(--cellA);border:1px solid #F3E8D6}
 .cell.alt{background:var(--cellB)}
-.cell b{position:absolute;left:7%;top:4%;font-family:var(--num);font-weight:700;font-size:calc(1.9cqw*var(--scale));color:#A8967A;line-height:1}
+.cell b{position:absolute;left:7%;top:4%;font-family:var(--num);font-weight:700;font-size:calc(1.75cqw*var(--scale));color:#A8967A;line-height:1}
 .cell.c-first{box-shadow:inset 0 0 0 4px var(--green)} .cell.c-last{box-shadow:inset 0 0 0 4px var(--gold)}
-.zone{position:absolute;left:0;width:13.0435%;height:50%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:4%;gap:1%;box-sizing:border-box;
+.cell.hundred b{color:var(--orange-d)}
+.cardmark{position:absolute;right:9%;bottom:10%;width:34%;aspect-ratio:.72;border-radius:14%;display:grid;place-items:center;
+  background:linear-gradient(135deg,#FFB35C,#FF7FA0 55%,#B47CFF);color:#fff;font-family:var(--display);font-size:2cqw;
+  box-shadow:0 3px 0 rgba(34,49,74,.2),inset 0 0 0 2px rgba(255,255,255,.6);animation:shimmer 2.4s ease-in-out infinite}
+@keyframes shimmer{50%{transform:rotate(-8deg) scale(1.06)}}
+.zone{position:absolute;left:0;width:13.0435%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:2%;gap:.4%;box-sizing:border-box;
   font-family:var(--display);text-align:center}
 .zone .zt{font-size:2.7cqw;line-height:1}
 .zone .zs{font-size:1.25cqw;opacity:.85}
@@ -74,10 +90,23 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline
 .z-start::before{content:"";position:absolute;top:0;left:0;right:0;height:10px;background:repeating-linear-gradient(90deg,#fff 0 12px,var(--green) 12px 24px)}
 .zone .arrow{font-size:2cqw;animation:nudge 1.2s ease-in-out infinite}
 @keyframes nudge{50%{transform:translateX(5px)}}
+.side-mid{position:absolute;left:0;top:0;width:13.0435%;height:100%;background:linear-gradient(180deg,#EAF6FF,#F2FBEA);border-right:4px solid var(--line);box-sizing:border-box}
+.mile{position:absolute;left:0;right:0;transform:translateY(-50%);text-align:center;font-family:var(--display);color:var(--orange-d);font-size:1.6cqw;line-height:1.1}
+.mile b{display:block;font-family:var(--num);font-size:2.2cqw;color:var(--ink)}
 .paths{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.decor{position:absolute;width:4.6%;transform:translate(-50%,-70%);pointer-events:none;z-index:2;opacity:.95}
+.decor svg{display:block;width:100%;height:auto}
+.decor.mir svg{transform:scaleX(-1)}
+.decor.hop svg{animation:dHop .6s ease-in-out}
+@keyframes dHop{40%{transform:translateY(-25%)}}
+.decor.mir.hop svg{animation:dHopF .6s ease-in-out}
+@keyframes dHopF{0%,100%{transform:scaleX(-1)}40%{transform:scaleX(-1) translateY(-25%)}}
+.decor .zz{position:absolute;right:-20%;top:-30%;font-family:var(--display);font-size:1.4cqw;color:#7A8BA6;animation:zz 2s ease-in-out infinite}
+@keyframes zz{0%{opacity:0;transform:translate(0,0)}40%{opacity:1}100%{opacity:0;transform:translate(30%,-60%)}}
 .token{position:absolute;width:7.6%;transform:translate(-50%,-62%);transition:left .16s ease-out,top .16s ease-out;z-index:3;
   filter:drop-shadow(0 3px 0 rgba(34,49,74,.25));pointer-events:none}
 .token svg{display:block;width:100%;height:auto;transition:opacity .25s,transform .25s,filter .25s}
+.token .bot{position:absolute;left:-6%;top:-14%;font-size:1.6cqw}
 .token.now{z-index:5}
 .token.now::after{content:"";position:absolute;left:18%;right:18%;bottom:-8%;height:12%;border-radius:50%;background:var(--pc);opacity:.55;animation:glow 1s ease-in-out infinite}
 @keyframes glow{50%{opacity:.15;transform:scaleX(1.3)}}
@@ -91,6 +120,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline
 .token.under::after{display:none}
 .token.pop svg{animation:popout .5s cubic-bezier(.2,1.6,.4,1)}
 @keyframes popout{from{transform:translateY(35%) scale(.1);opacity:0}to{transform:none;opacity:1}}
+.camhint{position:absolute;right:1.5%;top:1.5%;z-index:6;display:flex;flex-direction:column;gap:6px}
+.camhint button{width:3.6cqw;height:3.6cqw;min-width:34px;min-height:34px;border-radius:50%;border:3px solid var(--line);background:rgba(255,255,255,.92);font-size:1.6cqw;line-height:1;color:var(--ink)}
 
 /* ---------- 티라노 반응 (사다리: 신나요 / 터널: 속상해요) ---------- */
 .react{position:absolute;inset:0;z-index:10;display:grid;justify-items:center;align-items:center;padding:3% 0;box-sizing:border-box;pointer-events:none}
@@ -103,59 +134,50 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline
 .r-tag{font-family:var(--display);font-size:1.6cqw;color:#fff;background:var(--green);border-radius:999px;padding:.3% 4%}
 .react.bad .r-tag{background:var(--sad)}
 .r-stage{position:relative;width:62%;aspect-ratio:1.1;display:grid;place-items:center}
-.r-dino{width:78%;transform-origin:50% 95%}
+.r-dino{width:72%;transform-origin:50% 95%}
 .r-dino svg{display:block;width:100%;height:auto}
-.r-cap{margin:0;font-family:var(--display);font-size:2.7cqw;color:var(--green-d);text-align:center;line-height:1.2}
+.r-cap{margin:0;font-family:var(--display);font-size:2.6cqw;color:var(--green-d);text-align:center;line-height:1.2}
 .react.bad .r-cap{color:#3F5E86}
 .r-sub{margin:.4em 0 0;font-family:var(--num);font-weight:700;font-size:1.7cqw;color:var(--muted)}
 .fx{position:absolute;font-size:3cqw;line-height:1;pointer-events:none}
-/* 신나요 1: 만세 점프 */
 .a-jump .r-dino{animation:aJump .7s ease-in-out infinite}
 @keyframes aJump{0%,100%{transform:translateY(0) scale(1.08,.9)}15%{transform:translateY(0) scale(.95,1.08)}50%{transform:translateY(-28%) scale(1)}85%{transform:translateY(0) scale(1.06,.92)}}
 .a-jump .fx{animation:burst 1.4s ease-out infinite}
 @keyframes burst{0%{transform:translate(0,0) scale(.3);opacity:0}25%{opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(1.2);opacity:0}}
-/* 신나요 2: 빙글빙글 */
 .a-spin .r-dino{animation:aSpin 1s cubic-bezier(.5,0,.5,1) infinite}
 @keyframes aSpin{0%{transform:rotate(0)}60%{transform:rotate(360deg) scale(1.1)}100%{transform:rotate(360deg)}}
 .a-spin .fx{animation:twinkle .8s ease-in-out infinite alternate}
 @keyframes twinkle{from{transform:scale(.4) rotate(0);opacity:.3}to{transform:scale(1.2) rotate(40deg);opacity:1}}
-/* 신나요 3: 하트 뿅뿅 */
-.a-hearts .r-dino{animation:aSway 1s ease-in-out infinite}
+.a-hearts .r-dino,.a-fire .r-dino{animation:aSway 1s ease-in-out infinite}
 @keyframes aSway{50%{transform:rotate(-6deg) scale(1.05)}}
 .a-hearts .fx{animation:floatUp 1.6s ease-out infinite}
 @keyframes floatUp{0%{transform:translateY(0) scale(.4);opacity:0}20%{opacity:1}100%{transform:translateY(-140%) scale(1.2);opacity:0}}
-/* 신나요 4: 신나는 춤 */
+.a-fire .fx{animation:twinkle .8s ease-in-out infinite alternate}
 .a-dance .r-dino{animation:aDance .5s ease-in-out infinite}
 @keyframes aDance{0%,100%{transform:rotate(-10deg) translateX(-6%)}50%{transform:rotate(10deg) translateX(6%) translateY(-6%)}}
 .a-dance .fx{animation:note 1.4s ease-out infinite}
 @keyframes note{0%{transform:translate(0,0) rotate(0);opacity:0}20%{opacity:1}100%{transform:translate(var(--tx),-120%) rotate(25deg);opacity:0}}
-/* 신나요 5: 로켓 발사 */
 .a-rocket .r-dino{animation:aRocket 1.3s ease-in-out infinite}
 @keyframes aRocket{0%{transform:translateY(8%) rotate(0)}15%{transform:translateY(10%) scale(1.06,.9)}55%{transform:translateY(-40%) rotate(-8deg)}80%{transform:translateY(-34%) rotate(4deg)}100%{transform:translateY(8%)}}
 .a-rocket .fx{animation:puff 1.3s ease-out infinite}
 @keyframes puff{0%,10%{transform:translateY(0) scale(.3);opacity:0}30%{opacity:1}100%{transform:translateY(60%) scale(1.6);opacity:0}}
-/* 속상해요 1: 눈물 뚝뚝 */
 .a-cry .r-dino{animation:aSob .45s ease-in-out infinite}
 @keyframes aSob{50%{transform:translateY(3%) scale(1.02,.97)}}
 .a-cry .fx{animation:drip 1s ease-in infinite}
 @keyframes drip{0%{transform:translateY(0) scale(.5);opacity:0}15%{opacity:1}100%{transform:translateY(220%) scale(1);opacity:0}}
-/* 속상해요 2: 어질어질 */
 .a-dizzy .r-dino{animation:aWobble 1.2s ease-in-out infinite}
 @keyframes aWobble{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
 .a-dizzy .orbit{position:absolute;left:50%;top:8%;width:46%;aspect-ratio:2.4;transform:translateX(-50%);animation:orbit 1s linear infinite}
 .a-dizzy .orbit .fx{position:absolute;font-size:2.4cqw}
 @keyframes orbit{to{transform:translateX(-50%) rotate(360deg)}}
-/* 속상해요 3: 깜짝 놀람 */
 .a-shock .r-dino{animation:aShock 1.2s ease-out infinite}
 @keyframes aShock{0%{transform:none}10%{transform:translateY(-16%) scale(1.08)}20%{transform:translateY(0) translateX(-4%)}26%{transform:translateX(4%)}32%{transform:translateX(-3%)}38%,100%{transform:none}}
 .a-shock .fx{animation:bang 1.2s ease-out infinite}
 @keyframes bang{0%,5%{transform:scale(0);opacity:0}15%{transform:scale(1.4);opacity:1}40%{transform:scale(1)}80%{opacity:1}100%{opacity:0}}
-/* 속상해요 4: 털썩 주저앉기 */
 .a-flop .r-dino{animation:aFlop 1.4s ease-in-out infinite}
 @keyframes aFlop{0%,15%{transform:none}35%,75%{transform:scale(1.18,.62)}100%{transform:none}}
 .a-flop .fx{animation:dust 1.4s ease-out infinite}
 @keyframes dust{0%,30%{transform:translateX(0) scale(.3);opacity:0}40%{opacity:1}80%{transform:translateX(var(--tx)) scale(1.3);opacity:0}100%{opacity:0}}
-/* 속상해요 5: 비구름 */
 .a-rain .r-dino{animation:aShiver .18s linear infinite}
 @keyframes aShiver{50%{transform:translateX(1.5%)}}
 .a-rain .cloud{position:absolute;top:-2%;left:50%;transform:translateX(-50%);font-size:5.5cqw;animation:cloud 2s ease-in-out infinite}
@@ -163,22 +185,48 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline
 .a-rain .fx{animation:rainDrop .7s linear infinite}
 @keyframes rainDrop{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(260%);opacity:0}}
 
-.panel{display:flex;flex-direction:column;gap:clamp(8px,1.1vh,14px);min-height:0;min-width:0;overflow:auto;padding-bottom:4px}
+/* ---------- 카드 아이템 ---------- */
+.cardfx{position:absolute;inset:0;z-index:11;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2%;
+  background:rgba(34,49,74,.28);perspective:1200px;pointer-events:none}
+.cardfx .cwho{margin:0;font-family:var(--display);font-size:2.4cqw;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.flip{position:relative;width:26%;aspect-ratio:.72;transform-style:preserve-3d;animation:flipIn 1.1s cubic-bezier(.3,1.2,.4,1) forwards}
+@keyframes flipIn{0%{transform:translateY(40%) scale(.3) rotateY(0)}35%{transform:translateY(0) scale(1) rotateY(0)}55%{transform:scale(1.04) rotateY(0)}100%{transform:scale(1) rotateY(180deg)}}
+.fc{position:absolute;inset:0;border-radius:9%;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4%;
+  box-sizing:border-box;padding:8%;box-shadow:0 10px 0 rgba(0,0,0,.18);border:5px solid #fff;text-align:center}
+.fc.back{background:repeating-linear-gradient(45deg,#4CB963 0 16px,#5CC46F 16px 32px);color:#fff;font-family:var(--display);font-size:7cqw}
+.fc.back svg{width:70%}
+.fc.front{transform:rotateY(180deg);background:#fff}
+.fc.front .ce{font-size:7.5cqw;line-height:1}
+.fc.front b{font-family:var(--display);font-weight:400;font-size:2.7cqw}
+.fc.front p{margin:0;font-family:var(--display);font-size:1.8cqw;color:var(--muted);line-height:1.25}
+.fc.front.good{border-color:var(--green);background:linear-gradient(#fff 60%,var(--leaf))} .fc.front.good b{color:var(--green-d)}
+.fc.front.bad{border-color:var(--sad);background:linear-gradient(#fff 60%,var(--sad-l))} .fc.front.bad b{color:#3F5E86}
+.fc.front.special{border-color:var(--orange);background:linear-gradient(#fff 60%,var(--orange-l))} .fc.front.special b{color:var(--orange-d)}
+.cardfx.out{animation:fadeOut .3s forwards} @keyframes fadeOut{to{opacity:0}}
+
+.panel{display:flex;flex-direction:column;gap:clamp(7px,1vh,12px);min-height:0;min-width:0;overflow:auto;padding-bottom:4px}
 .players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.pcard{display:flex;align-items:center;gap:8px;background:var(--card);border:3px solid var(--line);border-radius:18px;padding:6px 10px;min-width:0;transition:border-color .2s,background .2s}
+.pcard{position:relative;display:flex;align-items:center;gap:8px;background:var(--card);border:3px solid var(--line);border-radius:18px;padding:5px 10px;min-width:0;transition:border-color .2s,background .2s}
 .pcard svg{width:clamp(34px,3vw,52px);height:auto;flex:none}
 .pcard .who{min-width:0;display:flex;flex-direction:column;line-height:1.15}
-.pcard .nm{font-family:var(--display);font-size:calc(clamp(15px,1.2vw,21px)*var(--scale));color:var(--pd);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pcard .pos{font-size:calc(clamp(12px,.95vw,15px)*var(--scale));color:var(--muted)}
-.pcard .pos b{font-family:var(--num);font-weight:700;color:var(--ink);font-size:1.25em}
+.pcard .nm{font-family:var(--display);font-size:calc(clamp(15px,1.15vw,20px)*var(--scale));color:var(--pd);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pcard .pos{font-size:calc(clamp(12px,.95vw,15px)*var(--scale));color:var(--muted);white-space:nowrap}
+.pcard .pos b{font-family:var(--num);font-weight:700;color:var(--ink);font-size:1.2em}
+.pcard .st{position:absolute;right:6px;top:4px;font-size:clamp(13px,1vw,17px)}
 .pcard.now{border-color:var(--pc);background:var(--pl)}
-.turn{display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--display);font-size:calc(clamp(20px,2vw,34px)*var(--scale));
-  background:var(--pl,var(--leaf));border:3px solid var(--pc,var(--green));border-radius:20px;padding:6px 14px;text-align:center}
+.track{position:relative;height:clamp(30px,3.6vh,42px);border-radius:999px;background:linear-gradient(90deg,var(--leaf),#FFF3C4);border:3px solid var(--line);margin:0 14px}
+.track::before{content:"🚩";position:absolute;left:-6px;top:50%;transform:translate(-50%,-50%);font-size:16px}
+.track::after{content:"🏆";position:absolute;right:-6px;top:50%;transform:translate(50%,-50%);font-size:16px}
+.track .tm{position:absolute;top:50%;width:clamp(24px,2vw,34px);transform:translate(-50%,-55%);transition:left .3s}
+.track .tm svg{width:100%;height:auto;display:block}
+.track .tick{position:absolute;top:15%;bottom:15%;width:2px;background:var(--line)}
+.turn{display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--display);font-size:calc(clamp(20px,1.9vw,32px)*var(--scale));
+  background:var(--pl,var(--leaf));border:3px solid var(--pc,var(--green));border-radius:20px;padding:5px 14px;text-align:center}
 .turn b{font-weight:400;color:var(--pd,var(--green-d))}
 .turn svg{width:clamp(34px,3vw,50px);height:auto}
 
 /* 주사위 3개 (입체) */
-.dice{display:flex;justify-content:center;gap:clamp(18px,3vw,46px);perspective:800px;padding:clamp(10px,2vh,24px) 0 calc(var(--ds)*.32);cursor:pointer}
+.dice{display:flex;justify-content:center;gap:clamp(18px,3vw,46px);perspective:800px;padding:clamp(8px,1.6vh,20px) 0 calc(var(--ds)*.32);cursor:pointer}
 .die-slot{position:relative;width:var(--ds);height:var(--ds)}
 .die-slot::after{content:"";position:absolute;left:-12%;right:-12%;bottom:-34%;height:22%;border-radius:50%;
   background:radial-gradient(closest-side,rgba(34,49,74,.32),rgba(34,49,74,0));z-index:-1}
@@ -202,13 +250,13 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:3px solid var(--green-d);border-radius:18px;
   padding:12px 24px;background:var(--green);color:#fff;box-shadow:0 5px 0 var(--green-d);font-family:var(--display);font-size:clamp(18px,1.6vw,26px);transition:transform .1s,box-shadow .1s}
 .btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--green-d)}
-.btn:disabled{opacity:.5;cursor:default}
+.btn:disabled{opacity:.6;cursor:default}
 .btn.alt{background:var(--card);color:var(--green-d)}
 .btn.orange{background:var(--orange);border-color:var(--orange-d);box-shadow:0 5px 0 var(--orange-d)}
-.roll{font-size:calc(clamp(24px,2.4vw,40px)*var(--scale));padding:clamp(12px,2vh,22px);background:var(--pc,var(--green));border-color:var(--pd,var(--green-d));box-shadow:0 6px 0 var(--pd,var(--green-d))}
+.roll{font-size:calc(clamp(24px,2.3vw,38px)*var(--scale));padding:clamp(12px,2vh,22px);background:var(--pc,var(--green));border-color:var(--pd,var(--green-d));box-shadow:0 6px 0 var(--pd,var(--green-d))}
 .roll:active{box-shadow:0 1px 0 var(--pd,var(--green-d))}
-.eqn{display:flex;align-items:center;justify-content:center;gap:12px;background:var(--card);border:3px solid var(--line);border-radius:18px;padding:6px 12px;
-  font-family:var(--num);font-weight:700;font-size:calc(clamp(26px,2.6vw,46px)*var(--scale))}
+.eqn{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;background:var(--card);border:3px solid var(--line);border-radius:18px;padding:6px 12px;
+  font-family:var(--num);font-weight:700;font-size:calc(clamp(24px,2.4vw,44px)*var(--scale))}
 .eqn .op{color:var(--orange)}
 .ans{min-width:2.2em;text-align:center;border:3px solid var(--pc,var(--green));border-radius:14px;padding:0 10px;background:var(--bg)}
 .ans.empty{color:#D9C9AC}
@@ -216,20 +264,21 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline
 .ans.bad{background:var(--red);border-color:#B93A50;color:#fff;animation:shake .42s}
 @keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
 .keypad{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-top:8px}
+.keypad.off{opacity:.45;pointer-events:none}
 .key{border:3px solid var(--line);border-radius:14px;background:var(--card);box-shadow:0 5px 0 var(--line);
   font-family:var(--num);font-weight:700;font-size:calc(clamp(22px,2vw,36px)*var(--scale));padding:clamp(6px,1.2vh,14px) 0;line-height:1.1}
 .key.down,.key:active{transform:translateY(4px);box-shadow:0 1px 0 var(--line)}
 .key.del{font-family:var(--display);font-weight:400;font-size:calc(clamp(14px,1.2vw,20px)*var(--scale));color:var(--muted)}
 .key.ok{font-family:var(--display);font-weight:400;font-size:calc(clamp(16px,1.4vw,24px)*var(--scale));background:var(--pc,var(--green));border-color:var(--pd,var(--green-d));color:#fff;box-shadow:0 5px 0 var(--pd,var(--green-d))}
-.msg{margin:0;text-align:center;font-family:var(--display);font-size:calc(clamp(17px,1.5vw,26px)*var(--scale));min-height:1.3em;color:var(--ink)}
+.msg{margin:0;text-align:center;font-family:var(--display);font-size:calc(clamp(17px,1.45vw,25px)*var(--scale));min-height:1.3em;color:var(--ink)}
 .msg .up{color:var(--green-d)} .msg .down{color:#3F5E86} .msg .bonus{color:var(--orange-d)}
-.legend{margin:0;text-align:center;color:var(--muted);font-size:clamp(12px,1vw,15px)}
+.legend{margin:0;text-align:center;color:var(--muted);font-size:clamp(12px,.95vw,15px)}
 .copy{flex:none;text-align:right;padding:2px 16px 6px;font-size:clamp(11px,.8vw,13px);color:var(--muted)}
 
 /* ---------- 오버레이 ---------- */
 .overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:16px;background:rgba(255,248,236,.94);overflow:auto}
 .sheet,.dialog{background:var(--card);border:4px solid var(--line);border-radius:28px;box-shadow:var(--shadow);width:100%;box-sizing:border-box}
-.sheet{max-width:1000px;max-height:100%;overflow:auto;padding:clamp(18px,2.4vw,32px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 28px}
+.sheet{max-width:1040px;max-height:100%;overflow:auto;padding:clamp(18px,2.2vw,30px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 28px}
 .sheet header,.sheet .wide{grid-column:1/-1}
 .sheet header{display:flex;align-items:center;gap:18px}
 .sheet header svg{width:clamp(70px,8vw,110px);height:auto;flex:none}
@@ -239,16 +288,19 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline
 .sheet section{display:flex;flex-direction:column;gap:8px;min-width:0}
 .sheet h3{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(15px,1.2vw,19px);color:var(--green-d)}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chips button{border:3px solid var(--line);background:var(--card);border-radius:16px;padding:9px 16px;font-family:var(--display);font-size:clamp(17px,1.4vw,22px);
+.chips button{border:3px solid var(--line);background:var(--card);border-radius:16px;padding:8px 14px;font-family:var(--display);font-size:clamp(16px,1.35vw,21px);
   display:flex;flex-direction:column;align-items:flex-start;gap:2px;box-shadow:0 4px 0 var(--line)}
 .chips button small{font-family:var(--body);font-size:13px;color:var(--muted)}
 .chips button[aria-pressed="true"]{border-color:var(--orange-d);background:var(--orange);color:#fff;box-shadow:0 4px 0 var(--orange-d)}
 .chips button[aria-pressed="true"] small{color:#FFF4E6}
-.chips.big button{flex-direction:row;align-items:center;padding:10px 18px;font-size:clamp(20px,1.8vw,28px)}
-.chips.big svg{width:30px;height:auto}
+.chips.big button{flex-direction:row;align-items:center;padding:9px 16px;font-size:clamp(18px,1.6vw,25px)}
+.chips.big .ppl{display:flex;flex-direction:column;align-items:flex-start;line-height:1.1}
+.chips.big svg{width:26px;height:auto}
+.chips.size button{min-width:4.2em;align-items:center}
 .names{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .names label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
-.names input{font-family:var(--display);font-size:19px;padding:8px 10px;border-radius:14px;border:3px solid var(--line);background:var(--card);color:var(--pd);min-width:0;-webkit-user-select:text;user-select:text}
+.names input{font-family:var(--display);font-size:18px;padding:8px 10px;border-radius:14px;border:3px solid var(--line);background:var(--card);color:var(--pd);min-width:0;-webkit-user-select:text;user-select:text}
+.names label.cpu input{background:#F4F6FA;border-style:dashed}
 .rules-note{margin:0;font-size:14px;color:var(--muted);line-height:1.6;background:var(--bg);border:3px dashed var(--line);border-radius:16px;padding:10px 14px}
 .start{grid-column:1/-1;font-size:clamp(24px,2.4vw,36px);padding:14px}
 .devrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--sky);border:3px solid #C7E3F7;border-radius:18px;padding:10px 12px}
@@ -275,41 +327,47 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline
 
 /* ---------- 기기별 화면 ---------- */
 html[data-device="board"] .tool{font-size:clamp(16px,1.1vw,20px);padding:8px 16px}
-html[data-device="board"]{--ds:clamp(70px,6vw,120px)}
+html[data-device="board"]{--ds:clamp(66px,5.6vw,112px)}
 html[data-layout="stack"] .app{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
 html[data-layout="stack"] .panel{overflow:visible}
 html[data-layout="stack"] .players{grid-template-columns:repeat(4,minmax(0,1fr))}
 html[data-layout="stack"] .legend{display:none}
-html[data-layout="stack"]{--ds:clamp(50px,7vw,84px)}
+html[data-layout="stack"]{--ds:clamp(48px,6.5vw,80px)}
 html[data-layout="stack"] .act{min-height:0}
 html[data-layout="stack"] .r-card{width:58%}
-html[data-device="phone"]{--ds:44px}
+html[data-layout="stack"] .flip{width:36%}
+html[data-device="phone"]{--ds:40px}
 html[data-device="phone"] .brand small,html[data-device="phone"] .tool .txt{display:none}
 html[data-device="phone"] .brand{font-size:17px}
 html[data-device="phone"] .brand svg{width:30px}
 html[data-device="phone"] .tool{padding:4px 9px;font-size:16px}
-html[data-device="phone"] .app{gap:8px;padding-inline:10px;padding-block:6px 2px}
+html[data-device="phone"] .app{gap:6px;padding-inline:10px;padding-block:6px 2px}
 html[data-device="phone"] .board{border-width:3px;border-radius:14px}
-html[data-device="phone"] .r-card{width:70%;border-width:3px;border-radius:18px}
-html[data-device="phone"] .panel{gap:6px}
+html[data-device="phone"] .r-card{width:72%;border-width:3px;border-radius:18px}
+html[data-device="phone"] .flip{width:46%}
+html[data-device="phone"] .panel{gap:5px}
 html[data-device="phone"] .players{gap:4px}
-html[data-device="phone"] .pcard{padding:3px 5px;gap:3px;border-radius:12px;border-width:2px}
-html[data-device="phone"] .pcard svg{width:22px}
-html[data-device="phone"] .pcard .nm{font-size:12px}
-html[data-device="phone"] .pcard .pos{font-size:11px}
-html[data-device="phone"] .turn{font-size:17px;padding:3px 10px;border-radius:14px}
-html[data-device="phone"] .turn svg{width:26px}
-html[data-device="phone"] .dice{padding:8px 0 16px;gap:26px}
-html[data-device="phone"] .eqn{font-size:24px;padding:3px 10px}
-html[data-device="phone"] .key{font-size:20px;padding:6px 0;border-radius:10px;border-width:2px;box-shadow:0 3px 0 var(--line)}
+html[data-device="phone"] .pcard{padding:3px 4px;gap:3px;border-radius:12px;border-width:2px}
+html[data-device="phone"] .pcard svg{width:20px}
+html[data-device="phone"] .pcard .nm{font-size:11px}
+html[data-device="phone"] .pcard .pos{font-size:10px}
+html[data-device="phone"] .pcard .st{font-size:11px;right:2px;top:1px}
+html[data-device="phone"] .track{height:24px;border-width:2px}
+html[data-device="phone"] .track .tm{width:20px}
+html[data-device="phone"] .turn{font-size:16px;padding:2px 10px;border-radius:14px}
+html[data-device="phone"] .turn svg{width:24px}
+html[data-device="phone"] .dice{padding:6px 0 14px;gap:24px}
+html[data-device="phone"] .eqn{font-size:21px;padding:3px 10px;gap:6px}
+html[data-device="phone"] .key{font-size:19px;padding:5px 0;border-radius:10px;border-width:2px;box-shadow:0 3px 0 var(--line)}
 html[data-device="phone"] .key.ok{box-shadow:0 3px 0 var(--pd,var(--green-d))}
-html[data-device="phone"] .roll{font-size:22px;padding:10px}
-html[data-device="phone"] .msg{font-size:15px}
+html[data-device="phone"] .roll{font-size:20px;padding:9px}
+html[data-device="phone"] .msg{font-size:14px}
 html[data-device="phone"] .copy{font-size:10px;padding:0 10px 4px}
-@media (max-height:560px){ html[data-layout="wide"]{--ds:44px} html[data-layout="wide"] .legend,html[data-layout="wide"] .brand small{display:none} }
+@media (max-height:560px){ html[data-layout="wide"]{--ds:42px} html[data-layout="wide"] .legend,html[data-layout="wide"] .brand small{display:none} }
 @media (max-width:820px){ .sheet{grid-template-columns:minmax(0,1fr)} .names{grid-template-columns:1fr 1fr} }
 @media (prefers-reduced-motion:reduce){
-  .die-hop.rolling,.token.now::after,.dialog>svg,.ans.bad,.token svg,.r-dino,.fx,.orbit,.cloud,.zone .arrow{animation:none!important}
+  .die-hop.rolling,.token.now::after,.dialog>svg,.ans.bad,.token svg,.r-dino,.fx,.orbit,.cloud,.zone .arrow,.d-tail,.cardmark,.decor svg,.zz,.flip{animation:none!important}
+  .flip{transform:rotateY(180deg)}
   .die{transition-duration:.2s}
 }
 a.tool{text-decoration:none;display:inline-flex;align-items:center}
@@ -330,15 +388,26 @@ a.tool{text-decoration:none;display:inline-flex;align-items:center}
 
 <div class="app">
   <div class="board-area"><div class="board" id="board">
-    <div class="zone z-goal"><span class="zi">🏆</span><span class="zt">도착</span><span class="zs">100 다음 칸</span></div>
-    <div class="zone z-start"><span class="zi">🚩</span><span class="zt">출발</span><span class="arrow">➜ 1</span></div>
-    <div class="cells" id="cells"></div>
-    <svg class="paths" id="paths" viewBox="0 0 1150 1000" aria-hidden="true"></svg>
-    <div id="tokens"></div>
+    <div class="world" id="world">
+      <div class="side-mid" id="sideMid"></div>
+      <div class="zone z-goal" id="zGoal"><span class="zi">🏆</span><span class="zt">도착</span><span class="zs" id="goalSub">100 다음 칸</span></div>
+      <div class="zone z-start" id="zStart"><span class="zi">🚩</span><span class="zt">출발</span><span class="arrow">➜ 1</span></div>
+      <div class="cells" id="cells"></div>
+      <svg class="paths" id="paths" aria-hidden="true"></svg>
+      <div id="decor"></div>
+      <div id="tokens"></div>
+    </div>
+    <div class="camhint" id="camBtns" hidden>
+      <button id="camUp" aria-label="판 위쪽 보기">▲</button>
+      <button id="camMe" aria-label="지금 차례 티라노 보기">🦖</button>
+      <button id="camDown" aria-label="판 아래쪽 보기">▼</button>
+    </div>
     <div class="react" id="react" hidden></div>
+    <div class="cardfx" id="cardfx" hidden></div>
   </div></div>
   <aside class="panel">
     <div class="players" id="players"></div>
+    <div class="track" id="track" aria-label="진행 상황"></div>
     <div class="turn" id="turn"></div>
     <div class="dice" id="dice" aria-label="주사위"></div>
     <div class="act">
@@ -349,7 +418,7 @@ a.tool{text-decoration:none;display:inline-flex;align-items:center}
       </div>
     </div>
     <p class="msg" id="msg" aria-live="polite"></p>
-    <p class="legend">🪜 사다리는 위로 올라가는 길 · 🕳️ 터널은 아래로 내려가는 길</p>
+    <p class="legend">🪜 사다리: 올라가는 길 · 🕳️ 터널: 내려가는 길 · 🃏 카드 칸: 아이템 뽑기</p>
   </aside>
 </div>
 <footer class="copy">© 2026 TyranoMath 백태진 All rights reserved.</footer>
@@ -361,7 +430,7 @@ a.tool{text-decoration:none;display:inline-flex;align-items:center}
       <span class="dino-logo"></span>
       <div>
         <h2 id="setupTitle">크앙! 티라노 <b>사다리</b> 게임</h2>
-        <p class="lead">출발 지점에서 주사위 3개를 던져 나온 수를 모두 더한 만큼 앞으로 가요. 100칸을 지나 도착 지점에 먼저 들어오면 이겨요!</p>
+        <p class="lead">티라노 4마리가 함께 달려요. 사람이 아닌 자리는 🤖 컴퓨터 티라노가 맡아요. 주사위 3개의 합만큼 앞으로 가서 도착 지점에 먼저 들어오면 이겨요!</p>
       </div>
     </header>
     <section class="wide">
@@ -376,35 +445,53 @@ a.tool{text-decoration:none;display:inline-flex;align-items:center}
       </div>
     </section>
     <section class="wide">
-      <h3>몇 명이 할까요?</h3>
-      <div class="chips big" data-key="n" data-type="num" id="nChips"></div>
+      <h3>사람은 몇 명인가요? (나머지는 컴퓨터 티라노)</h3>
+      <div class="chips big" data-key="humans" data-type="num" id="hChips"></div>
     </section>
     <section class="wide">
       <h3>이름</h3>
       <div class="names" id="names"></div>
     </section>
+    <section class="wide">
+      <h3>판 크기 (마지막 칸)</h3>
+      <div class="chips size" data-key="size" data-type="num" id="sizeChips"></div>
+    </section>
     <section>
-      <h3>주사위 합 구하기</h3>
+      <h3>이동 칸 수</h3>
+      <div class="chips" data-key="mult" data-type="num">
+        <button data-v="1">합 그대로<small>4+2+5 = 11칸</small></button>
+        <button data-v="2">합 × 2<small>22칸</small></button>
+        <button data-v="5">합 × 5<small>55칸</small></button>
+        <button data-v="10">합 × 10<small>110칸</small></button>
+      </div>
+      <p class="rules-note" id="multHint" style="padding:6px 10px;font-size:13px"></p>
+    </section>
+    <section>
+      <h3>계산하기</h3>
       <div class="chips" data-key="calc" data-type="bool">
-        <button data-v="1">직접 계산해서 입력<small>예) 4 + 2 + 5 = 11</small></button>
-        <button data-v="0">자동으로 이동<small>합을 바로 보여줘요</small></button>
+        <button data-v="1">직접 계산해서 입력<small>사람 차례에 답을 넣어요</small></button>
+        <button data-v="0">자동으로 이동<small>답을 바로 보여줘요</small></button>
+      </div>
+    </section>
+    <section>
+      <h3>카드 아이템</h3>
+      <div class="chips" data-key="cards" data-type="bool">
+        <button data-v="1">🃏 카드 칸 켜기</button><button data-v="0">끄기</button>
       </div>
     </section>
     <section>
       <h3>도착 규칙</h3>
       <div class="chips" data-key="exact" data-type="bool">
-        <button data-v="0">넘어도 도착<small>빠르게 끝나요</small></button>
-        <button data-v="1">딱 맞춰 도착<small>넘친 만큼 되돌아가요</small></button>
+        <button data-v="0">넘어도 도착</button><button data-v="1">딱 맞춰 도착<small>넘친 만큼 되돌아가요</small></button>
       </div>
     </section>
     <section class="wide">
       <h3>보너스</h3>
       <div class="chips" data-key="bonus" data-type="bool">
-        <button data-v="1">세 주사위가 모두 같으면 한 번 더!</button>
-        <button data-v="0">보너스 없음</button>
+        <button data-v="1">세 주사위가 모두 같으면 한 번 더!</button><button data-v="0">보너스 없음</button>
       </div>
     </section>
-    <p class="rules-note wide">🪜 <b>사다리</b>는 올라가는 길이에요. 사다리 아래 칸에 멈추면 꼭대기로 올라가고 티라노가 신나해요. 🕳️ <b>터널</b>은 내려가는 길이에요. 터널 입구에 멈추면 출구까지 내려가고 티라노가 속상해해요.</p>
+    <p class="rules-note wide">🪜 <b>사다리</b>는 올라가는 길, 🕳️ <b>터널</b>은 내려가는 길이에요. 🃏 <b>카드 칸</b>에 멈추면 아이템 카드를 뽑아요: 🚀 로켓 · 🍖 고기 · 🎲 한 번 더 · 🛡️ 방패 · 🌋 화산 폭발 · 🔄 자리 바꾸기 · 🐢 거북이 · 💤 낮잠. 판 곳곳의 구경꾼 티라노들은 꼬리를 흔들고 불을 뿜으며 응원해요!</p>
     <button class="btn start" id="btnStart">시작하기 🦖</button>
   </div>
 </div>
@@ -429,12 +516,14 @@ a.tool{text-decoration:none;display:inline-flex;align-items:center}
 const $ = s => document.querySelector(s);
 const ri = (a,b) => a + Math.floor(Math.random()*(b-a+1));
 const pick = a => a[Math.floor(Math.random()*a.length)];
+const shuffle = a => { for (let i = a.length-1; i > 0; i--){ const j = ri(0,i); [a[i],a[j]] = [a[j],a[i]]; } return a; };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const store = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }, set(k,v){ try { localStorage.setItem(k,v); } catch(e){} } };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* TyranoMath 티라노 (표정: 기본 / 신남 / 슬픔 / 놀람) */
+/* TyranoMath 티라노 (표정 + 꼬리 + 불꽃) */
 const DINO_BODY = `
   <path class="d-tail" d="M58 142 Q18 142 6 106 Q30 126 62 118 Z"/>
   <path class="d-spike" d="M86 88 L80 68 L98 82 Z M71 98 L60 80 L81 92 Z M59 112 L44 98 L67 106 Z M108 34 L110 14 L126 28 Z M128 28 L136 9 L146 26 Z"/>
@@ -442,6 +531,8 @@ const DINO_BODY = `
   <ellipse class="d-main" cx="96" cy="128" rx="47" ry="44"/><ellipse class="d-belly" cx="108" cy="134" rx="26" ry="32"/>
   <rect class="d-main" x="92" y="26" width="112" height="80" rx="38"/>
   <ellipse class="d-cheek" cx="174" cy="76" rx="10" ry="5.5"/>`;
+const FIRE = `<g class="fire"><path class="f1" d="M198 86 Q232 52 286 70 Q262 78 300 92 Q262 100 286 116 Q236 118 198 96 Z"/>
+  <path class="f2" d="M200 87 Q232 66 268 78 Q252 86 276 93 Q250 98 266 108 Q232 108 200 95 Z"/><path class="f3" d="M202 88 Q226 78 246 84 Q236 90 250 94 Q228 100 202 94 Z"/></g>`;
 const FACES = {
   base: `<circle class="d-eye" cx="150" cy="56" r="15"/><circle class="d-pupil" cx="154" cy="58" r="8.5"/><circle class="d-hl" cx="157.5" cy="54" r="3"/>
     <path class="d-mouth" d="M140 84 Q166 104 194 82"/><path class="d-leg" d="M136 118 q16 -4 20 8 q-3 5 -9 2 q-4 -4 -11 -1 Z"/>`,
@@ -453,37 +544,77 @@ const FACES = {
     <path class="d-leg" d="M136 124 q14 4 18 14 q-5 3 -9 -1 q-3 -6 -9 -8 Z"/>`,
   shock: `<circle class="d-eye" cx="150" cy="54" r="18"/><circle class="d-pupil" cx="152" cy="54" r="5"/>
     <ellipse class="d-open" cx="172" cy="88" rx="10" ry="12"/><path class="d-brow" d="M134 30 Q150 22 166 32"/>
-    <path class="d-leg" d="M136 116 q8 -22 22 -26 q4 4 -1 8 q-10 6 -14 20 Z"/>`
+    <path class="d-leg" d="M136 116 q8 -22 22 -26 q4 4 -1 8 q-10 6 -14 20 Z"/>`,
+  roar: `<path class="d-brow" d="M136 42 L164 50"/><circle class="d-eye" cx="150" cy="58" r="12"/><circle class="d-pupil" cx="153" cy="60" r="6"/>
+    <path class="d-open" d="M150 80 Q178 114 204 80 Z"/><path d="M160 82 l4 7 l4 -7 M182 82 l4 7 l4 -7" fill="#fff"/>
+    <path class="d-leg" d="M136 112 q10 -18 26 -22 q4 4 -1 8 q-12 4 -17 18 Z"/>`,
+  sleep: `<path class="d-mouth" d="M140 58 Q152 66 164 58"/><path class="d-mouth" d="M150 88 Q166 96 184 88"/>
+    <path class="d-leg" d="M136 118 q16 -4 20 8 q-3 5 -9 2 q-4 -4 -11 -1 Z"/>`
 };
-const dinoSvg = (c, face='base') => `<svg viewBox="0 0 220 200" aria-hidden="true" class="c${c}">${DINO_BODY}${FACES[face]}</svg>`;
+const dinoSvg = (c, face='base') => `<svg viewBox="0 0 220 200" aria-hidden="true" class="c${c}">${DINO_BODY}${FACES[face]}${FIRE}</svg>`;
 document.querySelectorAll('.dino-logo').forEach(el => { const w = document.createElement('span'); w.innerHTML = dinoSvg(0); el.replaceWith(w.firstChild); });
 
-/* ---------------- 판 (가로 1150 × 세로 1000, 왼쪽 150은 출발·도착 공간) ---------------- */
-const LADDERS = {4:25, 13:46, 33:49, 42:63, 50:69, 62:81, 74:92};     // 올라가는 길
-const TUNNELS = {27:5, 40:3, 43:18, 54:31, 66:45, 76:58, 89:53, 95:75, 99:41};  // 내려가는 길
-const START = 0, GOAL = 101, SIDE = 150, W = 1150;
-const colRow = n => { const r = Math.floor((n-1)/10), k = (n-1)%10; return [r % 2 === 0 ? k : 9-k, r]; };
-const center = n => { const [c,r] = colRow(n); return [SIDE + c*100+50, (9-r)*100+50]; };
-const ZONE_SPOTS = { [START]: [[52,700],[98,775],[52,850],[98,925]], [GOAL]: [[52,200],[98,275],[52,350],[98,425]] };
+/* ---------------- 설정 ---------------- */
+const DEF_NAMES = ['초록 티라노','주황 티라노','보라 티라노','노랑 티라노'];
+let cfg = {humans:2, names:DEF_NAMES.slice(), size:100, mult:1, calc:true, cards:true, exact:false, bonus:true};
+try { const s = JSON.parse(store.get('tyrano-ladder-cfg2')||'null'); if (s && s.humans) cfg = Object.assign(cfg, s); } catch(e){}
+const saveCfg = () => store.set('tyrano-ladder-cfg2', JSON.stringify(cfg));
+const isCpu = i => i >= cfg.humans;
+const nm = i => (cfg.names[i] || DEF_NAMES[i]);
+const label = i => (isCpu(i) ? '🤖 ' : '') + nm(i);
 
-function buildCells(){
-  let h = '';
-  for (let vr = 0; vr < 10; vr++){
-    const r = 9 - vr;
-    for (let c = 0; c < 10; c++){
-      const n = r % 2 === 0 ? r*10 + c + 1 : r*10 + (10 - c);
-      h += `<div class="cell${(r + c) % 2 ? ' alt' : ''}${n === 1 ? ' c-first' : ''}${n === 100 ? ' c-last' : ''}"><b>${n}</b></div>`;
+/* ---------------- 판 ---------------- */
+const B = {N:100, rows:10, H:1000, L:{}, T:{}, cards:new Set(), decor:[], curve:{}};
+const START = 0, SIDE = 150, W = 1150;
+const GOAL = () => B.N + 1;
+const FIXED_L = {4:25, 13:46, 33:49, 42:63, 50:69, 62:81, 74:92};
+const FIXED_T = {27:5, 40:3, 43:18, 54:31, 66:45, 76:58, 89:53, 95:75, 99:41};
+const rowOf = n => Math.floor((n-1)/10);
+const colRow = n => { const r = rowOf(n), k = (n-1)%10; return [r % 2 === 0 ? k : 9-k, r]; };
+const center = n => { const [c,r] = colRow(n); return [SIDE + c*100+50, B.H - r*100 - 50]; };
+const zoneSpots = n => n === START ? [[52,B.H-300],[98,B.H-225],[52,B.H-150],[98,B.H-75]] : [[52,200],[98,275],[52,350],[98,425]];
+
+function genBoard(){
+  const N = B.N, used = new Set([1, N]);
+  let L = {}, T = {};
+  if (N === 100){ L = {...FIXED_L}; T = {...FIXED_T}; }
+  else {
+    const nL = Math.round(6*N/100), nT = Math.round(7*N/100);
+    for (let t = 0; t < 20000 && Object.keys(L).length < nL; t++){
+      const s = ri(2, N-12), e = s + ri(11, Math.max(11, Math.min(32, N-1-s)));
+      if (e > N-1 || rowOf(e) === rowOf(s) || used.has(s) || used.has(e)) continue;
+      L[s] = e; used.add(s); used.add(e);
+    }
+    for (let t = 0; t < 20000 && Object.keys(T).length < nT; t++){
+      const s = ri(13, N-1), e = s - ri(11, Math.min(32, s-2));
+      if (e < 2 || rowOf(e) === rowOf(s) || used.has(s) || used.has(e)) continue;
+      T[s] = e; used.add(s); used.add(e);
     }
   }
+  Object.keys(L).forEach(k => { used.add(+k); used.add(L[k]); }); Object.keys(T).forEach(k => { used.add(+k); used.add(T[k]); });
+  B.L = L; B.T = T;
+  const free = shuffle(Array.from({length:N-3}, (_,i) => i+3).filter(n => !used.has(n) && n !== N-1));
+  const nc = Math.round(8*N/100);
+  B.cards = new Set(cfg.cards ? free.slice(0, nc) : []);
+  B.decor = free.slice(nc, nc + Math.round(5*N/100));
+}
+function buildCells(){
+  let h = '';
+  for (let vr = 0; vr < B.rows; vr++){
+    const r = B.rows - 1 - vr;
+    for (let c = 0; c < 10; c++){
+      const n = r % 2 === 0 ? r*10 + c + 1 : r*10 + (10 - c);
+      h += `<div class="cell${(r + c) % 2 ? ' alt' : ''}${n === 1 ? ' c-first' : ''}${n === B.N ? ' c-last' : ''}${n % 100 === 0 ? ' hundred' : ''}"><b>${n}</b>${B.cards.has(n) ? '<span class="cardmark">?</span>' : ''}</div>`;
+    }
+  }
+  $('#cells').style.gridTemplateRows = `repeat(${B.rows},1fr)`;
   $('#cells').innerHTML = h;
 }
 const bez = (p0,p1,p2,p3,t) => { const u = 1-t; return [0,1].map(i => u*u*u*p0[i] + 3*u*u*t*p1[i] + 3*u*t*t*p2[i] + t*t*t*p3[i]); };
-const tunnelCurve = {};
 function hole(x, y, big){
   const s = big ? 1 : .78;
   return `<g transform="translate(${x} ${y+8}) scale(${s})">
-    <ellipse cx="0" cy="6" rx="44" ry="26" style="fill:var(--earth-d)"/>
-    <ellipse cx="0" cy="0" rx="42" ry="24" style="fill:var(--earth)"/>
+    <ellipse cx="0" cy="6" rx="44" ry="26" style="fill:var(--earth-d)"/><ellipse cx="0" cy="0" rx="42" ry="24" style="fill:var(--earth)"/>
     <ellipse cx="0" cy="3" rx="30" ry="16" style="fill:var(--hole)"/>
     ${big ? `<circle cx="-9" cy="2" r="3" fill="#FFD43B"/><circle cx="7" cy="2" r="3" fill="#FFD43B"/>` : `<path d="M-14 -2 q14 -10 28 0" fill="none" stroke="#7A5A3A" stroke-width="3" stroke-linecap="round"/>`}
     <path d="M-40 -6 l-6 -12 l9 6 l1 -12 l6 12 M34 -8 l4 -12 l3 10 l8 -6 l-5 12" fill="none" stroke="#5CC46F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
@@ -491,17 +622,18 @@ function hole(x, y, big){
 }
 function buildPaths(){
   let under = '', holes = '', ladders = '';
-  Object.entries(TUNNELS).forEach(([a,b],i) => {
+  B.curve = {};
+  Object.entries(B.T).forEach(([a,b],i) => {
     const p0 = center(+a), p3 = center(+b), dx = p3[0]-p0[0], dy = p3[1]-p0[1], L = Math.hypot(dx,dy);
     const px = -dy/L, py = dx/L, bend = (i % 2 ? 1 : -1) * Math.min(80, L*0.25);
     const p1 = [p0[0]+dx*.3+px*bend, p0[1]+dy*.3+py*bend], p2 = [p0[0]+dx*.7-px*bend, p0[1]+dy*.7-py*bend];
-    tunnelCurve[a] = [p0,p1,p2,p3];
+    B.curve[a] = [p0,p1,p2,p3];
     const path = `M${p0[0]} ${p0[1]} C${p1[0]} ${p1[1]} ${p2[0]} ${p2[1]} ${p3[0]} ${p3[1]}`;
     under += `<path d="${path}" fill="none" style="stroke:var(--earth)" stroke-width="30" stroke-linecap="round" opacity=".22"/>
       <path d="${path}" fill="none" style="stroke:var(--earth-d)" stroke-width="5" stroke-linecap="round" stroke-dasharray="4 16" opacity=".55"/>`;
     holes += hole(p0[0], p0[1], true) + hole(p3[0], p3[1], false);
   });
-  Object.entries(LADDERS).forEach(([a,b]) => {
+  Object.entries(B.L).forEach(([a,b]) => {
     const p0 = center(+a), p1 = center(+b), dx = p1[0]-p0[0], dy = p1[1]-p0[1], L = Math.hypot(dx,dy);
     const px = -dy/L*17, py = dx/L*17;
     let rungs = '';
@@ -510,16 +642,74 @@ function buildPaths(){
     const rails = `<line x1="${p0[0]+px}" y1="${p0[1]+py}" x2="${p1[0]+px}" y2="${p1[1]+py}"/><line x1="${p0[0]-px}" y1="${p0[1]-py}" x2="${p1[0]-px}" y2="${p1[1]-py}"/>`;
     ladders += `<g filter="url(#sh)" stroke-linecap="round"><g style="stroke:var(--wood-d)" stroke-width="15">${rungs}${rails}</g><g style="stroke:var(--wood)" stroke-width="9">${rungs}${rails}</g></g>`;
   });
-  $('#paths').innerHTML = `<defs><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="0" flood-color="#22314A" flood-opacity=".18"/></filter></defs>`
-    + under + holes + ladders;
+  const svg = $('#paths');
+  svg.setAttribute('viewBox', `0 0 ${W} ${B.H}`);
+  svg.innerHTML = `<defs><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="0" flood-color="#22314A" flood-opacity=".18"/></filter></defs>` + under + holes + ladders;
+}
+/* 구경꾼 티라노: 꼬리 흔들기 · 불 뿜기 · 폴짝 · 쿨쿨 */
+function buildDecor(){
+  $('#decor').innerHTML = B.decor.map((n,k) => {
+    const [x,y] = center(n), c = [4,5,0,1,2,3][k % 6], sleepy = k % 5 === 3, mir = k % 2 === 1;
+    return `<div class="decor${mir ? ' mir' : ''}" style="left:${(x + (mir ? -22 : 22))/W*100}%;top:${(y+38)/B.H*100}%">${dinoSvg(c, sleepy ? 'sleep' : 'base')}${sleepy ? '<span class="zz">Z z</span>' : ''}</div>`;
+  }).join('');
+}
+let decorTimer = 0;
+function startDecorLoop(){
+  clearInterval(decorTimer);
+  if (reduced) return;
+  decorTimer = setInterval(() => {
+    const vis = [...document.querySelectorAll('.decor')].filter(el => { const y = parseFloat(el.style.top) / 100 * B.H; return y > cam.top - 50 && y < cam.top + 1050 && !el.querySelector('.zz'); });
+    if (!vis.length) return;
+    const el = pick(vis), act = Math.random() < .6 ? 'breath' : 'hop';
+    el.classList.remove('breath','hop'); el.offsetWidth; el.classList.add(act);
+    if (act === 'breath') sfx.fireSmall();
+    setTimeout(() => el.classList.remove(act), 1200);
+  }, 1300);
+}
+function buildSide(){
+  const zh = 500 / B.H * 100;
+  $('#zGoal').style.height = zh + '%'; $('#zStart').style.height = zh + '%';
+  $('#goalSub').textContent = B.N + ' 다음 칸';
+  let m = '';
+  for (let k = 1; k < B.N/100; k++){
+    const n = k*100, y = center(n)[1];
+    if (y < 540 || y > B.H - 540) continue;
+    m += `<div class="mile" style="top:${y/B.H*100}%">🚩<b>${n}</b>칸</div>`;
+  }
+  for (let k = 0; k < B.N/100; k++){ const y = center(k*100 + 50)[1]; if (y > 540 && y < B.H - 540) m += `<div class="mile" style="top:${y/B.H*100}%;opacity:.6">🌴</div>`; }
+  $('#sideMid').innerHTML = m;
+}
+function setupBoard(){
+  B.N = cfg.size; B.rows = B.N / 10; B.H = B.rows * 100;
+  genBoard();
+  $('#world').style.height = (B.rows * 10) + '%';
+  buildCells(); buildPaths(); buildDecor(); buildSide();
+  $('#camBtns').hidden = B.rows <= 10;
+  buildTrack();
+  startDecorLoop();
 }
 
-/* ---------------- 설정 ---------------- */
-const DEF_NAMES = ['초록 티라노','주황 티라노','보라 티라노','노랑 티라노'];
-let cfg = {n:2, names:DEF_NAMES.slice(), calc:true, exact:false, bonus:true};
-try { const s = JSON.parse(store.get('tyrano-ladder-cfg')||'null'); if (s && s.n) cfg = Object.assign(cfg, s); } catch(e){}
-const saveCfg = () => store.set('tyrano-ladder-cfg', JSON.stringify(cfg));
-const nm = i => cfg.names[i] || DEF_NAMES[i];
+/* ---------------- 카메라 (판이 10줄보다 길 때 따라가기) ---------------- */
+const cam = {top:0};
+function setCam(top, smooth=true){
+  cam.top = clamp(top, 0, Math.max(0, B.H - 1000));
+  const w = $('#world');
+  w.style.transition = smooth && !reduced ? 'transform .45s ease' : 'none';
+  w.style.transform = `translateY(${-cam.top / B.H * 100}%)`;
+}
+const followY = (y, smooth=true) => { if (B.rows > 10 && (y < cam.top + 220 || y > cam.top + 780)) setCam(y - 500, smooth); };
+const yOf = (i, n) => cellXY(i, n)[1] / 100 * B.H;
+function followPlayer(i, force){ const y = yOf(i, G.players[i].pos); if (force) setCam(y - 500); else followY(y); }
+(() => {
+  const bd = $('#board'); let drag = null;
+  bd.addEventListener('pointerdown', e => { if (B.rows <= 10 || e.target.closest('button')) return; drag = {y:e.clientY, top:cam.top}; });
+  window.addEventListener('pointermove', e => { if (!drag) return; const k = 1000 / bd.clientHeight; setCam(drag.top - (e.clientY - drag.y) * k, false); });
+  window.addEventListener('pointerup', () => drag = null);
+  bd.addEventListener('wheel', e => { if (B.rows <= 10) return; e.preventDefault(); setCam(cam.top + e.deltaY, false); }, {passive:false});
+  $('#camUp').addEventListener('click', () => setCam(cam.top - 500));
+  $('#camDown').addEventListener('click', () => setCam(cam.top + 500));
+  $('#camMe').addEventListener('click', () => G.players.length && followPlayer(G.cur, true));
+})();
 
 /* ---------------- 소리 ---------------- */
 let ac = null, soundOn = true;
@@ -531,15 +721,20 @@ function tone(f, dur, type='sine', vol=.14, when=0, f2){
   g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t+.01); g.gain.exponentialRampToValueAtTime(.0001, t+dur);
   o.connect(g).connect(ac.destination); o.start(t); o.stop(t+dur+.03);
 }
+let lastStep = 0;
 const sfx = {
   roll: () => { for (let i = 0; i < 9; i++) tone(180+Math.random()*320, .04, 'square', .045, i*.1 + Math.random()*.03); },
   key: () => tone(900,.04,'triangle',.05),
-  step: () => tone(620,.06,'triangle',.07),
+  step: () => { const n = performance.now(); if (n - lastStep < 70) return; lastStep = n; tone(620,.06,'triangle',.07); },
   ok: () => { tone(660,.12); tone(990,.2,'sine',.14,.09); },
   bad: () => tone(170,.28,'square',.05),
   up: () => { tone(330,.7,'triangle',.12,0,1100); [784,988,1175,1568].forEach((f,i)=>tone(f,.14,'triangle',.1,.7+i*.08)); },
   down: () => { tone(700,1,'sine',.12,0,120); [392,349,311].forEach((f,i)=>tone(f,.28,'triangle',.08,1+i*.22)); },
+  card: () => { tone(500,.25,'triangle',.1,0,1200); tone(1200,.2,'sine',.08,.55,1600); },
+  fire: () => { tone(220,.7,'sawtooth',.06,0,70); tone(110,.6,'square',.04,.05,60); },
+  fireSmall: () => tone(260,.35,'sawtooth',.025,0,90),
   bonus: () => [784,988,1175].forEach((f,i)=>tone(f,.15,'triangle',.12,i*.09)),
+  sadCard: () => [392,330,262].forEach((f,i)=>tone(f,.22,'triangle',.09,i*.15)),
   win: () => [523,659,784,1047,1319].forEach((f,i)=>tone(f,.35,'triangle',.15,i*.12)),
 };
 
@@ -564,7 +759,7 @@ function setDie(i, v, spin){
   if (spin){ const h = $('#hop'+i); h.classList.remove('rolling'); h.offsetWidth; h.style.animationDelay = (i*0.06)+'s'; h.classList.add('rolling'); }
 }
 
-/* ---------------- 티라노 반응 5가지 + 5가지 ---------------- */
+/* ---------------- 티라노 반응 (사다리 6가지 / 터널 5가지) ---------------- */
 const fxs = (list) => list.map(([t,x,y,extra='']) => `<span class="fx" style="left:${x}%;top:${y}%;${extra}">${t}</span>`).join('');
 const GOOD = {
   jump:   {cap:'크앙! 신난다!', face:'happy', fx:() => fxs([['⭐',45,40,'--tx:-180%;--ty:-160%'],['🎉',50,40,'--tx:160%;--ty:-170%;animation-delay:.2s'],['✨',48,45,'--tx:-220%;--ty:30%;animation-delay:.4s'],['⭐',46,45,'--tx:220%;--ty:20%;animation-delay:.6s'],['🎉',47,38,'--tx:0;--ty:-230%;animation-delay:.8s']])},
@@ -572,6 +767,7 @@ const GOOD = {
   hearts: {cap:'사다리 정말 좋아!', face:'happy', fx:() => fxs([['💖',12,70],['💗',80,64,'animation-delay:.3s'],['💖',30,60,'animation-delay:.6s'],['💗',66,72,'animation-delay:.9s'],['💖',48,66,'animation-delay:1.2s']])},
   dance:  {cap:'룰루랄라~ 올라가요!', face:'happy', fx:() => fxs([['🎵',14,50,'--tx:-60%'],['🎶',78,46,'--tx:60%;animation-delay:.35s'],['🎵',70,60,'--tx:80%;animation-delay:.7s'],['🎶',20,62,'--tx:-80%;animation-delay:1s']])},
   rocket: {cap:'슝~ 위로 날아가요!', face:'happy', fx:() => fxs([['💨',30,78],['💨',56,80,'animation-delay:.15s'],['🔥',43,76,'animation-delay:.05s'],['✨',10,20,'animation-delay:.4s'],['✨',84,24,'animation-delay:.6s']])},
+  fire:   {cap:'크아앙! 불꽃 발사!', face:'roar', breath:true, fx:() => fxs([['✨',4,16],['⭐',10,74,'animation-delay:.3s']])},
 };
 const BAD = {
   cry:   {cap:'으앙… 내려가기 싫어', face:'sad', fx:() => fxs([['💧',60,30],['💧',64,32,'animation-delay:.5s'],['💧',57,34,'animation-delay:.25s'],['💧',66,30,'animation-delay:.75s']])},
@@ -580,127 +776,242 @@ const BAD = {
   flop:  {cap:'털썩… 다시 힘내자!', face:'sad', fx:() => fxs([['💨',20,78,'--tx:-120%'],['💨',66,78,'--tx:120%;animation-delay:.05s'],['💨',30,82,'--tx:-60%;animation-delay:.1s'],['💨',58,82,'--tx:60%;animation-delay:.12s']])},
   rain:  {cap:'주룩주룩… 그래도 괜찮아!', face:'sad', fx:() => `<span class="cloud">🌧️</span>` + fxs([['💧',36,18],['💧',50,20,'animation-delay:.2s'],['💧',62,16,'animation-delay:.4s'],['💧',44,22,'animation-delay:.55s']])},
 };
-let lastGood = '', lastBad = '';
-function showReaction(i, good, from, to, force){
+let lastGood = '', lastBad = '', breathTimer = 0;
+function showReaction(i, good, from, to, tag){
   const set = good ? GOOD : BAD;
-  let key = force; if (!key) do { key = pick(Object.keys(set)); } while (key === (good ? lastGood : lastBad));
+  let key; do { key = pick(Object.keys(set)); } while (key === (good ? lastGood : lastBad));
   good ? lastGood = key : lastBad = key;
   const r = set[key], el = $('#react');
   el.className = 'react ' + (good ? 'good' : 'bad') + ' a-' + key;
-  el.innerHTML = `<div class="r-card c${i}"><span class="r-tag">${good ? '🪜 사다리 타고 올라가요!' : '🕳️ 터널로 내려가요…'}</span>
+  el.innerHTML = `<div class="r-card c${i}"><span class="r-tag">${tag || (good ? '🪜 사다리 타고 올라가요!' : '🕳️ 터널로 내려가요…')}</span>
     <div class="r-stage">${r.fx()}<div class="r-dino">${dinoSvg(i, r.face)}</div></div>
-    <p class="r-cap"></p><p class="r-sub">${from} → ${to}</p></div>`;
+    <p class="r-cap"></p><p class="r-sub">${from === to ? from + '칸' : from + ' → ' + to}</p></div>`;
   el.querySelector('.r-cap').textContent = `${nm(i)}: ${r.cap}`;
-  // 말이 움직이는 곳을 가리지 않게, 말이 위쪽에 있으면 아래에, 아래쪽에 있으면 위에 띄워요
-  const avg = (cellXY(i, from)[1] + cellXY(i, to)[1]) / 2;
+  clearInterval(breathTimer);
+  if (r.breath){ const d = el.querySelector('.r-dino'); const go = () => { d.classList.remove('breath'); d.offsetWidth; d.classList.add('breath'); sfx.fire(); }; go(); breathTimer = setInterval(go, 1200); }
+  const avg = ((yOf(i, from) + yOf(i, to)) / 2 - cam.top) / 10;
   el.style.alignItems = avg < 50 ? 'end' : 'start';
   el.hidden = false;
 }
 async function hideReaction(){
   const el = $('#react'); if (el.hidden) return;
+  clearInterval(breathTimer);
   el.classList.add('out'); await sleep(300); el.hidden = true; el.innerHTML = '';
+}
+function breath(i){
+  const t = $('#tk'+i); if (!t) return;
+  t.classList.remove('breath'); t.offsetWidth; t.classList.add('breath'); sfx.fire();
+  setTimeout(() => t.classList.remove('breath'), 1150);
+}
+
+/* ---------------- 카드 아이템 ---------------- */
+const CARDS = [
+  {k:'rocket', e:'🚀', t:'로켓 발사!',      d:a => `${a}칸 앞으로 슝!`,              amt:5, type:'good', w:3},
+  {k:'meat',   e:'🍖', t:'고기 냠냠',        d:a => `힘이 불끈! ${a}칸 앞으로`,        amt:3, type:'good', w:3},
+  {k:'again',  e:'🎲', t:'한 번 더!',        d:() => '주사위를 한 번 더 던져요',                 type:'good', w:2},
+  {k:'shield', e:'🛡️', t:'튼튼 방패',        d:() => '다음 터널 하나를 막아 줘요',                type:'good', w:2},
+  {k:'volcano',e:'🌋', t:'화산 폭발!',       d:a => `다른 티라노들은 ${a}칸 뒤로!`,    amt:3, type:'special', w:2},
+  {k:'swap',   e:'🔄', t:'자리 바꾸기',      d:() => '바로 앞 티라노와 자리를 바꿔요',             type:'special', w:1},
+  {k:'turtle', e:'🐢', t:'느릿느릿 거북이',  d:a => `${a}칸 뒤로 가요`,               amt:3, type:'bad', w:2},
+  {k:'nap',    e:'💤', t:'쿨쿨 낮잠',        d:() => '다음 차례 한 번 쉬어요',                   type:'bad', w:2},
+];
+const cardAmt = c => (c.amt || 0) * Math.max(1, B.N / 100);
+function drawCardDef(){ const bag = []; CARDS.forEach(c => { for (let k = 0; k < c.w; k++) bag.push(c); }); return pick(bag); }
+async function showCard(i, c, gen){
+  const el = $('#cardfx'), a = cardAmt(c);
+  el.className = 'cardfx';
+  el.innerHTML = `<div class="flip"><div class="fc back">${dinoSvg(0)}<span>?</span></div>
+    <div class="fc front ${c.type}"><span class="ce">${c.e}</span><b>${c.t}</b><p>${c.d(a)}</p></div></div><p class="cwho"></p>`;
+  el.querySelector('.cwho').textContent = `${label(i)}의 카드!`;
+  el.hidden = false; sfx.card();
+  await sleep(reduced ? 600 : 1150); if (gen !== G.gen) return;
+  c.type === 'bad' ? sfx.sadCard() : sfx.bonus();
+  await sleep(1300); if (gen !== G.gen) return;
+  el.classList.add('out'); await sleep(300); el.hidden = true; el.innerHTML = '';
+}
+async function useCard(i, gen){
+  const c = drawCardDef(), p = G.players[i], a = cardAmt(c);
+  msg(`🃏 카드 칸! ${esc(label(i))}${josa(nm(i))} 카드를 뽑아요…`);
+  await showCard(i, c, gen); if (gen !== G.gen) return 'stop';
+  if (c.k === 'rocket' || c.k === 'meat'){
+    msg(`${c.e} ${c.t} <span class="up">${a}칸 앞으로!</span>`); breath(i);
+    if ((await walk(i, a, gen)) === null) return 'stop';
+    return land(i, gen, false);
+  }
+  if (c.k === 'turtle'){
+    msg(`${c.e} ${c.t} <span class="down">${a}칸 뒤로…</span>`);
+    if ((await walk(i, -a, gen)) === null) return 'stop';
+    return land(i, gen, false);
+  }
+  if (c.k === 'again'){ msg(`<span class="bonus">🎲 한 번 더 던질 수 있어요!</span>`); breath(i); return 'again'; }
+  if (c.k === 'shield'){ p.shield = true; renderPlayer(i); msg(`🛡️ 방패를 얻었어요! 다음 터널은 막아 줘요.`); breath(i); await sleep(700); return 'ok'; }
+  if (c.k === 'nap'){ p.skip = true; renderPlayer(i); msg(`💤 쿨쿨… 다음 차례는 쉬어요.`); await sleep(700); return 'ok'; }
+  if (c.k === 'volcano'){
+    msg(`🌋 화산 폭발! 다른 티라노들이 <span class="down">${a}칸 뒤로</span> 밀려나요!`); breath(i);
+    const others = [0,1,2,3].filter(j => j !== i && G.players[j].pos > START && G.players[j].pos < GOAL());
+    await Promise.all(others.map(j => walk(j, -a, gen, true)));
+    if (gen !== G.gen) return 'stop';
+    followPlayer(i); await sleep(500); return 'ok';
+  }
+  if (c.k === 'swap'){
+    const ahead = [0,1,2,3].map(j => ({j, pos:G.players[j].pos})).filter(o => o.j !== i && o.pos > p.pos && o.pos < GOAL()).sort((x,y) => x.pos - y.pos)[0];
+    if (!ahead){
+      const b = cardAmt({amt:3});
+      msg(`🔄 앞에 티라노가 없어요! 대신 <span class="up">${b}칸 앞으로</span>`);
+      if ((await walk(i, b, gen)) === null) return 'stop';
+      return land(i, gen, false);
+    }
+    const q = G.players[ahead.j], a1 = cellXY(i, p.pos), b1 = cellXY(ahead.j, q.pos);
+    msg(`🔄 ${esc(label(ahead.j))}${josa(nm(ahead.j))} 자리를 바꿔요! <span class="up">${p.pos} ↔ ${q.pos}</span>`);
+    await Promise.all([animatePath(i, [a1, b1], 900), animatePath(ahead.j, [b1, a1], 900, false)]);
+    if (gen !== G.gen) return 'stop';
+    [p.pos, q.pos] = [q.pos, p.pos]; layoutTokens(); renderPlayer(i); renderPlayer(ahead.j); followPlayer(i); breath(i);
+    await sleep(600); return 'ok';
+  }
+  return 'ok';
 }
 
 /* ---------------- 게임 ---------------- */
-const G = {players:[], cur:0, phase:'idle', dice:[1,1,1], sum:0, input:'', wrong:0, gen:0};
-const posLabel = n => n === START ? '출발' : n === GOAL ? '도착!' : n + '칸';
+const G = {players:[], cur:0, phase:'idle', dice:[1,1,1], sum:0, total:0, input:'', wrong:0, gen:0};
+const posLabel = n => n === START ? '출발' : n === GOAL() ? '도착!' : n + '칸';
 function buildPlayers(){
   $('#players').innerHTML = G.players.map((p,i) => `<div class="pcard c${i}" id="pc${i}">${dinoSvg(i)}
-    <div class="who"><span class="nm"></span><span class="pos"><b id="pp${i}">출발</b> · <span id="pt${i}">0</span>번 던짐</span></div></div>`).join('');
-  G.players.forEach((p,i) => $(`#pc${i} .nm`).textContent = nm(i));
-  $('#players').style.gridTemplateColumns = G.players.length === 1 ? '1fr' : '';
-  $('#tokens').innerHTML = G.players.map((p,i) => `<div class="token c${i}" id="tk${i}">${dinoSvg(i)}</div>`).join('');
+    <div class="who"><span class="nm"></span><span class="pos"><b id="pp${i}">출발</b> · <span id="pt${i}">0</span>번</span></div><span class="st" id="ps${i}"></span></div>`).join('');
+  G.players.forEach((p,i) => $(`#pc${i} .nm`).textContent = label(i));
+  $('#tokens').innerHTML = G.players.map((p,i) => `<div class="token c${i}" id="tk${i}">${dinoSvg(i)}${isCpu(i) ? '<span class="bot">🤖</span>' : ''}</div>`).join('');
 }
+function buildTrack(){
+  let t = '';
+  for (let k = 1; k < B.N/100; k++) t += `<span class="tick" style="left:${k*100/(B.N+1)*100}%"></span>`;
+  $('#track').innerHTML = t + [0,1,2,3].map(i => `<span class="tm c${i}" id="tm${i}">${dinoSvg(i)}</span>`).join('');
+}
+function renderTrack(){ G.players.forEach((p,i) => { const el = $('#tm'+i); if (el){ el.style.left = (p.pos/GOAL()*100) + '%'; el.style.zIndex = i === G.cur ? 3 : 1; } }); }
 const OFFS = [[-1.6,-1.4],[1.6,-1.4],[-1.6,1.6],[1.6,1.6]];
 function placeTok(i, x, y){ const t = $('#tk'+i); t.style.left = x + '%'; t.style.top = y + '%'; }
 function cellXY(i, n){
-  if (n === START || n === GOAL){ const [x,y] = ZONE_SPOTS[n][i]; return [x/W*100, y/10]; }
+  if (n === START || n === GOAL()){ const [x,y] = zoneSpots(n)[i]; return [x/W*100, y/B.H*100]; }
   const [cx, cy] = center(n), same = G.players.filter(p => p.pos === n).length;
   const o = same > 1 ? OFFS[i] : [0,0];
-  return [cx/W*100 + o[0], cy/10 + o[1]];
+  return [cx/W*100 + o[0], cy/B.H*100 + o[1]*10/B.rows];
 }
-function layoutTokens(){ G.players.forEach((p,i) => { const [x,y] = cellXY(i, p.pos); placeTok(i, x, y); }); }
+function layoutTokens(){ G.players.forEach((p,i) => { const [x,y] = cellXY(i, p.pos); placeTok(i, x, y); }); renderTrack(); }
 function renderTurn(){
   const i = G.cur, c = 'c' + i;
   ['#turn','.panel'].forEach(s => { const el = $(s); el.classList.remove('c0','c1','c2','c3'); el.classList.add(c); });
-  $('#turn').innerHTML = dinoSvg(i) + '<span><b></b> ' + (G.players.length === 1 ? `${G.players[0].turns + 1}번째 던지기!` : '차례예요!') + '</span>';
-  $('#turn b').textContent = nm(i);
+  $('#turn').innerHTML = dinoSvg(i) + '<span><b></b> 차례예요!</span>';
+  $('#turn b').textContent = label(i);
   G.players.forEach((p,j) => { $('#pc'+j).classList.toggle('now', j === i); $('#tk'+j).classList.toggle('now', j === i); });
+  renderTrack();
 }
-function renderPlayer(i){ $('#pp'+i).textContent = posLabel(G.players[i].pos); $('#pt'+i).textContent = G.players[i].turns; }
+function renderPlayer(i){
+  const p = G.players[i];
+  $('#pp'+i).textContent = posLabel(p.pos); $('#pt'+i).textContent = p.turns;
+  $('#ps'+i).textContent = (p.shield ? '🛡️' : '') + (p.skip ? '💤' : '');
+  renderTrack();
+}
 function msg(html){ $('#msg').innerHTML = html; }
 function josa(w){ const c = w.charCodeAt(w.length-1); if (c < 0xAC00 || c > 0xD7A3) return '이(가)'; return (c-0xAC00)%28 ? '이' : '가'; }
 
 function newGame(){
   G.gen++;
-  G.players = Array.from({length:cfg.n}, () => ({pos:START, turns:0}));
-  G.cur = 0; G.phase = 'roll'; G.input = ''; G.wrong = 0;
-  $('#react').hidden = true;
-  buildPlayers(); layoutTokens(); renderTurn(); G.players.forEach((p,i) => renderPlayer(i));
-  showRoll(); $('#keypad').hidden = false;
-  msg(cfg.n === 1 ? '몇 번 만에 도착 지점에 들어올 수 있을까요?' : '출발 지점에서 주사위를 던져 출발해요!');
+  setupBoard();
+  G.players = Array.from({length:4}, () => ({pos:START, turns:0, shield:false, skip:false}));
+  G.cur = 0; G.input = ''; G.wrong = 0;
+  ['#react','#cardfx'].forEach(s => $(s).hidden = true);
+  buildPlayers(); layoutTokens(); G.players.forEach((p,i) => renderPlayer(i));
+  setCam(B.H, false);
   ['#setup','#winOv'].forEach(s => $(s).hidden = true);
+  msg('출발 지점에서 주사위를 던져 출발해요!');
+  beginTurn();
 }
-function showRoll(){ $('#btnRoll').hidden = false; $('#btnRoll').disabled = false; $('#calc').hidden = true; }
-
-async function roll(){
-  if (G.phase !== 'roll') return;
+async function beginTurn(){
+  const gen = G.gen, i = G.cur, p = G.players[i];
+  renderTurn(); followPlayer(i);
+  $('#calc').hidden = true; $('#btnRoll').hidden = false;
+  if (p.skip){
+    p.skip = false; renderPlayer(i); G.phase = 'skip'; $('#btnRoll').disabled = true;
+    msg(`💤 ${esc(label(i))}${josa(nm(i))} 낮잠 중… 이번 차례는 쉬어요.`);
+    await sleep(1700); if (gen !== G.gen) return;
+    G.cur = (G.cur + 1) % 4; return beginTurn();
+  }
+  G.phase = 'roll';
+  if (isCpu(i)){
+    $('#btnRoll').disabled = true; $('#btnRoll').textContent = '🤖 컴퓨터 티라노가 던져요…';
+    await sleep(reduced ? 300 : 700); if (gen !== G.gen) return;
+    roll(true);
+  } else {
+    $('#btnRoll').disabled = false; $('#btnRoll').textContent = '🎲 주사위 던지기';
+  }
+}
+async function roll(auto){
+  if (G.phase !== 'roll' || (isCpu(G.cur) && !auto)) return;
   ensureAudio();
-  const gen = G.gen;
+  const gen = G.gen, i = G.cur;
   G.phase = 'rolling'; $('#btnRoll').disabled = true;
-  G.dice = [ri(1,6), ri(1,6), ri(1,6)]; G.sum = G.dice[0] + G.dice[1] + G.dice[2];
-  G.players[G.cur].turns++; renderPlayer(G.cur);
-  G.dice.forEach((v,i) => setDie(i, v, true)); sfx.roll();
+  G.dice = [ri(1,6), ri(1,6), ri(1,6)]; G.sum = G.dice[0] + G.dice[1] + G.dice[2]; G.total = G.sum * cfg.mult;
+  G.players[i].turns++; renderPlayer(i);
+  G.dice.forEach((v,k) => setDie(k, v, true)); sfx.roll();
   msg('데구르르…');
   await sleep(reduced ? 300 : 1300); if (gen !== G.gen) return;
   $('#btnRoll').hidden = true; $('#calc').hidden = false;
-  if (cfg.calc){
-    G.phase = 'answer'; G.input = ''; G.wrong = 0; $('#keypad').hidden = false;
-    renderEqn(); msg('주사위 세 수를 모두 더하면 얼마일까요?');
+  G.input = ''; G.wrong = 0;
+  if (cfg.calc && !isCpu(i)){
+    G.phase = 'answer'; $('#keypad').hidden = false; $('#keypad').classList.remove('off');
+    renderEqn(); msg(cfg.mult > 1 ? `세 수를 더한 다음 × ${cfg.mult}를 하면 얼마일까요?` : '주사위 세 수를 모두 더하면 얼마일까요?');
+  } else if (cfg.calc){
+    G.phase = 'cpu'; $('#keypad').hidden = false; $('#keypad').classList.add('off');
+    renderEqn(); msg('🤖 컴퓨터 티라노가 계산하고 있어요…');
+    for (const ch of String(G.total)){ await sleep(reduced ? 80 : 280); if (gen !== G.gen) return; G.input += ch; renderEqn(); sfx.key(); }
+    await sleep(350); if (gen !== G.gen) return;
+    renderEqn('ok'); sfx.ok(); msg(`🤖 정답! ${G.total}칸 앞으로 가요!`);
+    await sleep(600); if (gen !== G.gen) return;
+    move();
   } else {
-    $('#keypad').hidden = true; G.input = String(G.sum); renderEqn('ok');
-    msg(`${G.sum}칸 앞으로 가요!`);
+    $('#keypad').hidden = true; G.input = String(G.total); renderEqn('ok');
+    msg(`${G.total}칸 앞으로 가요!`);
     await sleep(700); if (gen !== G.gen) return;
     move();
   }
 }
 function renderEqn(state){
-  const [a,b,c] = G.dice;
-  $('#eqn').innerHTML = `<span>${a}</span><span class="op">+</span><span>${b}</span><span class="op">+</span><span>${c}</span><span class="op">=</span>
-    <span class="ans ${G.input ? '' : 'empty'} ${state||''}">${G.input || '?'}</span>`;
+  const [a,b,c] = G.dice, m = cfg.mult;
+  const left = m > 1 ? `<span class="op">(</span><span>${a}</span><span class="op">+</span><span>${b}</span><span class="op">+</span><span>${c}</span><span class="op">)</span><span class="op">×</span><span>${m}</span>`
+                     : `<span>${a}</span><span class="op">+</span><span>${b}</span><span class="op">+</span><span>${c}</span>`;
+  $('#eqn').innerHTML = `${left}<span class="op">=</span><span class="ans ${G.input ? '' : 'empty'} ${state||''}">${G.input || '?'}</span>`;
 }
 function press(k){
   if (G.phase !== 'answer') return;
   if (k === 'ok') return submit();
   if (k === 'del') G.input = G.input.slice(0,-1);
-  else if (G.input.length < 2) G.input = (G.input === '0' ? '' : G.input) + k;
+  else if (G.input.length < 3) G.input = (G.input === '0' ? '' : G.input) + k;
   sfx.key(); renderEqn();
 }
 async function submit(){
   if (!G.input){ renderEqn('bad'); return; }
   const gen = G.gen;
-  if (Number(G.input) === G.sum){
+  if (Number(G.input) === G.total){
     G.phase = 'moving'; renderEqn('ok'); sfx.ok();
-    msg(`정답! ${G.sum}칸 앞으로 가요!`);
+    msg(`정답! ${G.total}칸 앞으로 가요!`);
     await sleep(600); if (gen !== G.gen) return;
     move();
   } else {
     G.wrong++; renderEqn('bad'); sfx.bad();
     if (G.wrong >= 2){
       G.phase = 'moving';
-      msg(`괜찮아요! ${G.dice.join(' + ')} = <b>${G.sum}</b>이에요.`);
-      await sleep(1500); if (gen !== G.gen) return;
-      G.input = String(G.sum); renderEqn('ok');
+      const how = cfg.mult > 1 ? `(${G.dice.join(' + ')}) × ${cfg.mult}` : G.dice.join(' + ');
+      msg(`괜찮아요! ${how} = <b>${G.total}</b>이에요.`);
+      await sleep(1600); if (gen !== G.gen) return;
+      G.input = String(G.total); renderEqn('ok');
       await sleep(400); if (gen !== G.gen) return;
       move();
     } else {
-      msg('다시 한 번 더해 볼까요?');
+      msg('다시 한 번 계산해 볼까요?');
       await sleep(500); if (gen !== G.gen) return;
       G.input = ''; renderEqn();
     }
   }
 }
-async function animatePath(i, pts, ms){
+async function animatePath(i, pts, ms, follow=true){
   const t = $('#tk'+i), lens = [0];
   for (let k = 1; k < pts.length; k++) lens.push(lens[k-1] + Math.hypot(pts[k][0]-pts[k-1][0], pts[k][1]-pts[k-1][1]));
   const total = lens[lens.length-1] || 1;
@@ -711,12 +1022,32 @@ async function animatePath(i, pts, ms){
       let u = Math.min(1, (now - t0) / ms); u = u < .5 ? 2*u*u : 1 - Math.pow(-2*u+2, 2)/2;
       const d = u * total; let k = 1; while (k < lens.length-1 && lens[k] < d) k++;
       const s = (d - lens[k-1]) / ((lens[k] - lens[k-1]) || 1);
-      placeTok(i, pts[k-1][0] + (pts[k][0]-pts[k-1][0])*s, pts[k-1][1] + (pts[k][1]-pts[k-1][1])*s);
+      const x = pts[k-1][0] + (pts[k][0]-pts[k-1][0])*s, y = pts[k-1][1] + (pts[k][1]-pts[k-1][1])*s;
+      placeTok(i, x, y);
+      if (follow && B.rows > 10) followY(y / 100 * B.H, false);
       if (u < 1) requestAnimationFrame(f); else res();
     };
     requestAnimationFrame(f);
   });
   t.style.transition = '';
+}
+/* 한 칸씩 걷기 (뒤로는 음수). quiet = 다른 티라노가 밀려날 때 카메라를 옮기지 않아요 */
+async function walk(i, steps, gen, quiet){
+  const p = G.players[i], tk = $('#tk'+i);
+  let dir = steps >= 0 ? 1 : -1, n = Math.abs(steps), bounced = false;
+  const ms = clamp(1800 / Math.max(1, n), 20, 190);
+  while (n-- > 0){
+    if (dir > 0 && p.pos === GOAL()){ if (!cfg.exact) break; dir = -1; bounced = true; }
+    if (dir < 0 && p.pos === START) break;
+    p.pos += dir;
+    const [x,y] = cellXY(i, p.pos);
+    tk.classList.remove('hop'); tk.offsetWidth; tk.classList.add('hop');
+    placeTok(i, x, y); sfx.step(); renderPlayer(i);
+    if (!quiet) followY(y / 100 * B.H);
+    await sleep(reduced ? Math.min(ms, 60) : ms); if (gen !== G.gen) return null;
+  }
+  layoutTokens();
+  return {bounced};
 }
 async function climbLadder(i, from, to, gen){
   const tk = $('#tk'+i);
@@ -725,75 +1056,90 @@ async function climbLadder(i, from, to, gen){
   tk.classList.add('climb');
   await animatePath(i, [cellXY(i, from), cellXY(i, to)], reduced ? 100 : 1100);
   tk.classList.remove('climb'); if (gen !== G.gen) return false;
+  breath(i);
   await sleep(reduced ? 500 : 1000); if (gen !== G.gen) return false;
   await hideReaction(); return true;
 }
 async function goTunnel(i, from, to, gen){
-  const tk = $('#tk'+i), cv = tunnelCurve[from];
+  const tk = $('#tk'+i), cv = B.curve[from];
   showReaction(i, false, from, to); sfx.down();
   await sleep(reduced ? 200 : 400); if (gen !== G.gen) return false;
   tk.classList.add('sink'); await sleep(400);
   tk.classList.remove('sink'); tk.classList.add('under');
-  const pts = []; for (let k = 0; k <= 40; k++){ const q = bez(...cv, k/40); pts.push([q[0]/W*100, q[1]/10]); }
+  const pts = []; for (let k = 0; k <= 40; k++){ const q = bez(...cv, k/40); pts.push([q[0]/W*100, q[1]/B.H*100]); }
   await animatePath(i, pts, reduced ? 100 : 1100); if (gen !== G.gen) return false;
   tk.classList.remove('under'); tk.classList.add('pop'); await sleep(500); tk.classList.remove('pop');
   await sleep(reduced ? 400 : 900); if (gen !== G.gen) return false;
   await hideReaction(); return true;
 }
+/* 멈춘 칸 처리: 도착 / 사다리 / 터널 / 카드 */
+async function land(i, gen, allowCard){
+  const p = G.players[i];
+  renderPlayer(i); layoutTokens();
+  if (p.pos === GOAL()) return 'win';
+  if (B.L[p.pos]){
+    const from = p.pos, to = B.L[from];
+    msg(`🪜 사다리다! <span class="up">${from}칸 → ${to}칸</span>으로 올라가요!`);
+    p.pos = to;
+    if (!(await climbLadder(i, from, to, gen))) return 'stop';
+    renderPlayer(i); layoutTokens();
+    msg(`🪜 사다리를 타고 <span class="up">${to}칸</span>까지 올라왔어요!`);
+    return 'ok';
+  }
+  if (B.T[p.pos]){
+    const from = p.pos, to = B.T[from];
+    if (p.shield){
+      p.shield = false; renderPlayer(i);
+      msg(`🛡️ 방패로 <span class="up">${from}칸 터널</span>을 막았어요!`);
+      showReaction(i, true, from, from, '🛡️ 방패로 터널을 막았어요!');
+      await sleep(reduced ? 600 : 1800); if (gen !== G.gen) return 'stop';
+      await hideReaction(); return 'ok';
+    }
+    msg(`🕳️ 터널에 빠졌어요! <span class="down">${from}칸 → ${to}칸</span>으로 내려가요.`);
+    p.pos = to;
+    if (!(await goTunnel(i, from, to, gen))) return 'stop';
+    renderPlayer(i); layoutTokens();
+    msg(`🕳️ 터널을 지나 <span class="down">${to}칸</span>으로 내려왔어요.`);
+    return 'ok';
+  }
+  if (allowCard && B.cards.has(p.pos)) return useCard(i, gen);
+  breath(i);
+  return 'ok';
+}
 async function move(){
   const gen = G.gen, i = G.cur, p = G.players[i];
   G.phase = 'moving';
-  let steps = G.sum, dir = 1;
-  const tk = $('#tk'+i);
-  while (steps-- > 0){
-    if (p.pos === GOAL){ if (!cfg.exact) break; dir = -1; }
-    p.pos += dir;
-    const [x,y] = cellXY(i, p.pos);
-    tk.classList.remove('hop'); tk.offsetWidth; tk.classList.add('hop');
-    placeTok(i, x, y); sfx.step(); renderPlayer(i);
-    await sleep(reduced ? 60 : 190); if (gen !== G.gen) return;
-  }
-  if (dir === -1) msg(`앗, 도착 지점을 넘쳐서 <span class="down">${p.pos}칸</span>으로 되돌아왔어요.`);
-  let extra = '';
-  if (LADDERS[p.pos]){
-    const from = p.pos, to = LADDERS[from];
-    msg(`🪜 사다리다! <span class="up">${from}칸 → ${to}칸</span>으로 올라가요!`);
-    p.pos = to;
-    if (!(await climbLadder(i, from, to, gen))) return;
-    extra = `🪜 사다리를 타고 <span class="up">${to}칸</span>까지 올라왔어요!`;
-  } else if (TUNNELS[p.pos]){
-    const from = p.pos, to = TUNNELS[from];
-    msg(`🕳️ 터널에 빠졌어요! <span class="down">${from}칸 → ${to}칸</span>으로 내려가요.`);
-    p.pos = to;
-    if (!(await goTunnel(i, from, to, gen))) return;
-    extra = `🕳️ 터널을 지나 <span class="down">${to}칸</span>으로 내려왔어요.`;
-  }
-  renderPlayer(i); layoutTokens();
-  if (p.pos === GOAL) return finish(i);
-  if (extra) msg(extra); else if (dir !== -1) msg(`${esc(nm(i))}${josa(nm(i))} ${p.pos}칸에 도착했어요.`);
-  await sleep(extra ? 700 : 650); if (gen !== G.gen) return;
+  const w = await walk(i, G.total, gen); if (!w) return;
+  if (w.bounced) msg(`앗, 도착 지점을 넘쳐서 <span class="down">${p.pos}칸</span>으로 되돌아왔어요.`);
+  else if (p.pos !== GOAL()) msg(`${esc(label(i))}${josa(nm(i))} ${p.pos}칸에 도착했어요.`);
+  const res = await land(i, gen, true);
+  if (res === 'stop' || gen !== G.gen) return;
+  if (res === 'win' || p.pos === GOAL()) return finish(i);
+  await sleep(700); if (gen !== G.gen) return;
   const triple = G.dice[0] === G.dice[1] && G.dice[1] === G.dice[2];
-  if (cfg.bonus && triple){
-    sfx.bonus(); msg(`<span class="bonus">🎲 세 주사위가 모두 ${G.dice[0]}! 한 번 더 던져요!</span>`);
+  if (res === 'again' || (cfg.bonus && triple)){
+    if (res !== 'again'){ sfx.bonus(); msg(`<span class="bonus">🎲 세 주사위가 모두 ${G.dice[0]}! 한 번 더 던져요!</span>`); }
+    breath(i);
   } else {
-    G.cur = (G.cur + 1) % G.players.length;
-    if (G.players.length > 1) msg(`${esc(nm(G.cur))} 차례예요. 주사위를 던져요!`);
+    G.cur = (G.cur + 1) % 4;
+    msg(`${esc(label(G.cur))} 차례예요.`);
   }
-  G.phase = 'roll'; renderTurn(); showRoll();
+  beginTurn();
 }
 function finish(w){
   G.phase = 'over';
-  const solo = G.players.length === 1, p = G.players[w];
   const old = $('#winOv svg'), w2 = document.createElement('span'); w2.innerHTML = dinoSvg(w, 'happy'); old.replaceWith(w2.firstChild);
-  $('#winTitle').textContent = solo ? `${p.turns}번 만에 도착!` : `${nm(w)} 승리!`;
+  const cpuWon = isCpu(w);
+  $('#winTitle').textContent = `${label(w)} 승리!`;
   $('#winTitle').style.color = getComputedStyle($('#pc'+w)).getPropertyValue('--pd');
-  $('#winWhy').textContent = solo ? '크앙! 도착 지점에 들어왔어요!' : '크앙! 도착 지점에 가장 먼저 들어왔어요!';
-  msg(`🏆 ${esc(nm(w))} 도착!`);
+  $('#winWhy').textContent = cpuWon ? '컴퓨터 티라노가 먼저 들어왔어요! 다시 도전해 볼까요?' : '크앙! 도착 지점에 가장 먼저 들어왔어요!';
+  msg(`🏆 ${esc(label(w))} 도착!`);
   const order = G.players.map((q,j) => ({j, pos:q.pos, turns:q.turns})).sort((a,b) => b.pos - a.pos || a.turns - b.turns);
   $('#rank').innerHTML = order.map((o,k) => `<li class="c${o.j}"><span class="r">${k+1}</span>${dinoSvg(o.j)}<span class="n"></span><span class="p">${posLabel(o.pos)} · ${o.turns}번 던짐</span></li>`).join('');
-  $('#rank').querySelectorAll('.n').forEach((el,k) => el.textContent = nm(order[k].j));
+  $('#rank').querySelectorAll('.n').forEach((el,k) => el.textContent = label(order[k].j));
   $('#btnRoll').disabled = true;
-  setTimeout(() => { $('#winOv').hidden = false; sfx.win(); confetti(); }, 600);
+  breath(w);
+  setTimeout(() => { $('#winOv').hidden = false; sfx.win(); if (!cpuWon) confetti(); }, 900);
 }
 
 /* ---------------- 꽃가루 ---------------- */
@@ -819,11 +1165,11 @@ $('#keypad').querySelectorAll('.key').forEach(b => {
   b.addEventListener('pointerdown', e => { e.preventDefault(); b.classList.add('down'); setTimeout(()=>b.classList.remove('down'),110); press(b.dataset.k); });
   b.addEventListener('click', e => { if (e.detail === 0) press(b.dataset.k); });
 });
-$('#btnRoll').addEventListener('click', roll);
-$('#dice').addEventListener('click', roll);
+$('#btnRoll').addEventListener('click', () => roll(false));
+$('#dice').addEventListener('click', () => roll(false));
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || !$('#setup').hidden || !$('#winOv').hidden) return;
-  if (G.phase === 'roll' && (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter')){ e.preventDefault(); roll(); return; }
+  if (G.phase === 'roll' && (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter')){ e.preventDefault(); roll(false); return; }
   if (G.phase !== 'answer') return;
   let k = null;
   if (/^(Digit|Numpad)[0-9]$/.test(e.code)) k = e.code.slice(-1);
@@ -833,15 +1179,18 @@ document.addEventListener('keydown', e => {
 });
 
 /* ---------------- 설정 화면 ---------------- */
-$('#nChips').innerHTML = [1,2,3,4].map(n => `<button data-v="${n}">${Array.from({length:n},(_,i)=>dinoSvg(i)).join('')} ${n}명</button>`).join('');
-$('#names').innerHTML = [0,1,2,3].map(i => `<label class="c${i}" id="nl${i}">${i+1}번<input id="nm${i}" maxlength="8"></label>`).join('');
+$('#hChips').innerHTML = [1,2,3,4].map(n => `<button data-v="${n}">${[0,1,2,3].map(i => i < n ? dinoSvg(i) : '').join('')}<span class="ppl">🧑 ${n}명<small>${n < 4 ? '🤖 컴퓨터 ' + (4-n) : '컴퓨터 없음'}</small></span></button>`).join('');
+$('#sizeChips').innerHTML = Array.from({length:10}, (_,k) => `<button data-v="${(k+1)*100}">${(k+1)*100}</button>`).join('');
+$('#names').innerHTML = [0,1,2,3].map(i => `<label class="c${i}" id="nl${i}"><span></span><input id="nm${i}" maxlength="8"></label>`).join('');
 [0,1,2,3].forEach(i => { const inp = $('#nm'+i); inp.value = nm(i);
   inp.addEventListener('input', () => { cfg.names[i] = inp.value.trim() || DEF_NAMES[i]; saveCfg(); }); });
 const conv = (v,t) => t === 'num' ? Number(v) : t === 'bool' ? v === '1' : v;
 function syncChips(){
   document.querySelectorAll('.chips[data-key]').forEach(g => g.querySelectorAll('button').forEach(b =>
     b.setAttribute('aria-pressed', cfg[g.dataset.key] === conv(b.dataset.v, g.dataset.type))));
-  [0,1,2,3].forEach(i => $('#nl'+i).hidden = i >= cfg.n);
+  [0,1,2,3].forEach(i => { const l = $('#nl'+i); l.classList.toggle('cpu', isCpu(i)); l.firstChild.textContent = isCpu(i) ? `${i+1}번 🤖 컴퓨터` : `${i+1}번 🧑 사람`; });
+  const avg = 10.5 * cfg.mult, turns = Math.max(1, Math.round(cfg.size / avg));
+  $('#multHint').textContent = `${cfg.size}칸 판에서 한 번에 평균 ${avg}칸쯤 가요. 티라노 한 마리가 약 ${turns}번 던지면 도착해요.` + (turns > 25 ? ' 판이 크면 배수를 올려 보세요!' : '');
 }
 document.querySelectorAll('.chips[data-key]').forEach(g => g.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -849,7 +1198,7 @@ document.querySelectorAll('.chips[data-key]').forEach(g => g.addEventListener('c
 }));
 $('#btnStart').addEventListener('click', () => { ensureAudio(); newGame(); });
 $('#btnAgain').addEventListener('click', newGame);
-const goHome = () => { G.gen++; G.phase = 'idle'; $('#react').hidden = true; $('#winOv').hidden = true; $('#setup').hidden = false; syncChips(); };
+const goHome = () => { G.gen++; G.phase = 'idle'; ['#react','#cardfx','#winOv'].forEach(s => $(s).hidden = true); clearInterval(breathTimer); $('#setup').hidden = false; syncChips(); };
 $('#btnSetup').addEventListener('click', goHome);
 try { if (window.top === window) $('#btnZone').hidden = false; } catch(e){}
 $('#btnHome').addEventListener('click', goHome);
@@ -888,12 +1237,13 @@ $('#fontUp').addEventListener('click', () => { scaleIdx = Math.min(SCALES.length
 $('#fontDown').addEventListener('click', () => { scaleIdx = Math.max(0, scaleIdx-1); store.set('tm-scale', scaleIdx); applyMode(); });
 let rT; window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(applyMode, 150); });
 
-/* 첫 화면: 판과 말이 출발 지점에 놓인 상태로 설정 창 표시 */
-buildCells(); buildPaths(); buildDice(); applyMode(); syncChips();
-G.players = Array.from({length:cfg.n}, () => ({pos:START, turns:0}));
-buildPlayers(); layoutTokens(); renderTurn(); G.phase = 'idle';
+/* 첫 화면: 판과 4마리 티라노가 출발 지점에 놓인 상태로 설정 창 표시 */
+buildDice(); applyMode(); syncChips();
+setupBoard();
+G.players = Array.from({length:4}, () => ({pos:START, turns:0, shield:false, skip:false}));
+buildPlayers(); layoutTokens(); renderTurn(); G.players.forEach((p,i) => renderPlayer(i)); G.phase = 'idle';
+setCam(B.H, false);
 msg('출발 지점에서 주사위를 던져 출발해요!');
-
 })();
 </script>
 </body>
