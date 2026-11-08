@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>자릿값 낚시 · TyranoMath</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2faf7; --panel:#ffffff; --ink:#22303f; --muted:#6f7d88;
+  --accent:#1f9d8f; --accent-dark:#167a6f; --accent-ink:#ffffff; --accent-soft:#e1f5f0; --accent-line:#bfe6dd;
+  --green:#4cb662; --green-dark:#36924b; --orange:#ff9f43; --orange-dark:#e9852a;
+  --line:#dfe9e6; --navy:#1f2f6b;
+  --shadow:0 8px 28px rgba(31,110,100,.14);
+  --title:"Jua","Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  --ui:clamp(13px, calc(1.1vmin + 7px), 26px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  overscroll-behavior:none;-webkit-text-size-adjust:100%;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;touch-action:none}
+input{-webkit-user-select:text;user-select:text;touch-action:manipulation}
+button{font:inherit;font-weight:700;border-radius:calc(var(--ui)*.85);border:2px solid var(--line);border-bottom-width:4px;
+  background:var(--panel);color:var(--ink);cursor:pointer;min-height:max(44px,calc(var(--ui)*2.7));padding:0 calc(var(--ui)*.8);
+  touch-action:manipulation;transition:transform .06s,background .12s,border-color .12s;white-space:nowrap}
+button:active{transform:translateY(2px);border-bottom-width:2px;margin-bottom:2px}
+button.on,button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent-dark)}
+button.go{background:var(--orange);color:#fff;border-color:var(--orange-dark)}
+button:disabled{opacity:.45}
+@media (hover:hover) and (pointer:fine){button:hover:not(.on):not(.primary):not(.go):not(:disabled){background:var(--accent-soft);border-color:var(--accent-line)}}
+.hide{display:none!important}
+
+/* ---------- 설정 화면 ---------- */
+#lobby{position:fixed;inset:0;overflow:auto;font-size:var(--ui);
+  padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));
+  background:radial-gradient(ellipse at 20% 0%,#dff6ef 0,transparent 55%),radial-gradient(ellipse at 100% 100%,#e6f0ff 0,transparent 50%),var(--bg)}
+.lwrap{max-width:calc(var(--ui)*48);margin:0 auto;display:flex;flex-direction:column;gap:calc(var(--ui)*.8)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:.5em}
+.brand{display:flex;align-items:center;gap:.6em;min-width:0}
+.brand img{width:calc(var(--ui)*3);height:auto}
+.kicker{font-size:.72em;font-weight:600;color:var(--muted)}
+.brand h1{margin:0;font-family:var(--title);font-weight:400;font-size:1.75em;line-height:1.1;color:var(--accent-dark)}
+.top-btns{display:flex;gap:.45em;align-items:center}
+.zone{display:inline-flex;align-items:center;text-decoration:none;font-weight:700;font-size:.9em;background:var(--accent);color:#fff;
+  border-radius:99px;padding:0 1em;min-height:max(40px,calc(var(--ui)*2.3));white-space:nowrap}
+.icon-btn{width:max(44px,calc(var(--ui)*2.7));padding:0;flex:none}
+.hero{display:flex;align-items:center;gap:1em;background:linear-gradient(120deg,#3a8dff,#37c3d6);color:#fff;border-radius:calc(var(--ui)*1.2);
+  padding:calc(var(--ui)*.9) calc(var(--ui)*1.2);box-shadow:var(--shadow);overflow:hidden;position:relative}
+.hero h2{margin:0;font-family:var(--title);font-weight:400;font-size:1.6em}
+.hero p{margin:.25em 0 0;font-size:.88em;opacity:.95;line-height:1.45}
+.hero .plane{font-size:3em;flex:none;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
+.card{background:var(--panel);border:2px solid var(--accent-line);border-radius:calc(var(--ui)*1.1);padding:calc(var(--ui)*.9);
+  display:flex;flex-direction:column;gap:calc(var(--ui)*.55)}
+.label{font-size:.9em;font-weight:800;color:var(--accent-dark);display:flex;justify-content:space-between;align-items:center;gap:.5em}
+.label small{font-weight:600;color:var(--muted);font-size:.85em}
+.grid{display:grid;gap:calc(var(--ui)*.45)}
+.g4{grid-template-columns:repeat(4,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g5{grid-template-columns:repeat(5,1fr)}
+.cnt button{min-height:max(54px,calc(var(--ui)*3.4));font-size:1.05em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1em;line-height:1.1}
+.cnt button small{font-size:.7em;opacity:.85;font-weight:600}
+.players{display:grid;grid-template-columns:repeat(auto-fit,minmax(calc(var(--ui)*10),1fr));gap:calc(var(--ui)*.5)}
+.pl{display:flex;align-items:center;gap:.5em;border:2px solid var(--line);border-radius:calc(var(--ui)*.85);padding:.35em .6em;background:var(--panel)}
+.pl i{width:1.5em;height:1.5em;border-radius:50%;flex:none;background:var(--pc);box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.pl input{flex:1;min-width:0;border:0;outline:none;background:transparent;font:inherit;font-weight:700;color:var(--ink);font-size:max(16px,1em)}
+.pl kbd{font-family:inherit;font-size:.68em;color:var(--muted);background:var(--accent-soft);border-radius:6px;padding:.15em .4em;white-space:nowrap}
+.dans button{font-size:1em;padding:0}
+.dans{grid-template-columns:repeat(8,1fr)}
+.numrow{display:flex;gap:calc(var(--ui)*.45);align-items:stretch}
+.numrow .nb{flex:1;min-width:0;padding:0;font-size:1.1em}
+.numbox{flex:2.2;display:flex;align-items:center;justify-content:center;gap:.35em;border:2px solid var(--accent-line);border-radius:calc(var(--ui)*.85);
+  background:var(--accent-soft);padding:0 .6em;min-height:max(48px,calc(var(--ui)*2.9))}
+.numbox:focus-within{border-color:var(--accent)}
+.numbox input{width:3.2em;min-width:0;border:0;outline:none;background:transparent;font:inherit;font-family:var(--title);font-size:max(20px,1.6em);
+  color:var(--accent-dark);text-align:center;-moz-appearance:textfield}
+.numbox input::-webkit-inner-spin-button,.numbox input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.numbox span{font-weight:800;color:var(--accent-dark)}
+#numSeg button{min-height:max(38px,calc(var(--ui)*2.3))}
+#numSeg{grid-template-columns:repeat(5,1fr)!important}
+.grid.g3 button{white-space:normal;line-height:1.15;word-break:keep-all;padding:.2em .3em}
+.help{font-size:.82em;color:var(--muted);line-height:1.5;margin:0}
+.startrow{display:flex;gap:.6em}
+.startrow button{flex:1;min-height:max(60px,calc(var(--ui)*3.6));font-size:1.25em;font-family:var(--title);font-weight:400}
+@media (max-width:560px){.dans{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(3,1fr)}}
+
+.g2{grid-template-columns:repeat(2,1fr)}
+.grid button small{display:block;font-size:.72em;font-weight:600;opacity:.85}
+.grid button{white-space:normal;line-height:1.2;padding:.3em .3em}
+
+#game{position:fixed;inset:0;display:flex;flex-direction:column;
+  background:radial-gradient(ellipse at 50% 0,#d8f3ec 0,transparent 60%),linear-gradient(rgba(31,157,143,.06) 1px,transparent 1px) 0 0/28px 28px,linear-gradient(90deg,rgba(31,157,143,.06) 1px,transparent 1px) 0 0/28px 28px,#eef9f5}
+.gbar{flex:none;display:flex;align-items:center;gap:10px;padding:max(8px,env(safe-area-inset-top)) 12px 6px;font-size:clamp(12px,1.6vmin,20px)}
+.gbar .ttl{display:flex;align-items:center;gap:.45em;font-family:var(--title);color:var(--accent-dark);font-size:1.25em;white-space:nowrap;min-width:0}
+.gbar .ttl img{width:1.9em;height:auto}
+.gbar .mid{flex:1;display:flex;justify-content:center;min-width:0}
+.rnd{display:flex;flex-direction:column;align-items:center;background:linear-gradient(180deg,#26387f,#1b2862);color:#fff;border:3px solid #fff;border-radius:.9em;padding:.2em 1.4em .3em;box-shadow:0 .25em 0 #a8b9d6}
+.rnd b{font-family:var(--title);font-weight:400;font-size:1.25em;color:#ffd23f;white-space:nowrap}.rnd small{font-size:.75em;white-space:nowrap}
+.tbs{display:flex;gap:6px}
+.tbs .tb{width:54px;height:50px;min-height:0;padding:0;border-radius:14px;font-size:18px;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.tbs .tb small{font-size:9.5px;font-weight:800;color:var(--muted)}
+.tbs .tb.home{background:var(--orange);border-color:var(--orange-dark)}.tbs .tb.home small{color:#fff}
+.tbs .tb.on{background:#fff3c4;border-color:#f0cf86}
+@media (max-width:600px){.gbar .ttl span{display:none}.tbs .tb{width:42px;height:42px;font-size:15px}.tbs .tb small{display:none}.rnd{padding:.15em .7em}.gbar{gap:6px;padding-left:8px;padding-right:8px}}
+
+.main{flex:1;min-height:0;display:flex;padding:4px 12px max(12px,env(safe-area-inset-bottom))}
+.bwrap{flex:1;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center}
+.frame{position:relative;flex:none;border:6px solid #fff;border-radius:18px;overflow:hidden;box-shadow:0 0 0 3px var(--accent-line),0 10px 28px rgba(31,110,100,.18);background:#cfeefb}
+#pool{display:block;width:100%;height:100%;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#pool text{font-family:var(--title)}
+#pool .hit{cursor:pointer}
+#pool .btn{cursor:pointer}
+#pool .btn:active .face{transform:translateY(3px)}
+#pool .btn .face{transition:transform .08s}
+#pool .btn.dis{opacity:.45;cursor:default}
+.sel{fill:#ffd23f;fill-opacity:.16;stroke:#ffd23f;stroke-width:5;stroke-dasharray:14 10;animation:ants 1s linear infinite}
+@keyframes ants{to{stroke-dashoffset:-24}}
+.knob{transition:fill .2s}
+.fau.on .knob{fill:#ff4f5e}
+.fau.on .glow{opacity:1}
+.fau .glow{opacity:0;transition:opacity .2s}
+.stream{stroke-dasharray:10 8;animation:flow .25s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-18}}
+.wv{animation:wv 1.6s ease-in-out infinite alternate}
+@keyframes wv{to{transform:translateX(-24px)}}
+#valveG{transform-box:fill-box;transform-origin:center}
+#valveG.spin{animation:spin 1.6s cubic-bezier(.4,0,.3,1)}
+@keyframes spin{to{transform:rotate(720deg)}}
+#leverG{transform-box:fill-box;transform-origin:50% 98%}
+#leverG.pull{animation:pull 1s ease-in-out}
+#leverG.nudge{animation:nudge .5s ease-in-out 3}
+@keyframes pull{30%,70%{transform:rotate(-55deg)}}
+@keyframes nudge{50%{transform:rotate(-14deg)}}
+.lab{fill:#fff;font-size:24px;text-anchor:middle;opacity:.95}
+.secl{font-size:30px;text-anchor:middle;fill:#fff;stroke:#1b4f78;stroke-width:6px;paint-order:stroke;pointer-events:none}
+.bob{animation:bob 1s ease-in-out infinite alternate}
+@keyframes bob{to{transform:translateY(-10px) rotate(-4deg)}}
+.splash{fill:none;stroke:#fff;stroke-width:5;transform-box:fill-box;transform-origin:center;animation:spl 1s ease-out forwards}
+@keyframes spl{from{transform:scale(.2);opacity:1}to{transform:scale(2.4);opacity:0}}
+.bub{fill:#fff;opacity:.7;animation:bub 1.8s ease-in infinite}
+@keyframes bub{to{transform:translateY(-120px);opacity:0}}
+.cloud{animation:cl 6s ease-in-out infinite alternate}
+@keyframes cl{to{transform:translateX(40px)}}
+.shake{animation:shk .45s}
+@keyframes shk{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+
+.done{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(255,255,255,.96);border:4px solid #ffd23f;
+  border-radius:18px;padding:12px 28px;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:dpop .5s cubic-bezier(.3,1.5,.6,1);text-align:center;z-index:5}
+.done.hide{display:none}
+.done b{font-family:var(--title);font-weight:400;font-size:clamp(24px,4vmin,44px);color:#e9852a}
+.done span{font-weight:800;color:var(--ink);font-size:clamp(14px,2vmin,22px)}
+.dstars{font-size:clamp(22px,3.5vmin,38px)}
+.done button{min-height:46px;font-size:18px;padding:0 24px}
+@keyframes dpop{from{transform:translateX(-50%) scale(.5);opacity:0}}
+.toast{position:fixed;left:50%;top:46%;transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;text-align:center;color:#fff;z-index:60;
+  font-family:var(--title);font-size:clamp(22px,3.6vmin,40px);line-height:1.2;padding:.3em .9em;border-radius:1em;transition:transform .25s,opacity .25s;max-width:92vw}
+.toast small{display:block;font-family:inherit;font-size:.6em}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.toast.ok{background:rgba(46,190,110,.95);border:3px solid #fff}.toast.no{background:rgba(255,95,95,.95);border:3px solid #fff}.toast.info{background:rgba(40,60,140,.95);border:3px solid #fff}
+.conf{position:fixed;width:10px;height:14px;top:-20px;z-index:55;pointer-events:none;animation:fall 1.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(var(--fy)) rotate(600deg);opacity:.3}}
+.g6{grid-template-columns:repeat(6,1fr)}
+@media (max-width:560px){.g6{grid-template-columns:repeat(3,1fr)}}
+.chars button{padding:.3em .2em .25em;min-height:0}
+.chars button img{width:100%;max-width:70px;aspect-ratio:220/256;height:auto;display:block;margin:0 auto .15em;pointer-events:none}
+.chars button small{font-size:.78em}
+.seg4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+#lake{display:block;width:100%;height:100%;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#lake text{font-family:var(--title)}
+.frame{background:#4aa8dc}
+.fish{cursor:pointer}
+.tail{transform-box:fill-box;transform-origin:100% 50%;animation:wag .5s ease-in-out infinite alternate}
+@keyframes wag{from{transform:scaleY(.82) rotate(-8deg)}to{transform:scaleY(1) rotate(8deg)}}
+.fin{transform-box:fill-box;transform-origin:50% 0;animation:fin 1s ease-in-out infinite alternate}
+@keyframes fin{to{transform:rotate(14deg)}}
+.hook .tail{animation-duration:.12s}
+.shk{animation:shk .45s}
+@keyframes shk{20%,60%{transform:translateX(-12px)}40%,80%{transform:translateX(12px)}}
+.bub{fill:#fff;opacity:.55;animation:bub 4s linear infinite}
+@keyframes bub{to{transform:translateY(-520px);opacity:0}}
+.sway{transform-box:fill-box;transform-origin:50% 100%;animation:sway 3s ease-in-out infinite alternate}
+@keyframes sway{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
+.shim{animation:shim 3s ease-in-out infinite alternate}
+@keyframes shim{to{transform:translateX(24px);opacity:.25}}
+.bob{animation:bob 1.4s ease-in-out infinite alternate}
+@keyframes bob{to{transform:translateY(5px)}}
+.cloud{animation:cl 9s ease-in-out infinite alternate}
+@keyframes cl{to{transform:translateX(50px)}}
+.heroHop{animation:hhop .45s ease-in-out 3}
+@keyframes hhop{50%{transform:translateY(-22px)}}
+#hero{transform-box:fill-box;transform-origin:50% 100%}
+.slotPop{animation:spop .4s cubic-bezier(.3,1.6,.6,1)}
+@keyframes spop{from{transform:scale(.3)}}
+.slotPop{transform-box:fill-box;transform-origin:center}
+.splash{fill:none;stroke:#fff;stroke-width:4;transform-box:fill-box;transform-origin:center;animation:spl .7s ease-out forwards}
+@keyframes spl{from{transform:scale(.2);opacity:1}to{transform:scale(2.2);opacity:0}}
+.flt{animation:flt 1.1s ease-out forwards}
+@keyframes flt{to{transform:translateY(-70px);opacity:0}}
+.modal.wide{max-width:min(92vw,820px);width:100%}
+.resTop{display:flex;gap:.8em;align-items:center;text-align:left}
+.trophy{font-size:3.6em;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
+.resTag{display:inline-block;background:linear-gradient(180deg,#ffd45a,#f5b51f);border:2px solid #e09a12;border-bottom-width:4px;border-radius:.6em;padding:.15em .8em;font-family:var(--title);color:#5a3a00;font-size:1.15em}
+.modal h2#resTitle{font-size:1.6em;margin:.3em 0 .1em;color:var(--ink)}
+.rec{margin:0;font-size:.85em;color:#c2410c;font-weight:800}
+.catch{margin-top:.7em;background:#eef4ff;border:2px solid #a9c4f5;border-radius:1em;padding:.5em .7em;text-align:left}
+.catchHd{display:flex;justify-content:space-between;align-items:center;font-size:.8em;color:var(--muted);font-weight:800}
+.catchHd b{background:#2b5fd6;color:#fff;border-radius:99px;padding:.05em .7em;font-size:.95em}
+.catchList{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:.3em;max-height:32vh;overflow:auto}
+.catchList svg{width:66px;height:38px}
+.catchList .bk{font-size:1.6em}
+.nowrong{margin:.6em 0 0;background:#eef8f0;border:2px solid #cfe9d6;border-radius:.8em;padding:.4em;font-weight:800;font-size:.9em;color:#2f7a4a}
+.nowrong.bad{background:#fff3ef;border-color:#f6cfc2;color:#c2410c}
+#boards{flex:1;min-width:0;min-height:0;display:grid;gap:10px}
+#boards .cell{position:relative;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center}
+#boards .frame{position:relative;flex:none}
+.lake{display:block;width:100%;height:100%;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.lake text{font-family:var(--title)}
+.btoast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;text-align:center;color:#fff;z-index:6;
+  font-family:var(--title);font-size:clamp(16px,3vmin,34px);line-height:1.2;padding:.3em .8em;border-radius:1em;transition:transform .25s,opacity .25s;max-width:94%}
+.btoast small{display:block;font-family:inherit;font-size:.58em}
+.btoast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.btoast.ok{background:rgba(46,190,110,.95);border:3px solid #fff}.btoast.no{background:rgba(255,95,95,.95);border:3px solid #fff}
+.bdone{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.55);font-family:var(--title);font-size:clamp(22px,5vmin,52px);color:#e9852a;text-shadow:0 3px 0 #fff;z-index:7;animation:dpop .5s}
+@keyframes dpop{from{opacity:0;transform:scale(.7)}}
+.pdot{display:inline-flex;align-items:center;justify-content:center;width:1.4em;height:1.4em;border-radius:50%;color:#fff;font-family:var(--title);font-size:.9em;vertical-align:middle}
+.crow{margin-top:.2em}
+#catches .catch{margin-top:.5em}
+#catches .catchList{max-height:18vh}
+/* ---------- 모달 / 결과 ---------- */
+.overlay{position:fixed;inset:0;background:rgba(8,30,40,.55);display:flex;align-items:center;justify-content:center;padding:14px;z-index:20;font-size:var(--ui)}
+.modal{background:var(--panel);border:2px solid var(--accent-line);border-radius:calc(var(--ui)*1.2);padding:calc(var(--ui)*1.2);
+  width:min(100%,calc(var(--ui)*34));max-height:100%;overflow:auto;box-shadow:var(--shadow);text-align:center}
+.modal h2{margin:.1em 0 .35em;font-family:var(--title);font-weight:400;font-size:2em;color:var(--accent-dark)}
+.modal .actions{display:flex;gap:.5em;margin-top:.9em}
+.modal .actions button{flex:1}
+.res{display:flex;flex-direction:column;gap:.5em;text-align:left}
+.rrow{display:flex;align-items:center;gap:.7em;border:2px solid var(--line);border-left:8px solid var(--pc);border-radius:calc(var(--ui)*.8);padding:.5em .7em;background:#fff}
+.rrow.first{background:#fff8e1;border-color:#ffd56b;border-left-color:var(--pc)}
+.medal{font-size:1.8em;width:1.3em;text-align:center;flex:none}
+.rname{font-weight:800;font-size:1.05em}
+.rstat{font-size:.8em;color:var(--muted);margin-top:.15em}
+.rscore{margin-left:auto;font-family:var(--title);font-size:1.6em;color:var(--accent-dark);white-space:nowrap}
+.wrongs{display:flex;flex-wrap:wrap;gap:.3em;margin-top:.35em}
+.wrongs span{font-size:.75em;background:#ffecec;color:#c23b3b;border-radius:99px;padding:.1em .55em;font-weight:700}
+.stars{font-size:2.2em;letter-spacing:.1em;margin:.1em 0 .3em}
+.windino{width:calc(var(--ui)*4.5);height:auto}
+.copy{text-align:center;color:#8A94A6;font-size:13px;margin:18px 0 6px}
+#lobby .top-btns .tmr-btn{flex:none}
+.zone[hidden]{display:none!important}
+</style></head>
+<body>
+<div id="lobby">
+  <div class="lwrap">
+    <header class="top">
+      <div class="brand"><img class="dino" alt="티라노"><div><div class="kicker">TyranoMath 게임존</div><h1>자릿값 낚시</h1></div></div>
+      <div class="top-btns"><a class="zone" id="zoneBtn" href="../gamezone.html" hidden>← 게임존</a><button class="icon-btn fsBtn" title="전체 화면" aria-label="전체 화면">⛶</button></div>
+    </header>
+    <section class="hero" style="background:linear-gradient(120deg,#1f8fd6,#1f9d8f)">
+      <div class="plane">🎣</div>
+      <div><h2>자릿값을 낚아요!</h2>
+        <p>위에 나온 수를 <b>자릿값으로 가르는 물고기</b>를 톡 눌러 낚아요. 95라면 <b>90</b>과 <b>5</b>! 식을 다 채우면 바구니가 하나 차요. 9, 50, 59처럼 헷갈리는 물고기는 놓아줘요.</p></div>
+    </section>
+    <section class="card">
+      <div class="label">몇 명이 낚시할까요? <small>화면을 나눠 동시에 해요</small></div>
+      <div class="grid seg4" id="plSeg"><button data-v="1">👤 1인</button><button data-v="2">👥 2인</button><button data-v="3">3인</button><button data-v="4">4인</button></div>
+      <div class="label">어떤 수를 낚을까요?</div>
+      <div class="grid g2" id="rangeSeg"><button data-v="2">두 자리 수<small>95 = 90 + 5</small></button><button data-v="3">세 자리 수<small>342 = 300 + 40 + 2</small></button></div>
+      <div class="label">게임 방식</div>
+      <div class="grid g2" id="modeSeg"><button data-v="time">⏱ 시간 안에 많이<small>바구니를 몇 개 채울까요?</small></button><button data-v="count"><span id="modeCountTxt">🎯 정해진 문제 수</span><small id="modeCountSm">다 낚을 때까지</small></button></div>
+      <div id="timeWrap"><div class="label">시간</div>
+        <div class="grid seg4" id="timeSeg"><button data-v="30">30초</button><button data-v="60">60초</button><button data-v="90">90초</button><button data-v="120">2분</button></div></div>
+      <div id="numWrap"><div class="label"><span id="numLab">문제 수</span> <small>1~30</small></div>
+        <div class="numrow">
+          <button class="nb" data-d="-5">−5</button><button class="nb" data-d="-1">−</button>
+          <label class="numbox"><input id="numIn" type="number" inputmode="numeric" min="1" max="30" enterkeyhint="done"><span id="numUnit">문제</span></label>
+          <button class="nb" data-d="1">+</button><button class="nb" data-d="5">+5</button>
+        </div></div>
+      <div class="label">물고기 빠르기</div>
+      <div class="grid g3" id="speedSeg"><button data-v=".6">🐢 느리게</button><button data-v="1">🐟 보통</button><button data-v="1.5">🐬 빠르게</button></div>
+    </section>
+    <section class="card">
+      <div class="label">캐릭터 고르기 <small>부두에서 낚싯대를 잡아요</small></div>
+      <div id="charRows"></div>
+    </section>
+    <div class="startrow"><button class="go" id="startBtn">🎣 낚시 시작!</button></div>
+    <p class="copy">© 2026 TyranoMath 백태진 All rights reserved.</p>
+  </div>
+</div>
+
+<div id="game" class="hide">
+  <div class="gbar"><div class="ttl"><img class="dino" alt=""><span>자릿값 낚시</span></div>
+    <div class="mid"><div class="rnd"><b id="rndT">⏱ 60초</b><small id="rndS">🪣 0바구니</small></div></div>
+    <div class="tbs"><button id="homeBtn" class="tb home" aria-label="처음으로">🏠<small>처음으로</small></button>
+      <button id="soundBtn" class="tb" aria-label="소리">🔊</button><button class="fsBtn tb" aria-label="전체 화면">⛶<small>전체</small></button></div></div>
+  <div class="main">
+    <div id="boards"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<div class="overlay hide" id="homeOv"><div class="modal">
+  <h2>처음으로 갈까요?</h2><p class="help">지금 하던 낚시는 끝나고 설정 화면으로 돌아가요.</p>
+  <div class="actions"><button id="homeNo">계속하기</button><button class="primary" id="homeYes">🏠 처음으로</button></div>
+</div></div>
+<div class="overlay hide" id="resultOv"><div class="modal wide">
+  <div class="resTop"><div class="trophy">🏆</div><div>
+    <div class="resTag" id="resTag">⏰ 시간 끝!</div>
+    <h2 id="resTitle">60초 동안 6바구니를 채웠어요!</h2>
+    <p class="rec" id="resRec"></p></div></div>
+  <div id="catches"></div>
+  <p class="nowrong" id="resWrong"></p>
+  <div class="actions"><button id="setBtn">⚙️ 설정 바꾸기</button><button class="go" id="againBtn">🔁 다시 하기</button></div>
+</div></div>
+<script src="../assets/rank.js"></script>
+<script>(()=>{
+const DINO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAtCAYAAADsvzj/AAAHgUlEQVR4nMWZbWyT1xXHf49fE7/nBec9AYMhJJg2FLqyri0tRFs3BbWaQIXBtKWdkLYv1cTWqdqHZR/QkLZuk6YC0valpaUTrJuEJmhpmNaVdKRAVJyEBkjiAAnYsZPYjpPYsX33IcTExI4fxwn7S5Fyn3PuOff/+Nxzzr2PJKa8/F/h6RZY66RczSiWYi2y4OkWKZ+3tqSXZYFHR6S1BZwnkxc8O3aezNn8oyEy+8Y7TyWT6Tw1K8/5V1HlMjlbxIGves/QL4LCr9EiqtbPCPItMNIB4TvzyKgkJVZtAWsNVb6K/BXF6WxLj2KzC+dJ8eHd/3C2YAVTOWzrGl0Jeyp3UG+yzbOy7ERuTbrF0b5/cHvSs2Q2m0qfZnflC0lkljW0Bie9Q4d7jhOITmTUjYTCxKaiSEoJtV6LUq1Mq3v63gXC8YjYX/2tBJllJfJn1+myTCREXKAZVvC4wcEmm4NgOMS/ej/lltaNrtiYdt7Hni8ozysW262bJVjG0Drn+UK8c+tsRj2VW3Cgfh9PrdvSMPtsOjY98rtzRwYuxzrJs+gWnH+s4WdFOmXeyLKl3/PDVzLqRKemqVKXJUi889fTHa+89kbHmY8vDDRWb6ckWpjRxkfuiz5YpjoyODnsvSNjc0enpllrXQNAz43+jpbDR3F2Xec733y2/uJ/O9FMqzPa6PDfBJaJyO1JT5EcPYVSQWAyAIDHOwrAVDjC2s1NXSdOnUFImWukK3R3xtZiF7sQxqOTsvQ0xjy+8t3AFxjRPLN1U8OzX38iIXt+ewNetT+jDYFgIjZVuCxZSyC/2xjK8/HW+SMXf/jkHo689aax9dP2oG/SS3u0HWGRkFM/hRBLSMTTLXB3gWOXpFHIN5tv0XEzdIffXjmKNqwOxhH4VGNIxSp0QsXGUTOmaTUB1TQebRiXfn461yjUN5eOiLVOwnlS0NoiSuzbspqq0WsJ6SOEiACgRAPAtnsrsIX0SbrvVd/Gr55OjAvVJtQK1TLsEU839gtvo5IVFAvjuiGIX/Ng0ZcLxhIkxj1BAOpNq4BcKntri8BaB45diRVHN3wXV1s/3qJV2LVFXAvLK7Zu5yAAJY6KpOd9hgn6DMmhNO4J4nYOYrAaMViNbC3akCMRx66ZwxKIy/EgnxmMXB7rQVStnpHLJAGgLzERcgdwOwfnkZkLt3OQcU+QEkcFBquRBosdx/1OOKcWZeDqu+KEv4uufH1mZRmYXWjIE0R//43PhhCAwWpMEDUqdbTUNR9foS3YDzkQafN1iiP9f8+sKEEW2TiBhwnMhUml43X7buz6qkRYZ7fZ7x9TP/d1ySMBiyIBJPbAwyQ2F9Ty67rXDs0lAYvYI4N/+744VmPPqGdR63iupJZ6SwUmdT7B6BRnBr/EOXaH6XhMtj8JibK8ImqNNWwtrKfWWJMyHUpX77UL51gve1c2ysqXf+z4g7gUCy6oU2cuZ5/tG2gU8w9H0XiM4642OkfugASr9GX8qrY5rW+FJC9oFA6LTer09/G+61zGIOgLDWUkUaUrpHnNcylJAKgUSn5ge4Yaw8w9Qn/oLpfGeoRCUpDqTy4UAHtqGjkx8AlN/35DvO86J9KRah/tzmiwqbIhow7AtpLaxP+nXZ/R4e7J6TookbXe/PKYcI71JQkdFhsbzLbEuNV3iYiIpjVWmm/mYN23ZTt/u+ccl129jPoedLnNjiZe3bgz67YgKf2mIjMXZp0BaQEX20vrebFio2znbcM3+MuV1iQiAH/acZCGknVZkUkKwkOPHZAcFls6XTK1T1X6gmx8U6UroqDYjG1dNf/c/ft9zY6mRZGAFHXk0GMHpD01O1JrZ4hioyovK+cmzQN9nVL73qsbd0qLIQFp6sj9VCwATgx8kngei8dQKdPfN8WzXEJczLyZYo0ZjSLz+XwhpC2Is3Vl78rGRGrunRjk+sTttMbGwhOQRds1EgkBUG9aIJxlQlai3ruyUdq7slH60eqdrQvp9Y8PZ+V8YHwm0WwtrM9qXipk1WuVagt3bF/xRFp5b9CdlfMrIy4eN6+h3rTq0X+x2lXxvL1YY0kpc08FaPPckGWnbfgmw1PjvFK5w5ftGlIhayJ6Vf7NH69+iXQXDGeHrtIXXDjEfOFxPhq6yk9sL7PQN49ssKgzu11fJf1i3X6s2vl1YyIW4QPX5/Sl2S/9416O9ZzHEjawpWB97gf7+8jphNg25BS/6X4XsyX1rfl6czm1pjJMah2B6AQ9gXu037rBiHeU6HSMD1863FGiL9y06AXMQU7XQfF4HJ97FL8viNGiR2/IR6PVJOTX/ENc8w8xHYkyEZokGAgRmYok5OFYRF6HKQNLcq8VjUYZ9foZ9fqRJImNZXYOPvk9NApVuFBtWvniydfvRrM4TC0GORGRUnSQQgiUMQmbvnzJ4l8OcrqgW22p7Er1/KnyDUljR/GaeTpmjYFqU+mSkc2JSKm+cMPPv7YfxZxf5oXqLbxs31YzV++nW/aw2lKZGBdojfzy6eZcXM/Dknx6i4k47tBIQKVQtlt1BWlaZ7g77vUK0JQbik05O30I/wNbytLSTe9yZQAAAABJRU5ErkJggg==';
+// ---------- 티라노매스 마스코트 (연필 든 티라노, 벡터) ----------
+function tyrano(p,opt={}){const pose=opt.pose||'pencil',ring=opt.ring===true||pose==='swim',water=opt.water,jer=pose==='soccer'?(opt.jersey||'#ff5a5a'):null;
+ const G='#5cbf6a',GD='#47a85a',GL='#7fd58a',OR='#f7a03c',DK='#2d6b3a';
+ const tri=(x1,y1,x2,y2,x3,y3)=>`<path d="M${x1},${y1} L${x2},${y2} L${x3},${y3}Z" fill="${OR}" stroke="${OR}" stroke-width="2.5" stroke-linejoin="round"/>`;
+ const RB=`<path d="M30,150 A64,20 0 0 1 158,150" fill="none" stroke="#c9d6e2" stroke-width="22"/><path d="M30,150 A64,20 0 0 1 158,150" fill="none" stroke="#ff6b6b" stroke-width="22" stroke-dasharray="26 24" stroke-dashoffset="8"/>`;
+ const RF=`<path d="M30,150 A64,20 0 0 0 158,150" fill="none" stroke="#e8eef4" stroke-width="22"/><path d="M30,150 A64,20 0 0 0 158,150" fill="none" stroke="#ff6b6b" stroke-width="22" stroke-dasharray="26 24" stroke-dashoffset="8"/>
+  <path d="M42,158 A54,14 0 0 0 92,168" stroke="#fff" stroke-width="4" fill="none" opacity=".8"/>`;
+ const body=(fill,dx=0,dy=0)=>`<g transform="translate(${dx},${dy})" fill="${fill}">
+  <path d="M58,116 C42,114 28,112 12,106 C20,122 36,132 58,138Z"/>
+  <ellipse cx="92" cy="135" rx="42" ry="38"/>
+  <path d="M92,82 C88,52 108,38 140,38 L163,38 C177,38 185,48 185,61 L185,87 C185,102 173,111 158,111 L122,111 C104,111 95,100 92,82Z"/>
+  <rect x="66" y="152" width="22" height="26" rx="9"/><rect x="99" y="152" width="22" height="26" rx="9"/></g>`;
+const PEN=` <g transform="rotate(-33 144 120)"><rect x="139" y="98" width="10" height="34" rx="2" fill="#f5c242"/><rect x="144" y="98" width="5" height="34" fill="#e3a92a"/>
+  <rect x="139" y="93" width="10" height="7" rx="2.5" fill="#f4a0b0"/><rect x="139" y="99" width="10" height="2.5" fill="#c9cfd6"/>
+  <path d="M139,132 L149,132 L144,143Z" fill="#f6dfb8"/><path d="M142.3,139 L145.7,139 L144,143Z" fill="#3a3a44"/></g>
+ <ellipse cx="135" cy="121" rx="8" ry="6" fill="${G}"/><path d="M130,118 q6,-4 11,1" stroke="${GD}" stroke-width="2" fill="none"/>
+`;
+ const JER=jer?`<clipPath id="${p}jc"><ellipse cx="92" cy="135" rx="42" ry="38"/></clipPath><g clip-path="url(#${p}jc)"><rect x="40" y="96" width="110" height="56" fill="${jer}"/><rect x="82" y="96" width="7" height="56" fill="#fff" opacity=".85"/><rect x="118" y="96" width="7" height="56" fill="#fff" opacity=".85"/><rect x="40" y="150" width="110" height="30" fill="#1f2f6b"/><rect x="40" y="150" width="110" height="3" fill="#fff" opacity=".6"/><rect x="40" y="96" width="110" height="8" fill="#fff" opacity=".25"/></g><path d="M112,104 l8,10 l8,-10" stroke="#fff" stroke-width="4" fill="none"/><text x="103.5" y="140" font-size="22" stroke="#1f2f6b" stroke-width="3" paint-order="stroke" text-anchor="middle" fill="#fff" font-weight="900" style="font-family:Jua,sans-serif">10</text>`:'';
+ const GOG=pose==='swim'?`<path d="M93,54 C120,46 160,44 184,50" stroke="#2b6fd6" stroke-width="6" fill="none"/><circle cx="121" cy="48" r="10" fill="#7fe0ff" stroke="#2b6fd6" stroke-width="3.5"/><circle cx="147" cy="47" r="10" fill="#7fe0ff" stroke="#2b6fd6" stroke-width="3.5"/><path d="M131,48 h6" stroke="#2b6fd6" stroke-width="3.5"/><path d="M116,45 a5,5 0 0 1 6,-3 M142,44 a5,5 0 0 1 6,-3" stroke="#fff" stroke-width="2" fill="none"/>`:'';
+ return `<g stroke-linecap="round" stroke-linejoin="round">
+ ${ring?RB:''}
+ ${body('#d8efcf',3,4)}
+ ${tri(48,112,51,100,62,108)}${tri(60,96,65,84,76,93)}${tri(76,86,82,74,92,84)}
+ ${tri(100,42,106,29,114,40)}${tri(120,39,127,26,134,38)}
+ ${body(G)}
+ <rect x="66" y="160" width="22" height="18" rx="8" fill="${GD}"/><rect x="99" y="160" width="22" height="18" rx="8" fill="${GD}"/>
+ <ellipse cx="101" cy="135" rx="23" ry="28" fill="#eaf6c6"/>
+ <path d="M86,124 h28 M84,136 h32 M87,148 h26" stroke="#cfe5a8" stroke-width="2.6"/>
+ ${JER}
+ <circle cx="137" cy="65" r="13.5" fill="#fff" stroke="#3f9a52" stroke-width="2.2"/><circle cx="140" cy="67" r="7.5" fill="#2a3060"/><circle cx="143" cy="63.5" r="2.6" fill="#fff"/>
+ ${GOG}
+ <circle cx="172" cy="61" r="2.2" fill="${DK}"/>
+ <ellipse cx="157" cy="83" rx="8.5" ry="4.8" fill="#e8a3a0" opacity=".9"/>
+ <path d="M128,92 Q152,99 175,88" stroke="${DK}" stroke-width="3" fill="none"/>
+ <path d="M140,95 l2.5,5 l3,-4.6Z M158,94.2 l2.6,4.8 l2.8,-5Z" fill="#fff"/>
+ ${pose==='pencil'?PEN:`<path d="M124,124 C138,130 156,128 166,113" stroke="${GD}" stroke-width="15" fill="none"/><path d="M124,124 C138,130 156,128 166,113" stroke="${jer||G}" stroke-width="11" fill="none"/>
+  <circle cx="168" cy="110" r="8" fill="${G}" stroke="${GD}" stroke-width="2"/>${pose==='swim'?'<path d="M178,100 q5,-4 9,0 M180,112 q5,-2 8,2" stroke="#fff" stroke-width="2.5" fill="none"/>':'<path d="M176,98 l6,-6 M180,108 l8,-2 M170,96 l2,-8" stroke="#ffd23f" stroke-width="3"/>'}`}
+ ${water?`<ellipse cx="94" cy="156" rx="88" ry="15" fill="none" stroke="#fff" stroke-width="4" opacity=".75"/>`:''}
+ ${ring?RF:''}
+ </g>`;}
+const DINO_SVG='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 20 190 166">${tyrano('L')}</svg>`);
+// ================= 티라노매스 친구들 v3 (참고 그림 느낌: 넓은 볼털 머리 · 크림색 얼굴 마스크 · 통통한 몸) =================
+const CHARS={
+ tyrano:{no:7,gk:1,name:'티라노',body:'#5fbf6a',mask:'#eaf6c6'},
+ turtle:{no:3,gk:13,name:'거북이',body:'#76c79a',mask:'#f4f0c4',shell:'#b07a42'},
+ rabbit:{no:11,gk:21,name:'토끼',body:'#cfc6c0',mask:'#ffffff',inner:'#ffb3c6'},
+ baekgu:{no:9,gk:23,name:'백구',body:'#e6c896',mask:'#ffffff',inner:'#f6b2b8'},
+ sapsal:{no:5,gk:31,name:'삽살개',body:'#a87b52',mask:'#efdcb8',fur:'#c9a272'},
+ fennec:{no:17,gk:99,name:'사막여우',body:'#eab066',mask:'#fff4e2',inner:'#ffd9b8'}};
+const CHAR_KEYS=Object.keys(CHARS);
+function _mix(c,t,a){const h=x=>parseInt(x,16);const r=h(c.slice(1,3)),g=h(c.slice(3,5)),b=h(c.slice(5,7)),R=h(t.slice(1,3)),G=h(t.slice(3,5)),B=h(t.slice(5,7));
+ const f=(x,y)=>Math.round(x+(y-x)*a).toString(16).padStart(2,'0');return '#'+f(r,R)+f(g,G)+f(b,B);}
+function chara(kind,p,opt={}){const C=CHARS[kind]||CHARS.tyrano,O='#26262e',SW=4.2;
+ const pose=opt.pose||'stand',jer=opt.jersey||null,back=!!opt.back;
+ const KIT=Object.assign({stripe:'#fff',num:String(C.no),shorts:'#1f2f6b',glove:null,sock:null},opt.kit||{});
+ const col=C.body,lt=_mix(col,'#ffffff',.4),dk=_mix(col,'#000000',.25),M=C.mask,Md=_mix(M,'#8a7a60',.18);
+ let LID=0;const f=v=>v.toFixed(1);
+ // ---------- 팔다리: 통통한 원통 + 크림색 손발(손가락 선) ----------
+ function limb(P,w0,w1,o2={}){const [x0,y0,a1,b1,a2,b2,x3,y3]=P;const N=14,L=[],R=[];const id=p+'l'+(LID++);
+  const pt=t=>{const u=1-t;return [u*u*u*x0+3*u*u*t*a1+3*u*t*t*a2+t*t*t*x3,u*u*u*y0+3*u*u*t*b1+3*u*t*t*b2+t*t*t*y3];};
+  for(let i=0;i<=N;i++){const t=i/N,[x,y]=pt(t),[xa,ya]=pt(Math.max(0,t-.02)),[xb,yb]=pt(Math.min(1,t+.02));let dx=xb-xa,dy=yb-ya;const l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;
+   const w=(w0+(w1-w0)*Math.pow(t,.8))/2;L.push([x-dy*w,y+dx*w]);R.push([x+dy*w,y-dx*w]);}
+  const r=w1/2,r0=w0/2;const [ex,ey]=pt(1),[px,py]=pt(.92);let dx=ex-px,dy=ey-py;const l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;
+  const D=`M${f(R[0][0])},${f(R[0][1])} A${r0},${r0} 0 0 0 ${f(L[0][0])},${f(L[0][1])} `+L.slice(1).map(q=>`L${f(q[0])},${f(q[1])}`).join(' ')+` A${r},${r} 0 0 0 ${f(R[N][0])},${f(R[N][1])} `+R.slice(0,N).reverse().map(q=>`L${f(q[0])},${f(q[1])}`).join(' ')+'Z';
+  const tx=ex+dx*r,ty=ey+dy*r,pl=o2.paw||r*1.05,cx=tx-dx*pl,cy=ty-dy*pl;
+  const end=o2.shoe?'#23262e':(o2.glove||M);
+  const lines=o2.shoe?`<path d="M${f(tx-dy*r*.6)},${f(ty+dx*r*.6)} l${f(dx*3)},${f(dy*3)} M${f(tx)},${f(ty)} l${f(dx*3)},${f(dy*3)} M${f(tx+dy*r*.6)},${f(ty-dx*r*.6)} l${f(dx*3)},${f(dy*3)}" stroke="#c9d0d8" stroke-width="2.4" stroke-linecap="round"/>`
+   :[-.3,.3].map(k=>`<path d="M${f(tx-dy*r*2*k)},${f(ty+dx*r*2*k)} l${f(-dx*7)},${f(-dy*7)}" stroke="${O}" stroke-width="2.4" stroke-linecap="round"/>`).join('');
+  return `<clipPath id="${id}"><path d="${D}"/></clipPath><path d="${D}" fill="url(#${p}b)"/><g clip-path="url(#${id})">
+   ${o2.sleeve?`<circle cx="${x0}" cy="${y0}" r="${o2.sleeve}" fill="${jer}"/><circle cx="${x0}" cy="${y0}" r="${o2.sleeve}" fill="none" stroke="${KIT.stripe}" stroke-width="3.5"/>`:''}
+   ${o2.sock?`<circle cx="${cx}" cy="${cy}" r="${pl+11}" fill="${KIT.sock||jer}"/><circle cx="${cx}" cy="${cy}" r="${pl+6}" fill="none" stroke="#fff" stroke-width="3"/>`:''}
+   <ellipse cx="${cx}" cy="${cy}" rx="${pl*1.15}" ry="${pl}" transform="rotate(${f(Math.atan2(dy,dx)*180/Math.PI+90)} ${f(cx)} ${f(cy)})" fill="${end}"/>
+   <path d="M${f(L[2][0])},${f(L[2][1])} L${f(L[N-4][0])},${f(L[N-4][1])}" stroke="#fff" stroke-width="3" opacity=".22" stroke-linecap="round"/></g>
+   ${lines}<path d="${D}" fill="none" stroke="${O}" stroke-width="${SW}" stroke-linejoin="round"/>`;}
+ const mir=P=>P.map((v,i)=>i%2?v:200-v);
+ const AP={stand:[70,140,52,142,40,160,42,184],ready:[70,140,54,146,46,164,46,184],swim:[70,138,40,136,12,122,2,94],fists:[70,138,40,136,10,118,-2,74],
+  plane:[70,140,46,134,24,128,4,124],heart:[70,138,-10,124,-8,4,84,-2],keeper:[70,138,40,134,14,124,-6,104]};
+ let aL,aR;
+ if(pose==='dance'){aL=[70,142,52,152,38,166,24,180];aR=[130,138,164,132,190,104,198,66];}
+ else if(pose==='kick'){aL=[70,138,40,136,16,126,-4,114];aR=[130,140,148,148,156,162,160,180];}
+ else{aL=AP[pose==='kneel'?'fists':pose]||AP.stand;aR=mir(aL);}
+ const arms=[aL,aR].map(P=>limb(P,30,24,{sleeve:jer?30:0,paw:KIT.glove?15:12,glove:KIT.glove})).join('');
+ const lg=P=>limb(P,30,30,{paw:12,sock:!!jer,shoe:!!jer});
+ let legs;
+ if(pose==='kneel')legs=lg([82,184,81,192,80,198,80,206])+lg(mir([82,184,81,192,80,198,80,206]));
+ else if(pose==='plane')legs=lg([82,184,74,194,62,198,46,194])+lg([118,184,122,196,126,204,128,214]);
+ else if(pose==='fists'||pose==='dance')legs=lg([82,184,76,194,66,200,52,200])+lg(mir([82,184,82,194,82,202,82,214]));
+ else if(pose==='keeper')legs=lg([82,184,72,194,64,204,58,214])+lg(mir([82,184,72,194,64,204,58,214]));
+ else if(pose==='kick')legs=lg([82,184,82,194,82,202,82,214])+lg([118,184,128,176,136,166,140,152]);
+ else legs=lg([82,184,82,194,82,202,82,214])+lg(mir([82,184,82,194,82,202,82,214]));
+ // ---------- 머리 ----------
+ const tuft=kind==='baekgu'||kind==='fennec'||kind==='rabbit';
+ const shag=(()=>{let d='';const n=22;for(let i=0;i<=n;i++){const a=-Math.PI/2+i*2*Math.PI/n,m=a+Math.PI/n;
+   const P1=[100+74*Math.cos(a),82+58*Math.sin(a)],P2=[100+84*Math.cos(m),82+66*Math.sin(m)];
+   if(!i){d='M'+f(P1[0])+','+f(P1[1]);}else{d+=` L${f(P1[0])},${f(P1[1])}`;}
+   if(i<n)d+=` Q${f(100+80*Math.cos(a+Math.PI/n*.4))},${f(82+62*Math.sin(a+Math.PI/n*.4))} ${f(P2[0])},${f(P2[1])}`;}return d+'Z';})();
+ const HEAD={smooth:'M100,22 C142,22 172,46 172,82 C172,116 140,136 100,136 C60,136 28,116 28,82 C28,46 58,22 100,22Z',
+  tuft:'M100,22 C142,22 170,44 172,76 C174,84 176,90 184,96 C176,99 174,103 178,111 C170,111 166,114 165,119 C150,131 128,138 100,138 C72,138 50,131 35,119 C34,114 30,111 22,111 C26,103 24,99 16,96 C24,90 26,84 28,76 C30,44 58,22 100,22Z',
+  turtle:'M100,28 C138,28 164,50 164,84 C164,116 136,134 100,134 C64,134 36,116 36,84 C36,50 62,28 100,28Z'};
+ const headD=kind==='sapsal'?shag:kind==='turtle'?HEAD.turtle:tuft?HEAD.tuft:HEAD.smooth;
+ const maskD=kind==='fennec'?'M10,98 C24,74 56,66 80,76 C90,80 96,72 100,62 C104,72 110,80 120,76 C144,66 176,74 190,98 C178,130 140,144 100,144 C60,144 22,130 10,98Z'
+  :kind==='tyrano'||kind==='turtle'?'M24,106 C40,92 66,92 100,94 C134,92 160,92 176,106 C168,130 136,142 100,142 C64,142 32,130 24,106Z'
+  :'M10,92 C22,66 52,58 76,66 C88,70 94,62 100,50 C106,62 112,70 124,66 C148,58 178,66 190,92 C182,126 142,144 100,144 C58,144 18,126 10,92Z';
+ const EAR={
+  baekgu:`<path d="M38,62 C32,34 40,10 56,0 C70,8 86,26 92,38Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M50,50 C48,32 52,18 58,12 C66,20 74,30 80,38Z" fill="${C.inner}"/>
+   <path d="M162,62 C168,34 160,10 144,0 C130,8 114,26 108,38Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M150,50 C152,32 148,18 142,12 C134,20 126,30 120,38Z" fill="${C.inner}"/>`,
+  fennec:`<path d="M42,70 C22,40 12,4 18,-26 C46,-14 78,10 94,36Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M48,56 C34,34 28,10 30,-10 C50,0 70,18 82,36Z" fill="${C.inner}"/>
+   <path d="M158,70 C178,40 188,4 182,-26 C154,-14 122,10 106,36Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M152,56 C166,34 172,10 170,-10 C150,0 130,18 118,36Z" fill="${C.inner}"/>`,
+  rabbit:`<path d="M66,40 C54,10 52,-24 66,-34 C82,-30 88,4 84,36Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M70,30 C62,8 62,-16 68,-24 C76,-18 78,6 78,30Z" fill="${C.inner}"/>
+   <path d="M134,40 C146,10 148,-24 134,-34 C118,-30 112,4 116,36Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M130,30 C138,8 138,-16 132,-24 C124,-18 122,6 122,30Z" fill="${C.inner}"/>`,
+  tyrano:[[70,30,-30,1],[100,20,0,1.2],[130,30,30,1]].map(([x,y,a,s])=>`<path d="M-12,8 C-8,-4 -3,-14 0,-20 C3,-14 8,-4 12,8Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="3.6" stroke-linejoin="round" transform="translate(${x},${y}) rotate(${a}) scale(${s})"/>`).join('')};
+ const FLOP=kind==='sapsal'?`<path d="M34,54 C10,62 4,108 18,134 C28,148 46,140 48,122 C50,100 50,74 34,54Z" fill="${dk}" stroke="${O}" stroke-width="${SW}"/>
+  <path d="M166,54 C190,62 196,108 182,134 C172,148 154,140 152,122 C150,100 150,74 166,54Z" fill="${dk}" stroke="${O}" stroke-width="${SW}"/>`:'';
+ const TAIL={
+  tyrano:`<path d="M134,170 C158,176 180,168 194,148 C198,144 202,148 200,154 C192,184 164,198 132,194Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/>
+   ${[[168,170,40],[186,156,55]].map(([x,y,a])=>`<path d="M-7,5 L0,-10 L7,5Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="3" stroke-linejoin="round" transform="translate(${x},${y}) rotate(${a})"/>`).join('')}`,
+  baekgu:`<path d="M138,176 C164,180 178,160 170,142 C164,130 148,134 152,146 C156,156 148,164 138,164Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/>`,
+  fennec:`<path d="M136,188 C172,194 198,172 196,144 C194,126 176,124 174,138 C172,160 158,170 136,170Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M176,134 C178,124 194,124 196,140 C196,148 194,154 190,158 C186,150 182,142 176,134Z" fill="#3a2a22"/>`,
+  rabbit:`<circle cx="150" cy="188" r="14" fill="#fff" stroke="${O}" stroke-width="${SW}"/>`,
+  sapsal:`<path d="M138,184 C160,188 172,174 170,158 C164,166 154,170 140,170Z" fill="${C.fur}" stroke="${O}" stroke-width="${SW}"/>`,
+  turtle:`<path d="M146,188 C160,192 168,186 166,178" stroke="${O}" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M146,188 C160,192 168,186 166,178" stroke="${col}" stroke-width="6" fill="none" stroke-linecap="round"/>`};
+ const bodyD='M60,196 C42,170 46,132 72,120 L128,120 C154,132 158,170 140,196 C124,206 76,206 60,196Z';
+ const shellBack=kind==='turtle'?`<path d="M44,194 C28,152 40,112 100,108 C160,112 172,152 156,194 C130,208 70,208 44,194Z" fill="url(#${p}sh)" stroke="${O}" stroke-width="${SW}"/>
+  <path d="M50,150 l14,-8 M150,150 l-14,-8 M48,174 l14,-2 M152,174 l-14,-2" stroke="#6a4420" stroke-width="3" stroke-linecap="round"/>`:'';
+ const belly=kind==='turtle'?`<path d="M72,190 C66,160 74,132 100,130 C126,132 134,160 128,190 C116,198 84,198 72,190Z" fill="${M}" stroke="${O}" stroke-width="2.6"/><path d="M74,152 h52 M72,172 h56 M100,132 v62" stroke="#c9b25a" stroke-width="2.4"/>`
+  :`<path d="M70,188 C62,160 72,134 100,132 C128,134 138,160 130,188 C118,198 82,198 70,188Z" fill="url(#${p}m)"/>${kind==='tyrano'?`<path d="M78,152 q22,6 44,0 M74,170 q26,6 52,0" stroke="${Md}" stroke-width="2.4" fill="none"/>`:''}`;
+ const jersey=jer?`<g clip-path="url(#${p}bc)"><rect x="30" y="110" width="140" height="68" fill="${jer}"/>${back?'':`<rect x="78" y="110" width="9" height="68" fill="${KIT.stripe}" opacity=".92"/><rect x="113" y="110" width="9" height="68" fill="${KIT.stripe}" opacity=".92"/>`}
+   <rect x="30" y="176" width="140" height="36" fill="${KIT.shorts}"/><rect x="30" y="176" width="140" height="3.5" fill="#fff" opacity=".7"/></g>
+   ${back?'':`<path d="M84,122 L100,136 L116,122" stroke="${KIT.stripe}" stroke-width="6" fill="none" stroke-linejoin="round"/>`}
+   <text x="100" y="${back?170:166}" font-size="${back?40:26}" text-anchor="middle" fill="#fff" stroke="#1f2f6b" stroke-width="${back?5:4}" paint-order="stroke" font-weight="900" style="font-family:Jua,sans-serif">${KIT.num}</text>`:'';
+ // ---------- 얼굴 ----------
+ const eye=(x,y,s=1)=>`<ellipse cx="${x}" cy="${y}" rx="${7.6*s}" ry="${9.6*s}" fill="#1e1e26"/><ellipse cx="${x}" cy="${y+2*s}" rx="${5.5*s}" ry="${6.5*s}" fill="#4a3426" opacity=".55"/><circle cx="${x+2.6*s}" cy="${y-3.4*s}" r="${3.1*s}" fill="#fff"/><circle cx="${x-2.4*s}" cy="${y+4*s}" r="${1.3*s}" fill="#fff" opacity=".9"/>`;
+ const eyes=kind==='sapsal'?eye(74,94,.9)+eye(126,94,.9):eye(71,85,1.18)+eye(129,85,1.18);
+ const flatNose=kind==='tyrano'||kind==='turtle';
+ const nose=kind==='rabbit'?`<path d="M94,100 Q100,97 106,100 Q103,106 100,106 Q97,106 94,100Z" fill="#ff8aa6" stroke="${O}" stroke-width="1.8"/>`
+  :flatNose?`<ellipse cx="92" cy="102" rx="2.6" ry="1.8" fill="${O}"/><ellipse cx="108" cy="102" rx="2.6" ry="1.8" fill="${O}"/>`
+  :`<path d="M91,99 Q100,94 109,99 Q106,107 100,108 Q94,107 91,99Z" fill="${O}"/><ellipse cx="97" cy="98.5" rx="3" ry="1.4" fill="#fff" opacity=".65"/>`;
+ const mouth=`<path d="M100,${flatNose?105:107} v4" stroke="${O}" stroke-width="2.2" stroke-linecap="round"/>
+  <ellipse cx="100" cy="120" rx="7.5" ry="9" fill="#7a2230" stroke="${O}" stroke-width="2.4"/><ellipse cx="100" cy="125" rx="5" ry="3.6" fill="#f08a9a"/>
+  ${kind==='rabbit'?`<rect x="95.5" y="110" width="9" height="6" rx="1.5" fill="#fff" stroke="${O}" stroke-width="1.6"/><path d="M100,110 v6" stroke="${O}" stroke-width="1.2"/>`:''}
+  ${kind==='tyrano'?`<path d="M94,112 l2,4 l2,-3 M102,112 l2,3 l2,-4" fill="#fff" stroke="#fff" stroke-width="1"/>`:''}`;
+ const blush=`<ellipse cx="54" cy="106" rx="9" ry="5" fill="#ff8aa6" opacity=".35"/><ellipse cx="146" cy="106" rx="9" ry="5" fill="#ff8aa6" opacity=".35"/>`;
+ let extraFace='';
+ if(kind==='rabbit')extraFace=`<path d="M70,108 l-24,-4 M70,113 l-24,3 M130,108 l24,-4 M130,113 l24,3" stroke="#a9a09a" stroke-width="1.8" stroke-linecap="round"/>`;
+ if(kind==='fennec')extraFace=`<path d="M66,110 l-22,0 M68,116 l-20,6 M134,110 l22,0 M132,116 l20,6" stroke="#c9a070" stroke-width="1.6" stroke-linecap="round"/>`;
+ if(kind==='baekgu')extraFace=`<ellipse cx="74" cy="66" rx="6" ry="3.4" fill="#e3c48e"/><ellipse cx="126" cy="66" rx="6" ry="3.4" fill="#e3c48e"/>`;
+ if(kind==='tyrano')extraFace=`<path d="M58,68 q14,-8 28,0 M114,68 q14,-8 28,0" stroke="${dk}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+ if(kind==='turtle')extraFace=`<path d="M84,42 l16,-8 l16,8 l-4,14 h-24Z M60,58 l14,-8 l6,12 l-12,8Z M140,58 l-14,-8 l-6,12 l12,8Z" fill="${lt}" stroke="${dk}" stroke-width="2.4" stroke-linejoin="round" opacity=".85"/>`;
+ const bangs=kind==='sapsal'?`<path d="M26,84 C28,46 60,24 100,24 C140,24 172,46 174,84 C166,74 160,76 156,86 C150,74 142,74 138,88 C132,76 124,76 120,90 C114,78 106,76 100,90 C94,76 86,78 80,90 C76,76 68,74 62,88 C58,74 50,74 44,86 C40,76 34,74 26,84Z" fill="url(#${p}fr)" stroke="${O}" stroke-width="3.4" stroke-linejoin="round"/>
+  <path d="M54,50 q6,14 2,26 M78,38 q6,16 2,30 M100,34 q4,16 0,32 M122,38 q-6,16 -2,30 M146,50 q-6,14 -2,26" stroke="${dk}" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M64,124 q4,10 0,18 M136,124 q-4,10 0,18" stroke="${Md}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`:'';
+ const gog=opt.goggles?`<path d="M28,70 C44,50 74,42 100,42 C126,42 156,50 172,70" stroke="${O}" stroke-width="${12+SW}" fill="none"/><path d="M28,70 C44,50 74,42 100,42 C126,42 156,50 172,70" stroke="#3a3f52" stroke-width="12" fill="none"/>
+  ${[[76,46],[124,46]].map(([x,y])=>`<rect x="${x-21}" y="${y-13}" width="42" height="26" rx="13" fill="url(#${p}gl)" stroke="${O}" stroke-width="${SW}"/><rect x="${x-15}" y="${y-8}" width="30" height="16" rx="8" fill="none" stroke="#e6fbff" stroke-width="2" opacity=".6"/><path d="M${x-12},${y-4} q8,-6 18,-4" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round"/>`).join('')}
+  <path d="M97,46 h6" stroke="${O}" stroke-width="6"/>`:'';
+ const ringP=fr=>fr?'M14,170 A86,24 0 0 0 186,170':'M14,170 A86,24 0 0 1 186,170';
+ const ring=fr=>`<path d="${ringP(fr)}" fill="none" stroke="${O}" stroke-width="${28+SW*2}"/><path d="${ringP(fr)}" fill="none" stroke="url(#${p}rw)" stroke-width="28"/><path d="${ringP(fr)}" fill="none" stroke="#ff5a64" stroke-width="28" stroke-dasharray="36 30" stroke-dashoffset="${fr?14:-8}"/>${fr?`<path d="M30,178 A72,18 0 0 0 96,192" stroke="#fff" stroke-width="5" fill="none" opacity=".8" stroke-linecap="round"/>`:''}`;
+ const heart=pose==='heart'?`<path d="M100,-26 C92,-36 76,-30 80,-19 C84,-11 100,-2 100,-2 C100,-2 116,-11 120,-19 C124,-30 108,-36 100,-26Z" fill="#ff5a8a" stroke="${O}" stroke-width="3"/>`:'';
+ const defs=`<defs>
+  <radialGradient id="${p}b" cx="${back?.62:.38}" cy=".28" r=".95"><stop offset="0" stop-color="${lt}"/><stop offset=".5" stop-color="${col}"/><stop offset="1" stop-color="${dk}"/></radialGradient>
+  <radialGradient id="${p}m" cx=".5" cy=".3" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="${M}"/><stop offset="1" stop-color="${Md}"/></radialGradient>
+  <linearGradient id="${p}sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc35a"/><stop offset="1" stop-color="#f07a22"/></linearGradient>
+  <radialGradient id="${p}sh" cx=".4" cy=".3" r=".9"><stop offset="0" stop-color="#d9a066"/><stop offset=".6" stop-color="${C.shell||'#b07a42'}"/><stop offset="1" stop-color="#7a4f26"/></radialGradient>
+  <linearGradient id="${p}fr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${C.fur||col}"/><stop offset="1" stop-color="${col}"/></linearGradient>
+  <linearGradient id="${p}gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d6f6ff"/><stop offset=".5" stop-color="#6cc6f0"/><stop offset="1" stop-color="#2a6fb0"/></linearGradient>
+  <linearGradient id="${p}rw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfdbe6"/></linearGradient>
+  <clipPath id="${p}hc"><path d="${headD}"/></clipPath><clipPath id="${p}bc"><path d="${bodyD}"/></clipPath></defs>`;
+ const shadowE=opt.shadow===false?'':`<ellipse cx="100" cy="216" rx="66" ry="7" fill="#000" opacity=".22"/>`;
+ const bodyBlock=`<path d="${bodyD}" fill="url(#${p}b)"/>${back?'':belly}<g clip-path="url(#${p}bc)"><ellipse cx="100" cy="122" rx="60" ry="10" fill="#000" opacity=".16"/></g>${jersey}<path d="${bodyD}" fill="none" stroke="${O}" stroke-width="${SW}"/>`;
+ if(back){
+  const numShell=kind==='turtle'&&jer?`<circle cx="100" cy="158" r="22" fill="${jer}" stroke="#fff" stroke-width="3"/><text x="100" y="170" font-size="32" text-anchor="middle" fill="#fff" stroke="#1f2f6b" stroke-width="4.5" paint-order="stroke" font-weight="900" style="font-family:Jua,sans-serif">${KIT.num}</text>`:'';
+  const tailB={tyrano:`<path d="M84,184 C82,204 92,222 112,228 C120,230 124,224 118,220 C106,214 104,200 116,186Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/>`,
+   rabbit:`<circle cx="100" cy="194" r="14" fill="#fff" stroke="${O}" stroke-width="${SW}"/>`,
+   baekgu:`<path d="M96,198 C84,188 92,172 106,176 C116,180 114,194 104,192 C98,191 99,184 104,184" fill="none" stroke="${O}" stroke-width="16" stroke-linecap="round"/><path d="M96,198 C84,188 92,172 106,176 C116,180 114,194 104,192 C98,191 99,184 104,184" fill="none" stroke="${lt}" stroke-width="8" stroke-linecap="round"/>`,
+   fennec:`<path d="M100,182 C80,198 84,228 106,234 C126,238 134,218 122,198 C116,188 108,182 100,182Z" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><path d="M96,224 C98,234 116,238 124,226 C120,236 104,238 96,224Z" fill="#3a2a22"/>`,
+   sapsal:`<path d="M100,178 C86,186 86,208 100,214 C114,208 114,186 100,178Z" fill="${C.fur}" stroke="${O}" stroke-width="${SW}"/>`,
+   turtle:`<path d="M96,198 L100,214 L104,198Z" fill="${col}" stroke="${O}" stroke-width="3"/>`}[kind]||'';
+  const shellB=kind==='turtle'?`<path d="M50,194 C38,154 52,116 100,112 C148,116 162,154 150,194 C128,208 72,208 50,194Z" fill="url(#${p}sh)" stroke="${O}" stroke-width="${SW}"/>
+   <path d="M100,126 L118,138 L114,160 L86,160 L82,138Z M100,126 V114 M118,138 L142,130 M82,138 L58,130 M114,160 L134,180 M86,160 L66,180" fill="none" stroke="#6a4420" stroke-width="3" stroke-linejoin="round"/>`:'';
+  const ridge=kind==='tyrano'?[[100,20,1.2],[100,44,.8],[100,64,.6]].map(([x,y,s])=>`<path d="M-12,8 C-8,-4 -3,-14 0,-20 C3,-14 8,-4 12,8Z" fill="url(#${p}sp)" stroke="${O}" stroke-width="3.4" stroke-linejoin="round" transform="translate(${x},${y}) scale(${s})"/>`).join(''):'';
+  const hairB=kind==='sapsal'?`<path d="M52,60 q8,12 4,24 M74,42 q8,14 4,28 M100,36 q6,16 0,32 M126,42 q-8,14 -4,28 M148,60 q-8,12 -4,24" stroke="${dk}" stroke-width="3" fill="none" stroke-linecap="round"/>`:'';
+  const earsB=kind==='tyrano'?'':(EAR[kind]||'').split(`fill="${C.inner}"`).join(`fill="${dk}" opacity=".3"`);
+  return `${defs}<g stroke-linejoin="round">${shadowE}${earsB}${FLOP}${legs}${arms}${bodyBlock}${shellB}${numShell}${tailB}
+   <path d="${headD}" fill="url(#${p}b)" stroke="${O}" stroke-width="${SW}"/><ellipse cx="124" cy="44" rx="22" ry="9" fill="#fff" opacity=".28" transform="rotate(14 124 44)"/>${hairB}${ridge}</g>`;}
+ return `${defs}<g stroke-linejoin="round">${shadowE}
+  ${opt.ring?ring(false):''}
+  ${TAIL[kind]||''}${shellBack}${EAR[kind]||''}${FLOP}
+  ${opt.ring?'':legs}
+  ${arms}
+  ${bodyBlock}
+  <path d="${headD}" fill="url(#${p}b)"/>
+  <g clip-path="url(#${p}hc)"><path d="${maskD}" fill="url(#${p}m)"/></g>
+  <path d="${headD}" fill="none" stroke="${O}" stroke-width="${SW}"/>
+  <ellipse cx="76" cy="40" rx="22" ry="8" fill="#fff" opacity=".3" transform="rotate(-14 76 40)"/>
+  ${extraFace}${blush}${eyes}${bangs}${nose}${mouth}${gog}
+  ${heart}
+  ${opt.water?`<path d="M2,178 C30,170 54,184 80,176 C110,168 140,184 198,174 L198,232 L2,232Z" fill="#3aa8e0" opacity=".42"/>`:''}
+  ${opt.ring?ring(true):''}
+  ${opt.water?`<path d="M2,182 C30,174 54,188 80,180 M120,180 C146,188 170,174 198,182" stroke="#fff" stroke-width="3.5" fill="none" opacity=".8" stroke-linecap="round"/>`:''}
+ </g>`;}
+const charIcon=k=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -36 228 262">${chara(k,'i'+k,{shadow:false})}</svg>`);
+// ================= 자릿값 낚시 (1~4인) =================
+const $=id=>document.getElementById(id);
+const KEY='tyranomath-place-fishing-v2';
+const rnd=(a,b)=>a+Math.random()*(b-a), ri=(a,b)=>Math.floor(rnd(a,b+1)), pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+document.querySelectorAll('img.dino').forEach(i=>i.src=DINO_SVG);
+const NS='http://www.w3.org/2000/svg';
+const PCOL=['#ef4b5c','#2f7de1','#22a85a','#f08a1c'],PNAME=['1번','2번','3번','4번'];
+
+// ---------- 설정 ----------
+let cfg={players:1,range:'2',mode:'time',time:'60',num:10,speed:'1',chars:['tyrano','fennec','rabbit','baekgu'],sound:true};
+try{const o=JSON.parse(localStorage.getItem(KEY)||'null');if(o&&o.range)cfg={...cfg,...o};}catch(e){}
+if(!Array.isArray(cfg.chars)||cfg.chars.length<4)cfg.chars=['tyrano','fennec','rabbit','baekgu'];
+const saveCfg=()=>{try{localStorage.setItem(KEY,JSON.stringify(cfg));}catch(e){}};
+const SEGS=[['rangeSeg','range'],['modeSeg','mode'],['timeSeg','time'],['speedSeg','speed']];
+function buildChars(){const box=$('charRows');box.innerHTML=[0,1,2,3].map(i=>`<div class="crow" data-p="${i}"><div class="label"><span class="pdot" style="background:${PCOL[i]}">${i+1}</span> ${cfg.players>1?PNAME[i]+' 선수':'낚시꾼'}</div>
+  <div class="grid g6 chars">${CHAR_KEYS.map(k=>`<button data-v="${k}"><img alt="" src="${charIcon(k)}"><small>${CHARS[k].name}</small></button>`).join('')}</div></div>`).join('');
+  box.querySelectorAll('.crow').forEach(r=>{const i=+r.dataset.p;r.querySelectorAll('button').forEach(b=>b.onclick=()=>{cfg.chars[i]=b.dataset.v;sync();});});}
+function buildLobby(){
+  document.querySelectorAll('#plSeg button').forEach(b=>b.onclick=()=>{cfg.players=+b.dataset.v;buildChars();sync();});
+  SEGS.forEach(([id,k])=>document.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{cfg[k]=b.dataset.v;sync();}));
+  const setNum=v=>{cfg.num=clamp(Math.round(v)||1,1,30);sync();};
+  document.querySelectorAll('.numrow .nb').forEach(b=>b.onclick=()=>setNum(cfg.num+ +b.dataset.d));
+  const ni=$('numIn');ni.addEventListener('change',()=>setNum(+ni.value));ni.addEventListener('blur',()=>setNum(+ni.value));ni.addEventListener('keydown',e=>{if(e.key==='Enter')ni.blur();});
+  buildChars();sync();}
+function sync(){cfg.num=clamp(+cfg.num||10,1,30);cfg.players=clamp(+cfg.players||1,1,4);
+  document.querySelectorAll('#plSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.v===cfg.players));
+  SEGS.forEach(([id,k])=>document.querySelectorAll(`#${id} button`).forEach(b=>b.classList.toggle('on',b.dataset.v===cfg[k])));
+  document.querySelectorAll('#charRows .crow').forEach(r=>{const i=+r.dataset.p;r.style.display=i<cfg.players?'':'none';
+    r.querySelector('.label').lastChild.textContent=' '+(cfg.players>1?PNAME[i]+' 선수':'낚시꾼');
+    r.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.chars[i]));});
+  $('timeWrap').style.display=cfg.mode==='time'?'':'none';$('numWrap').style.display=cfg.mode==='count'?'':'none';
+  $('numLab').textContent=cfg.players>1?'먼저 채우면 이기는 바구니 수':'문제 수';$('numUnit').textContent=cfg.players>1?'바구니':'문제';
+  $('modeCountTxt').textContent=cfg.players>1?'🏁 바구니 먼저 채우기':'🎯 정해진 문제 수';$('modeCountSm').textContent=cfg.players>1?'먼저 다 채우면 승리!':'다 낚을 때까지';
+  if(document.activeElement!==$('numIn'))$('numIn').value=cfg.num;
+  document.querySelectorAll('.numrow .nb').forEach(b=>{b.disabled=(+b.dataset.d<0&&cfg.num<=1)||(+b.dataset.d>0&&cfg.num>=30);});saveCfg();}
+
+// ---------- 소리 ----------
+let actx=null;const AC=()=>{if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();return actx;};
+function beep(f,d,type='sine',v=.12,when=0,f2){if(!cfg.sound)return;try{const a=AC();const t=a.currentTime+when,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
+  if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.02);}catch(e){}}
+function noise(d,f0,f1,v=.12,when=0){if(!cfg.sound)return;try{const a=AC();const len=Math.floor(a.sampleRate*d),buf=a.createBuffer(1,len,a.sampleRate),ch=buf.getChannelData(0);
+  for(let i=0;i<len;i++)ch[i]=Math.random()*2-1;const s=a.createBufferSource();s.buffer=buf;const fl=a.createBiquadFilter();fl.type='bandpass';fl.Q.value=1;
+  const t=a.currentTime+when;fl.frequency.setValueAtTime(f0,t);fl.frequency.linearRampToValueAtTime(f1,t+d);const g=a.createGain();g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(v,t+Math.min(.08,d/4));
+  g.gain.linearRampToValueAtTime(.001,t+d);s.connect(fl).connect(g).connect(a.destination);s.start(t);s.stop(t+d);}catch(e){}}
+const sfx={cast(){noise(.25,3000,800,.08);},plop(){beep(500,.12,'sine',.12,0,180);noise(.2,1200,400,.08);},reel(){for(let i=0;i<6;i++)beep(900+i*40,.04,'square',.03,i*.07);},
+  ok(){beep(660,.1,'triangle');beep(990,.15,'triangle',.1,.09);},no(){beep(240,.2,'sawtooth',.07);beep(170,.25,'sawtooth',.06,.1);},
+  full(){[523,659,784,1047].forEach((f,i)=>beep(f,.18,'triangle',.11,i*.09));noise(.4,1500,500,.08,.1);},done(){[523,659,784,1047,1319].forEach((f,i)=>beep(f,.22,'triangle',.11,i*.12));},tick(){beep(880,.05,'square',.05);}};
+
+// ---------- 물고기 그림 ----------
+const SPECIES=['koi','tang','gourami','trout','sunfish','clown'];
+function fishArt(sp,p){const O='#2a2f3a';const eye=(x,y,r=5.5)=>`<circle cx="${x}" cy="${y}" r="${r+1.6}" fill="#fff" stroke="${O}" stroke-width="1.6"/><circle cx="${x+1}" cy="${y}" r="${r*.62}" fill="#15151c"/><circle cx="${x+2.2}" cy="${y-1.6}" r="${r*.26}" fill="#fff"/>`;
+ const G=(id,a,b,c)=>`<linearGradient id="${p}${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset=".55" stop-color="${b}"/><stop offset="1" stop-color="${c}"/></linearGradient>`;
+ const shine=`<path d="M-30,-14 C-6,-24 24,-22 40,-12" stroke="#fff" stroke-width="4" fill="none" opacity=".45" stroke-linecap="round"/>`;
+ const A={
+  koi:{defs:G('b','#ffffff','#fbf3ea','#e8d6c4')+G('o','#ffb070','#ff6a1f','#d8430c'),
+   tail:`<path d="M-44,0 C-62,-10 -76,-26 -84,-30 C-80,-12 -80,12 -84,30 C-76,26 -62,10 -44,0Z" fill="url(#${p}o)" stroke="${O}" stroke-width="2" opacity=".95"/>`,
+   body:`<path d="M54,0 C48,-20 18,-26 -8,-22 C-30,-18 -44,-8 -50,0 C-44,8 -30,18 -8,22 C18,26 48,20 54,0Z" fill="url(#${p}b)" stroke="${O}" stroke-width="2.4"/>
+    <clipPath id="${p}c"><path d="M54,0 C48,-20 18,-26 -8,-22 C-30,-18 -44,-8 -50,0 C-44,8 -30,18 -8,22 C18,26 48,20 54,0Z"/></clipPath>
+    <g clip-path="url(#${p}c)"><path d="M18,-30 C34,-20 30,-4 14,0 C2,4 -6,-8 -2,-30Z M-20,6 C-12,0 0,10 -6,26 L-30,26 C-32,16 -28,10 -20,6Z" fill="url(#${p}o)"/></g>`,
+   fins:`<path class="fin" d="M10,18 C2,32 -8,38 -16,40 C-12,30 -6,22 -2,18Z" fill="#ff9a4a" stroke="${O}" stroke-width="1.6" opacity=".9"/><path d="M-6,-22 C-14,-32 -26,-34 -34,-32 C-28,-26 -22,-20 -18,-16Z" fill="#ff8a3a" stroke="${O}" stroke-width="1.6"/>`,eye:eye(36,-5)},
+  tang:{defs:G('b','#fff27a','#ffd21f','#f2a900'),
+   tail:`<path d="M-40,0 C-54,-16 -64,-22 -70,-22 C-66,-8 -66,8 -70,22 C-64,22 -54,16 -40,0Z" fill="#ffd21f" stroke="${O}" stroke-width="2"/>`,
+   body:`<path d="M50,2 C46,-24 18,-34 -8,-32 C-30,-28 -44,-12 -44,0 C-44,12 -30,28 -8,32 C18,34 46,26 50,2Z" fill="url(#${p}b)" stroke="${O}" stroke-width="2.4"/>
+    <clipPath id="${p}c"><path d="M50,2 C46,-24 18,-34 -8,-32 C-30,-28 -44,-12 -44,0 C-44,12 -30,28 -8,32 C18,34 46,26 50,2Z"/></clipPath>
+    <g clip-path="url(#${p}c)"><path d="M20,-40 C30,-10 30,14 20,40 L32,40 C42,14 42,-10 32,-40Z" fill="#2a2f3a" opacity=".85"/><path d="M-34,-40 L-26,40 L-20,40 L-28,-40Z" fill="#2a2f3a" opacity=".5"/></g>`,
+   fins:`<path d="M-4,-31 C-8,-46 -24,-48 -34,-42 C-30,-34 -24,-28 -20,-24Z" fill="#ffd21f" stroke="${O}" stroke-width="1.6"/><path d="M-4,31 C-8,46 -24,48 -34,42 C-30,34 -24,28 -20,24Z" fill="#ffd21f" stroke="${O}" stroke-width="1.6"/>`,eye:eye(34,-6)},
+  gourami:{defs:G('b','#ffd6f2','#f39ae0','#c86ad0')+`<linearGradient id="${p}f" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f6a8ea" stop-opacity=".5"/><stop offset="1" stop-color="#d77ae0" stop-opacity=".95"/></linearGradient>`,
+   tail:`<path d="M-40,0 C-58,-18 -76,-26 -84,-22 C-78,-6 -78,6 -84,22 C-76,26 -58,18 -40,0Z" fill="url(#${p}f)" stroke="${O}" stroke-width="1.8"/>`,
+   body:`<path d="M52,4 C46,-20 20,-30 -6,-28 C-28,-26 -42,-12 -44,0 C-42,12 -28,26 -6,28 C20,30 46,22 52,4Z" fill="url(#${p}b)" stroke="${O}" stroke-width="2.4"/>`,
+   fins:`<path d="M10,24 C0,40 -24,52 -48,50 C-36,40 -22,32 -12,26Z" fill="url(#${p}f)" stroke="${O}" stroke-width="1.6"/><path d="M8,-26 C-4,-40 -26,-44 -44,-38 C-30,-30 -18,-26 -10,-24Z" fill="url(#${p}f)" stroke="${O}" stroke-width="1.6"/>`,eye:eye(36,-4)},
+  trout:{defs:G('b','#c9d4c6','#f4f2ee','#e2dcd6')+`<linearGradient id="${p}s" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f08aa0" stop-opacity=".2"/><stop offset=".5" stop-color="#f07a96"/><stop offset="1" stop-color="#f08aa0" stop-opacity=".3"/></linearGradient>`,
+   tail:`<path d="M-50,0 C-60,-10 -68,-18 -74,-20 C-70,-6 -70,6 -74,20 C-68,18 -60,10 -50,0Z" fill="#b9c2b6" stroke="${O}" stroke-width="2"/>`,
+   body:`<path d="M58,2 C50,-14 24,-18 -4,-16 C-30,-14 -48,-6 -54,0 C-48,6 -30,14 -4,16 C24,18 50,14 58,2Z" fill="url(#${p}b)" stroke="${O}" stroke-width="2.4"/>
+    <path d="M-48,1 C-20,-4 20,-4 52,0 C20,6 -20,6 -48,1Z" fill="url(#${p}s)"/>${[[-30,-9],[-14,-11],[2,-11],[18,-9],[-22,-5],[10,-6]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.8" fill="#4a5a48"/>`).join('')}`,
+   fins:`<path d="M-2,-15 C-6,-26 -16,-28 -22,-26 C-18,-20 -14,-16 -12,-14Z" fill="#b9c2b6" stroke="${O}" stroke-width="1.6"/><path class="fin" d="M18,13 C14,22 6,26 0,26 C2,20 6,15 10,13Z" fill="#d9d2c8" stroke="${O}" stroke-width="1.4"/>`,eye:eye(40,-3,4.6)},
+  sunfish:{defs:G('b','#d8f070','#9ccc3a','#5f9a26')+`<linearGradient id="${p}y" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd23f" stop-opacity="0"/><stop offset="1" stop-color="#ff9a2a"/></linearGradient>`,
+   tail:`<path d="M-42,0 C-56,-14 -64,-20 -70,-20 C-66,-6 -66,6 -70,20 C-64,20 -56,14 -42,0Z" fill="#8cbf34" stroke="${O}" stroke-width="2"/>`,
+   body:`<path d="M52,4 C48,-22 20,-32 -6,-30 C-28,-28 -44,-14 -46,0 C-44,14 -28,28 -6,30 C20,32 48,26 52,4Z" fill="url(#${p}b)" stroke="${O}" stroke-width="2.4"/>
+    <path d="M-36,14 C-10,30 24,30 46,14 C30,30 -10,34 -36,14Z" fill="url(#${p}y)"/>${[-24,-10,4,18].map(x=>`<path d="M${x},-26 C${x+4},-8 ${x+4},8 ${x},26" stroke="#4a7a1e" stroke-width="3" fill="none" opacity=".35"/>`).join('')}
+    <ellipse cx="26" cy="-2" rx="4" ry="6" fill="#1e3a1a"/>`,
+   fins:`<path d="M-4,-29 L-8,-44 L-14,-30 L-20,-42 L-24,-28 L-30,-38 L-34,-24Z" fill="#9ccc3a" stroke="${O}" stroke-width="1.6" stroke-linejoin="round"/><path class="fin" d="M14,22 C8,32 0,36 -6,36 C-4,28 2,24 6,22Z" fill="#ffb03a" stroke="${O}" stroke-width="1.4"/>`,eye:eye(38,-8)},
+  clown:{defs:G('b','#ffb36a','#ff7a1f','#e0560a'),
+   tail:`<path d="M-42,0 C-56,-14 -66,-20 -72,-18 C-68,-6 -68,6 -72,18 C-66,20 -56,14 -42,0Z" fill="#ff7a1f" stroke="${O}" stroke-width="2"/><path d="M-62,-14 C-66,-4 -66,4 -62,14" stroke="#fff" stroke-width="3" fill="none"/>`,
+   body:`<path d="M52,2 C46,-20 20,-26 -6,-24 C-28,-22 -42,-10 -46,0 C-42,10 -28,22 -6,24 C20,26 46,20 52,2Z" fill="url(#${p}b)" stroke="${O}" stroke-width="2.4"/>
+    <clipPath id="${p}c"><path d="M52,2 C46,-20 20,-26 -6,-24 C-28,-22 -42,-10 -46,0 C-42,10 -28,22 -6,24 C20,26 46,20 52,2Z"/></clipPath>
+    <g clip-path="url(#${p}c)">${[[24,10],[-6,11],[-34,8]].map(([x,w])=>`<path d="M${x},-30 C${x+6},-10 ${x+6},10 ${x},30 L${x+w},30 C${x+w+6},10 ${x+w+6},-10 ${x+w},-30Z" fill="#fff" stroke="${O}" stroke-width="2"/>`).join('')}</g>`,
+   fins:`<path d="M-2,-23 C-6,-36 -20,-38 -30,-32 C-26,-26 -22,-22 -18,-20Z" fill="#ff7a1f" stroke="${O}" stroke-width="1.6"/><path class="fin" d="M14,18 C8,30 0,32 -6,32 C-4,24 2,20 6,18Z" fill="#ff8a2a" stroke="${O}" stroke-width="1.4"/>`,eye:eye(36,-5)}};
+ const s=A[sp]||A.koi;
+ return `<defs>${s.defs}</defs><g class="tail">${s.tail}</g>${s.fins}${s.body}${shine}${s.eye}<path d="M50,6 q4,2 7,0" stroke="${O}" stroke-width="2" fill="none" stroke-linecap="round"/>`;}
+const badge=v=>{const w=String(v).length>2?34:28;return `<ellipse rx="${w}" ry="19" fill="#fff" stroke="#3a4250" stroke-width="2.4"/><ellipse rx="${w-4}" ry="15" fill="none" stroke="#dfe6ee" stroke-width="1.5"/><text y="9" font-size="27" text-anchor="middle" fill="#2a2f3a">${v}</text>`;};
+const miniFish=(sp,v,i)=>`<svg viewBox="-92 -46 160 92"><g>${fishArt(sp,'m'+i)}</g><g transform="translate(-4,0) scale(.9)">${badge(v)}</g></svg>`;
+
+
+// ================= 선수마다 하나씩: 낚시터 보드 =================
+function Board(pi,host){
+ const svg=host.querySelector('svg'),toastEl=host.querySelector('.btoast');const q=sel=>svg.querySelector(sel);
+ let L={};const B={pi,buckets:0,round:0,wrong:0,caught:[],inBucket:[],fish:[],busy:false,done:false,finishAt:0,t:null,got:[],pop:-1};
+ function layout(){const w=host.getBoundingClientRect();const port=w.height>w.width*1.05;
+   if(port)L={port,vx:150,vw:900,VH:Math.round(clamp(900*w.height/Math.max(1,w.width),1100,1700)),top:262,fs:1.2};
+   else{let VH=Math.round(clamp(1200*w.height/Math.max(1,w.width),560,900)),vw=1200;if(1200*w.height/w.width<560)vw=Math.round(Math.min(1700,560*w.width/w.height));
+     L={port,vx:Math.round((1200-vw)/2),vw,VH,top:262,fs:VH<700?1:.92};}
+   svg.setAttribute('viewBox',`${L.vx} 0 ${L.vw} ${L.VH}`);
+   const f=host.querySelector('.frame'),r=L.vw/L.VH,W=Math.min(w.width,w.height*r);f.style.width=W+'px';f.style.height=(W/r)+'px';}
+// ---------- 배경 ----------
+function drawScene(){const {vx,vw,VH,top}=L,cx=vx+vw/2;const r=(()=>{let s=7;return()=>{s=(s*16807)%2147483647;return (s-1)/2147483646;};})();
+  const tree=(x,y,s,c)=>`<g transform="translate(${x},${y}) scale(${s})"><rect x="-3" y="-8" width="6" height="12" fill="#4a3424"/><ellipse cy="-22" rx="16" ry="22" fill="${c}"/><ellipse cx="-4" cy="-30" rx="7" ry="9" fill="#fff" opacity=".12"/></g>`;
+  const pad=(x,y,s,fl)=>`<g transform="translate(${x},${y}) scale(${s})"><path d="M0,0 L-34,-6 A36,14 0 1 1 -34,6Z" fill="#4f9a3a" stroke="#2f6a26" stroke-width="2"/><path d="M0,0 L22,-8 M0,0 L26,4" stroke="#2f6a26" stroke-width="1.5" opacity=".6"/>
+   ${fl?`<g transform="translate(-6,-8)">${Array.from({length:8},(_,i)=>`<ellipse cy="-9" rx="5" ry="11" fill="${i%2?'#ffe6f2':'#ffffff'}" stroke="#e7a6c6" stroke-width="1" transform="rotate(${i*45})"/>`).join('')}<circle r="4.5" fill="#ffd23f"/></g>`:''}</g>`;
+  const reeds=(x,y,s,f)=>`<g transform="translate(${x},${y}) scale(${f?-s:s},${s})" class="sway">${[-20,-8,4,16,26].map((dx,i)=>`<path d="M${dx},0 C${dx-4},-60 ${dx+6},-120 ${dx+2+i*2},-${150+i*12}" stroke="${i%2?'#5aa83a':'#3f8a2a'}" stroke-width="6" fill="none" stroke-linecap="round"/>`).join('')}
+   ${[[-6,-120],[10,-140],[22,-110]].map(([dx,dy])=>`<rect x="${dx-5}" y="${dy-34}" width="10" height="36" rx="5" fill="#8a4a22" stroke="#4a2410" stroke-width="2"/><path d="M${dx},${dy-34} v-12" stroke="#5a3a1a" stroke-width="2.4"/>`).join('')}</g>`;
+  const cloud=(x,y,s)=>`<g transform="translate(${x},${y}) scale(${s})"><g class="cloud"><ellipse rx="70" ry="20" fill="#fff" opacity=".85"/><ellipse cx="40" cy="-10" rx="44" ry="20" fill="#fff" opacity=".9"/><ellipse cx="-40" cy="-6" rx="36" ry="16" fill="#fff" opacity=".85"/></g></g>`;
+  let trees='';for(let x=vx-20;x<vx+vw+30;x+=22+r()*14)trees+=tree(x.toFixed(0),(150+r()*8).toFixed(0),(.8+r()*.7).toFixed(2),pick(['#2f6a3a','#3a7a3e','#4a8a42','#2a5a34']));
+  let shim='';for(let i=0;i<26;i++){const x=vx+r()*vw,y=170+r()*(top-180);shim+=`<path class="shim" style="animation-delay:${(r()*3).toFixed(1)}s" d="M${x.toFixed(0)},${y.toFixed(0)} h${(20+r()*40).toFixed(0)}" stroke="#fff" stroke-width="2" opacity=".5" stroke-linecap="round"/>`;}
+  let rays='';for(let i=0;i<7;i++){const x=vx+60+i*vw/7;rays+=`<polygon points="${x},${top} ${x+40},${top} ${x+140},${VH} ${x+60},${VH}" fill="#fff" opacity=".06"/>`;}
+  let bubs='';for(let i=0;i<14;i++)bubs+=`<circle class="bub" style="animation-delay:${(r()*4).toFixed(1)}s;animation-duration:${(3+r()*3).toFixed(1)}s" cx="${(vx+r()*vw).toFixed(0)}" cy="${VH-30-r()*120}" r="${(2+r()*4).toFixed(1)}"/>`;
+  let posts='';for(let x=vx+40;x<vx+vw;x+=110)posts+=`<rect x="${x}" y="226" width="12" height="${top+18-226}" rx="3" fill="#7a5232" stroke="#3e2614" stroke-width="2"/>`;
+  let planks='';for(let x=vx;x<vx+vw;x+=46)planks+=`<rect x="${x}" y="214" width="44" height="16" rx="3" fill="url(#plank)" stroke="#5a3a1e" stroke-width="2"/>`;
+  svg.innerHTML=`<defs>
+   <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7ec3f2"/><stop offset=".7" stop-color="#cbe9fb"/><stop offset="1" stop-color="#ffe9c8"/></linearGradient>
+   <linearGradient id="surf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6aa6c8"/><stop offset="1" stop-color="#2f7fb6"/></linearGradient>
+   <linearGradient id="deep" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fd0f0"/><stop offset=".45" stop-color="#3a9ad6"/><stop offset="1" stop-color="#17508a"/></linearGradient>
+   <linearGradient id="plank" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8a46a"/><stop offset="1" stop-color="#9a6a3a"/></linearGradient>
+   <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8d6a6"/><stop offset="1" stop-color="#b89a62"/></linearGradient>
+   <linearGradient id="bucket" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9a5a2a"/><stop offset=".45" stop-color="#d89050"/><stop offset="1" stop-color="#8a4a20"/></linearGradient>
+   <linearGradient id="tbar" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff5a4a"/><stop offset=".45" stop-color="#ffc23a"/><stop offset="1" stop-color="#3cc06a"/></linearGradient>
+   <radialGradient id="sun"><stop offset="0" stop-color="#fffbe0"/><stop offset=".3" stop-color="#ffe9a0" stop-opacity=".7"/><stop offset="1" stop-color="#ffe9a0" stop-opacity="0"/></radialGradient>
+   <filter id="dsh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-opacity=".28"/></filter>
+  </defs>
+  <rect x="${vx}" y="0" width="${vw}" height="180" fill="url(#sky)"/>
+  <circle cx="${vx+vw-120}" cy="70" r="110" fill="url(#sun)"/><circle cx="${vx+vw-120}" cy="70" r="30" fill="#fffbe6"/>
+  ${cloud(vx+160,60,1)}${cloud(vx+vw*.55,40,.8)}
+  <path d="M${vx},150 Q${vx+vw*.2},96 ${vx+vw*.42},132 T${vx+vw*.8},118 T${vx+vw},130 L${vx+vw},170 L${vx},170Z" fill="#8fb8a8" opacity=".75"/>
+  ${trees}
+  <rect x="${vx}" y="160" width="${vw}" height="${top-160}" fill="url(#surf)"/>
+  <rect x="${vx+vw-150}" y="164" width="60" height="${top-170}" fill="#fff4c8" opacity=".25"/>
+  ${shim}
+  ${pad(vx+60,200,1,1)}${pad(vx+vw-60,190,.9,0)}${pad(vx+vw*.3,184,.6,1)}
+  ${posts}${planks}
+  <rect x="${vx}" y="${top}" width="${vw}" height="${VH-top}" fill="url(#deep)"/>
+  ${rays}
+  <path d="M${vx},${top} q30,-6 60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0 t60,0" stroke="#e6f8ff" stroke-width="4" fill="none" opacity=".8"/>
+  <path d="M${vx},${VH-26} Q${vx+vw*.25},${VH-46} ${vx+vw*.5},${VH-30} T${vx+vw},${VH-34} L${vx+vw},${VH} L${vx},${VH}Z" fill="url(#sand)"/>
+  ${Array.from({length:12},()=>`<ellipse cx="${(vx+r()*vw).toFixed(0)}" cy="${(VH-14-r()*10).toFixed(0)}" rx="${(4+r()*8).toFixed(0)}" ry="${(3+r()*4).toFixed(0)}" fill="#9a8a6a"/>`).join('')}
+  ${bubs}
+  ${reeds(vx+40,VH-20,1.1,0)}${reeds(vx+vw-40,VH-20,1.1,1)}
+  <g class="fishG"></g>
+  <g class="hero"></g><g class="rod"></g><g class="lineG"></g><g class="hud"></g><g class="fx"></g>`;
+  drawHero();drawHud();}
+function rodBase(){const s=L.port?.78:.62,hx=L.vx+L.vw-(L.port?250:210),hy=232-216*s;return {s,hx,hy,px:hx+158*s,py:hy+182*s};}
+function rodTip(){const b=rodBase();return {x:b.px+(L.port?60:72),y:b.py-(L.port?150:130)};}
+function drawHero(){const b=rodBase(),t=rodTip();
+  q('.hero').innerHTML=`<g transform="translate(${b.hx},${b.hy}) scale(${b.s})"><g class="heroIn">${chara(cfg.chars[pi],'hero'+pi,{pose:'stand',shadow:false})}</g></g>`;
+  q('.rod').innerHTML=`<path d="M${b.px-14},${b.py+16} L${t.x},${t.y}" stroke="#3a2a1a" stroke-width="8" stroke-linecap="round"/><path d="M${b.px-14},${b.py+16} L${t.x},${t.y}" stroke="#d8a060" stroke-width="4.5" stroke-linecap="round"/>
+   <path d="M${b.px-14},${b.py+16} L${b.px+10},${b.py-12}" stroke="#2a2a32" stroke-width="10" stroke-linecap="round"/>
+   <circle cx="${b.px+2}" cy="${b.py-2}" r="10" fill="#c9d0d8" stroke="#3a3f4a" stroke-width="2.6"/><circle cx="${b.px+2}" cy="${b.py-2}" r="3" fill="#3a3f4a"/><circle cx="${t.x}" cy="${t.y}" r="3.5" fill="#3a3f4a"/>`;
+  idleLine();}
+function idleLine(){const t=rodTip();const by=L.top+4;q('.lineG').innerHTML=`<path d="M${t.x},${t.y} Q${t.x+6},${(t.y+by)/2} ${t.x+4},${by}" stroke="#f4f4f4" stroke-width="1.8" fill="none" opacity=".9"/>
+  <g class="bob" transform="translate(${t.x+4},${by})"><path d="M0,-6 v-6" stroke="#333" stroke-width="2"/><circle r="7" fill="#fff" stroke="#333" stroke-width="2"/><path d="M-7,0 A7,7 0 0 1 7,0Z" fill="#ff4d5a"/></g>`;}
+function drawLine(a,b){q('.lineG').innerHTML=`<path d="M${a.x},${a.y} L${b.x},${b.y}" stroke="#f4f4f4" stroke-width="2" opacity=".95"/><path d="M${b.x},${b.y} q6,0 6,7 q0,6 -6,6" stroke="#9aa4b0" stroke-width="2.4" fill="none"/>`;}
+
+ // ---------- HUD (목표 카드 · 식 · 바구니) ----------
+ function eqW(){return B.t.parts.length===3?420:330;}
+ function geo(){const p=L.port,S=p?1.45:1,ex=L.vx+16,ey=p?L.top+18:150;const bx=p?ex+S*(eqW()+20):rodBase().hx-70,by=p?ey-6*S:150;return {S,ex,ey,bx,by,cw:p?440:300,ch:p?176:132};}
+ function barFrac(){return cfg.mode==='time'?clamp(T.left/T.total,0,1):clamp(B.buckets/cfg.num,0,1);}
+ function drawHud(){if(!B.t)return;const {vx,vw}=L,cx=vx+vw/2,t=B.t,nd=t.parts.length;
+  const g=geo(),cw=g.cw,ch=g.ch,ew=eqW(),eh=58,multi=cfg.players>1;
+  const slotW=nd===3?72:64;let eq=`<text x="16" y="40" font-size="34" fill="#2a2f3a">${t.n} =</text>`;let x=16+(nd===3?92:74);
+  t.parts.forEach((v,i)=>{const f=B.got[i];eq+=`<g ${f&&B.pop===i?'class="slotPop"':''}><rect x="${x}" y="9" width="${slotW}" height="42" rx="10" fill="${f?'#fff':'#fff8ea'}" stroke="${f?'#2fa860':'#c9b48a'}" stroke-width="${f?3.5:2.5}" ${f?'':'stroke-dasharray="7 5"'}/>
+    ${f?`<text x="${x+slotW/2}" y="41" font-size="32" text-anchor="middle" fill="#14804e">${v}</text>`:''}</g>`;x+=slotW;if(i<nd-1){eq+=`<text x="${x+11}" y="41" font-size="30" text-anchor="middle" fill="#2a2f3a">+</text>`;x+=22;}});
+  const tag=multi?`<g transform="translate(0,-30)"><rect width="${ew}" height="34" rx="12" fill="${PCOL[pi]}"/><circle cx="18" cy="17" r="12" fill="#fff"/><text x="18" y="24" font-size="19" text-anchor="middle" fill="${PCOL[pi]}">${pi+1}</text>
+    <text x="38" y="25" font-size="21" fill="#fff">${CHARS[cfg.chars[pi]].name}</text>${B.done?`<text x="${ew-12}" y="25" font-size="20" text-anchor="end" fill="#fff">🏁 완료!</text>`:''}</g>`:'';
+  q('.hud').innerHTML=`<g filter="url(#dsh)"><rect x="${cx-cw/2}" y="10" width="${cw}" height="${ch}" rx="18" fill="#fffdf8" stroke="${multi?PCOL[pi]:'#2a2f3a'}" stroke-width="${multi?5:3}"/></g>
+   <circle cx="${cx}" cy="10" r="6" fill="#ffc23a" stroke="#c98a10" stroke-width="2"/>
+   <text x="${cx}" y="${L.port?50:42}" font-size="${L.port?28:20}" text-anchor="middle" fill="#3a4250">🐟 자릿값을 낚아요!</text>
+   <text x="${cx}" y="${L.port?142:104}" font-size="${L.port?96:66}" text-anchor="middle" fill="#22262e" letter-spacing="2">${t.n}</text>
+   <rect x="${cx-cw/2+22}" y="${10+ch-20}" width="${cw-44}" height="9" rx="4.5" fill="#dfe8f2"/><rect class="tbarR" x="${cx-cw/2+22}" y="${10+ch-20}" width="${((cw-44)*barFrac()).toFixed(1)}" height="9" rx="4.5" fill="${cfg.mode==='time'?'url(#tbar)':'#3cc06a'}"/>
+   <g transform="translate(${g.ex},${g.ey}) scale(${g.S})">${tag}<g filter="url(#dsh)"><rect x="0" y="0" width="${ew}" height="${eh+2}" rx="14" fill="#ffe9b8" stroke="#c98a3a" stroke-width="3"/></g>${eq}</g>
+   <g transform="translate(${g.bx},${g.by}) scale(${g.S})"><path d="M2,14 L8,64 C10,70 50,70 52,64 L58,14Z" fill="url(#bucket)" stroke="#4a2810" stroke-width="3"/><ellipse cx="30" cy="14" rx="28" ry="8" fill="#5fb8e6" stroke="#4a2810" stroke-width="3"/>
+    <path d="M5,30 h50 M7,50 h46" stroke="#4a2810" stroke-width="3"/><path d="M4,14 C4,-12 56,-12 56,14" stroke="#555" stroke-width="2.5" fill="none"/>
+    <circle cx="52" cy="0" r="15" fill="${multi?PCOL[pi]:'#2b5fd6'}" stroke="#fff" stroke-width="3"/><text x="52" y="7" font-size="18" text-anchor="middle" fill="#fff">${B.buckets}</text>
+    ${B.inBucket.map((v,i)=>`<g transform="translate(${10+i*22},-8)"><ellipse rx="14" ry="10" fill="#fff" stroke="#3a4250" stroke-width="1.6"/><text y="5" font-size="13" text-anchor="middle" fill="#2a2f3a">${v}</text></g>`).join('')}</g>`;}
+ function tickBar(){const r=q('.tbarR');if(r)r.setAttribute('width',((geo().cw-44)*barFrac()).toFixed(1));}
+ function bucketPos(){const g=geo();return {x:g.bx+30*g.S,y:g.by+16*g.S};}
+
+ // ---------- 문제와 물고기 ----------
+ function makeTarget(){const nd=+cfg.range;let ds,n;do{ds=Array.from({length:nd},()=>ri(1,9));n=+ds.join('');}while(B.t&&B.t.n===n);
+  const parts=ds.map((d,i)=>d*10**(nd-1-i));const bad=new Set(parts);
+  const tricky=[];ds.forEach((d,i)=>{for(let k=0;k<nd;k++)if(k!==nd-1-i)tricky.push(d*10**k);});tricky.push(n,+[...ds].reverse().join(''));
+  const rand=[];for(let t=0;t<12;t++)rand.push(ri(1,9)*10**ri(0,nd-1));
+  const dis=[];for(const c of [...shuffle(tricky),...rand])if(!bad.has(c)&&!dis.includes(c))dis.push(c);
+  const few=cfg.players>=3&&!L.port?1:0;
+  return {n,parts,dis:dis.slice(0,(nd===2?5:6)-few)};}
+ function newTarget(){B.t=makeTarget();B.got=B.t.parts.map(()=>false);}
+ function spawn(){const vals=shuffle([...B.t.parts,...B.t.dis]);const {vx,vw,top,VH}=L;const n=vals.length;const lanes=shuffle(Array.from({length:n},(_,i)=>i));
+  q('.fishG').innerHTML='';const s=L.fs;const spList=shuffle(SPECIES.slice());
+  B.fish=vals.map((v,i)=>{const dir=Math.random()<.5?1:-1,sp=spList[i%spList.length];
+   const y0=top+(L.port?150:70);const y=y0+lanes[i]*((VH-y0-80)/(n-1||1));const F={v,sp,dir,s,x:vx+rnd(60,vw-60),y0:y,y,vx:dir*rnd(38,70)*+cfg.speed,ph:rnd(0,6),rot:0,caught:false};
+   const g=document.createElementNS(NS,'g');g.setAttribute('class','fish');g.innerHTML=`<g class="fb"><g transform="scale(${s})">${fishArt(sp,'f'+pi+'_'+B.round+'_'+i)}<ellipse cx="0" cy="0" rx="70" ry="40" fill="transparent"/></g></g><g class="fbg" transform="scale(${s})">${badge(v)}</g>`;
+   g.addEventListener('pointerdown',e=>{e.preventDefault();hook(F);});q('.fishG').appendChild(g);F.el=g;F.fb=g.querySelector('.fb');place(F);
+   g.style.opacity=0;g.animate?.([{opacity:0},{opacity:1}],{duration:400,fill:'forwards'});setTimeout(()=>g.style.opacity=1,420);return F;});}
+ function place(F){F.el.setAttribute('transform',`translate(${F.x.toFixed(1)},${F.y.toFixed(1)}) rotate(${F.rot})`);F.fb.setAttribute('transform',`scale(${F.dir},1)`);
+  F.el.querySelector('.fbg').setAttribute('transform',`rotate(${-F.rot}) scale(${F.s})`);}
+ function step(dt){const {vx,vw}=L;
+  B.fish.forEach(F=>{if(F.caught)return;F.x+=F.vx*dt;F.ph+=dt*2;F.y=F.y0+Math.sin(F.ph)*8;
+   if(F.x>vx+vw+90)F.x=vx-90;if(F.x<vx-90)F.x=vx+vw+90;if(Math.random()<.002){F.vx=-F.vx;F.dir=-F.dir;}place(F);});
+  if(cfg.mode==='time')tickBar();}
+ const live=()=>game.state==='run'&&!B.done;
+ function mouth(F){const r=F.rot*Math.PI/180,mx=F.dir*52*F.s;return {x:F.x+mx*Math.cos(r),y:F.y+mx*Math.sin(r)};}
+ function hook(F){if(!live()||B.busy||F.caught)return;B.busy=true;F.caught=true;F.el.classList.add('hook');sfx.cast();
+  const tip=rodTip();const m0=mouth(F);
+  anim(300,k=>drawLine(tip,{x:tip.x+(m0.x-tip.x)*k,y:tip.y+(m0.y-tip.y)*k}),()=>{sfx.plop();splash(F.x,F.y);sfx.reel();
+   const x0=F.x,y0=F.y,ex=tip.x-6,ey=L.top-30;
+   anim(620,k=>{const e=eio(k);F.x=x0+(ex-x0)*e;F.y=y0+(ey-y0)*e;F.rot=-90*F.dir*Math.min(1,k*1.6);place(F);drawLine(tip,mouth(F));},()=>{if(game.state==='run')judge(F);else B.busy=false;});});}
+ function judge(F){const t=B.t;const i=t.parts.findIndex((v,j)=>v===F.v&&!B.got[j]);const tip=rodTip();
+  if(i>=0){sfx.ok();B.got[i]=true;B.pop=i;B.caught.push({v:F.v,sp:F.sp});B.inBucket.push(F.v);
+   const b=bucketPos(),x0=F.x,y0=F.y;flt(`+${F.v}`,x0,y0-40,'#14804e');
+   anim(480,k=>{const e=eio(k);F.x=x0+(b.x-x0)*e;F.y=y0+(b.y-y0)*e-90*Math.sin(Math.PI*k);F.rot+=8;const sc=1-e*.6;F.el.setAttribute('transform',`translate(${F.x},${F.y}) rotate(${F.rot}) scale(${sc})`);drawLine(tip,{x:tip.x+(F.x-tip.x)*(1-k),y:tip.y+(F.y-tip.y)*(1-k)});},
+    ()=>{F.el.remove();B.fish=B.fish.filter(x=>x!==F);idleLine();drawHud();B.pop=-1;
+     if(B.got.every(Boolean))bucketFull();else B.busy=false;});}
+  else{sfx.no();B.wrong++;toast('no',`${F.v}은(는) 놓아줘요!`,wrongMsg(F.v));F.el.classList.add('shk');
+   setTimeout(()=>{F.el.classList.remove('shk','hook');const x0=F.x,y0=F.y,ty=F.y0;
+    anim(520,k=>{const e=eo(k);F.y=y0+(ty-y0)*e;F.x=x0+F.dir*40*e;F.rot=-90*F.dir*(1-e);place(F);drawLine(tip,{x:tip.x+(F.x-tip.x)*(1-k),y:tip.y+(F.y-tip.y)*(1-k)});},()=>{splash(F.x,L.top);F.caught=false;idleLine();B.busy=false;});},520);}}
+ function wrongMsg(v){const t=B.t,nd=t.parts.length;const ds=String(t.n).split('').map(Number);
+  if(v===t.n)return `${t.n} 전체가 아니라 자릿값으로 가른 수를 찾아요`;
+  const pl=['일','십','백'];const k=String(v).length-1,d=Math.floor(v/10**k);
+  const pos=ds.indexOf(d);if(pos>=0&&10**k===v/d){return `${t.n}에서 ${d}은(는) ${pl[nd-1-pos]}의 자리 숫자예요`;}
+  return `${t.n} = ${'□ + '.repeat(nd-1)}□ 에 들어갈 수를 찾아요`;}
+ function bucketFull(){B.buckets++;B.round++;sfx.full();const t=B.t;toast('ok','바구니 가득! 🎉',`${t.n} = ${t.parts.join(' + ')}`);
+  const hi=q('.heroIn');hi.classList.remove('heroHop');void hi.getBBox();hi.classList.add('heroHop');
+  const b=bucketPos();for(let j=0;j<3;j++){const e=document.createElementNS(NS,'ellipse');e.setAttribute('cx',b.x);e.setAttribute('cy',b.y);e.setAttribute('rx',26);e.setAttribute('ry',9);e.setAttribute('class','splash');e.style.animationDelay=j*.15+'s';q('.fx').appendChild(e);setTimeout(()=>e.remove(),1200);}
+  B.inBucket=[];if(cfg.mode==='count'&&B.buckets>=cfg.num){B.done=true;B.finishAt=performance.now();}drawHud();onBucket(B);
+  setTimeout(()=>{if(game.state!=='run'||B.done)return;
+   B.fish.forEach(F=>F.el.animate?.([{opacity:1},{opacity:0}],{duration:300,fill:'forwards'}));
+   setTimeout(()=>{if(game.state!=='run')return;newTarget();drawHud();spawn();B.busy=false;},320);},900);}
+ function splash(x,y){for(let j=0;j<2;j++){const e=document.createElementNS(NS,'ellipse');e.setAttribute('cx',x);e.setAttribute('cy',y);e.setAttribute('rx',22);e.setAttribute('ry',7);e.setAttribute('class','splash');e.style.animationDelay=j*.12+'s';q('.fx').appendChild(e);setTimeout(()=>e.remove(),1000);}}
+ function flt(txt,x,y,col){const t=document.createElementNS(NS,'text');t.setAttribute('x',x);t.setAttribute('y',y);t.setAttribute('font-size',34);t.setAttribute('text-anchor','middle');t.setAttribute('fill',col);
+  t.setAttribute('stroke','#fff');t.setAttribute('stroke-width',6);t.setAttribute('paint-order','stroke');t.setAttribute('class','flt');t.textContent=txt;q('.fx').appendChild(t);setTimeout(()=>t.remove(),1200);}
+ function toast(cls,big,small){const t=toastEl;t.className='btoast '+cls;t.innerHTML=big+(small?'<small></small>':'');if(small)t.querySelector('small').textContent=small;
+  void t.offsetWidth;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1500);}
+ function finishOverlay(text){const d=document.createElement('div');d.className='bdone';d.innerHTML=text;host.querySelector('.frame').appendChild(d);}
+ function init(){layout();newTarget();drawScene();spawn();}
+ function relayout(){const was=L.port;layout();if(was!==L.port&&!B.busy){drawScene();spawn();}}
+ return {B,init,step,relayout,drawHud,finishOverlay,hook,get L(){return L}};}
+
+// ================= 전체 진행 =================
+let game={state:'off'},T={left:60,total:60,t0:0,lastS:-1},boards=[],raf=0,last=0;
+function anim(ms,step,done){const t0=performance.now();const f=now=>{const k=Math.min(1,(now-t0)/ms);step(k);if(k<1)requestAnimationFrame(f);else done&&done();};requestAnimationFrame(f);}
+const eio=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,eo=k=>1-Math.pow(1-k,3);
+function gridShape(n){const w=$('boards').getBoundingClientRect(),port=w.height>w.width;
+  if(n===1)return [1,1];if(n===2)return port?[1,2]:[2,1];if(n===3)return port?[1,3]:[3,1];return (w.width/w.height>2.1)?[4,1]:[2,2];}
+function buildBoards(){const n=cfg.players,box=$('boards');box.innerHTML='';
+  const [c,r]=gridShape(n);box.style.gridTemplateColumns=`repeat(${c},minmax(0,1fr))`;box.style.gridTemplateRows=`repeat(${r},minmax(0,1fr))`;
+  boards=[];for(let i=0;i<n;i++){const cell=document.createElement('div');cell.className='cell';
+    cell.innerHTML=`<div class="frame" style="${n>1?`box-shadow:0 0 0 4px ${PCOL[i]},0 10px 28px rgba(31,110,100,.18)`:''}"><svg class="lake" preserveAspectRatio="xMidYMid meet"></svg><div class="btoast"></div></div>`;
+    box.appendChild(cell);}
+  [...box.children].forEach((cell,i)=>{const b=Board(i,cell);boards.push(b);b.init();});}
+function start(){$('lobby').classList.add('hide');$('game').classList.remove('hide');$('resultOv').classList.add('hide');
+  T={left:+cfg.time,total:+cfg.time,t0:performance.now(),lastS:-1};game.state='run';if(cfg.players===1)TMRank.start(rankLv(),rankName());
+  requestAnimationFrame(()=>{buildBoards();updTop();cancelAnimationFrame(raf);last=performance.now();raf=requestAnimationFrame(loop);});}
+function updTop(){const tm=cfg.mode==='time';
+  $('rndT').textContent=tm?`⏱ ${Math.ceil(Math.max(0,T.left))}초`:(cfg.players>1?`🏁 ${cfg.num}바구니 먼저!`:`🎯 ${Math.min(boards[0]?boards[0].B.buckets+1:1,cfg.num)} / ${cfg.num}`);
+  $('rndS').textContent=boards.map((b,i)=>`${cfg.players>1?['🔴','🔵','🟢','🟠'][i]+' ':'🪣 '}${b.B.buckets}`).join('  ')+(cfg.players>1?'':'바구니');}
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(game.state==='run'){boards.forEach(b=>b.step(dt));
+    if(cfg.mode==='time'){T.left-=dt;const s=Math.ceil(Math.max(0,T.left));if(s!==T.lastS){T.lastS=s;updTop();if(s<=5&&s>0)sfx.tick();}
+      if(T.left<=0){endGame();return;}}}
+  raf=requestAnimationFrame(loop);}
+function onBucket(B){updTop();
+  if(cfg.mode==='count'&&B.done){if(cfg.players===1){setTimeout(endGame,700);return;}
+    // 다인용: 먼저 채운 선수가 이겨요 → 경기 종료
+    boards[B.pi].finishOverlay(`🏁 ${PNAME[B.pi]} 먼저 완료!`);setTimeout(endGame,1100);}}
+
+// ---------- 결과 ----------
+function endGame(){if(game.state!=='run')return;game.state='end';cancelAnimationFrame(raf);sfx.done();confetti();
+  const tm=cfg.mode==='time',secs=Math.round((performance.now()-T.t0)/1000),n=cfg.players;
+  const P=boards.map(b=>b.B);
+  if(n===1){const B=P[0];const rk=KEY+'-rec-'+cfg.range+'-'+(tm?'t'+cfg.time:'c'+cfg.num);let rec=null;try{rec=JSON.parse(localStorage.getItem(rk)||'null');}catch(e){}
+    let newRec=false;
+    if(tm){if(B.buckets>0&&(rec==null||B.buckets>rec)){newRec=rec!=null;rec=B.buckets;try{localStorage.setItem(rk,JSON.stringify(rec));}catch(e){}}}
+    else{if(rec==null||secs<rec){newRec=rec!=null;rec=secs;try{localStorage.setItem(rk,JSON.stringify(rec));}catch(e){}}}
+    $('resTag').textContent=tm?'⏰ 시간 끝!':'🎉 다 낚았어요!';
+    $('resTitle').innerHTML=tm?`${T.total}초 동안 <b>${B.buckets}</b>바구니를 채웠어요!`:`${cfg.num}바구니를 ${secs}초 만에 채웠어요!`;
+    $('resRec').textContent=rec==null?'':(newRec?'🎉 새 기록이에요! ':'⏱ ')+(tm?`최고 기록: ${rec}바구니${newRec?'':' · 기록을 깨 보세요!'}`:`최고 기록: ${rec}초${newRec?'':' · 기록을 깨 보세요!'}`);
+    $('catches').innerHTML=catchBox(B,'잡은 물고기');
+    setTimeout(()=>TMRank.finish({level:rankLv(),name:rankName(),value:B.buckets,t:secs}),900);
+    const w=$('resWrong');w.style.display='';w.className='nowrong'+(B.wrong?' bad':'');w.textContent=B.wrong?`🐟 헷갈리는 물고기를 ${B.wrong}번 낚았어요. 다음엔 자릿값을 잘 살펴봐요!`:'⭐ 틀린 물고기를 하나도 안 낚았어요!';}
+  else{const rank=P.slice().sort((a,b)=>(b.buckets-a.buckets)||((a.finishAt||9e15)-(b.finishAt||9e15))||(a.wrong-b.wrong));
+    const top=rank[0],tie=rank.filter(p=>p.buckets===top.buckets&&(!tm?p.done===top.done:true)&&(tm?p.wrong===top.wrong:true));
+    const winTie=tm&&rank.filter(p=>p.buckets===top.buckets).length>1&&tie.length>1;
+    $('resTag').textContent=tm?'⏰ 시간 끝!':'🏁 경기 끝!';
+    $('resTitle').innerHTML=winTie?'무승부! 모두 최고예요!':`<span style="color:${PCOL[top.pi]}">${PNAME[top.pi]} ${CHARS[cfg.chars[top.pi]].name}</span> 승리!`;
+    $('resRec').textContent=tm?`${T.total}초 동안 · 바구니가 같으면 실수가 적은 선수가 앞서요`:`${cfg.num}바구니를 먼저 채운 선수가 이겨요`;
+    const medal=['🥇','🥈','🥉','4위'];
+    $('catches').innerHTML=rank.map((p,i)=>catchBox(p,`${medal[i]} <span class="pdot" style="background:${PCOL[p.pi]}">${p.pi+1}</span> ${CHARS[cfg.chars[p.pi]].name} · 🪣 ${p.buckets}바구니 · 실수 ${p.wrong}`)).join('');
+    $('resWrong').style.display='none';}
+  setTimeout(()=>$('resultOv').classList.remove('hide'),500);
+  const detail={type:'tyranomath:place-fishing-complete',mode:cfg.mode,players:n,results:P.map(p=>({player:p.pi+1,buckets:p.buckets,fish:p.caught.length,mistakes:p.wrong})),seconds:secs};
+  try{window.dispatchEvent(new CustomEvent('place-fishing-complete',{detail}));}catch(e){}
+  try{if(window.parent!==window)window.parent.postMessage(detail,'*');}catch(e){}}
+function catchBox(B,head){return `<div class="catch"><div class="catchHd"><span>${head}</span><b style="${cfg.players>1?`background:${PCOL[B.pi]}`:''}">${B.caught.length}마리</b></div>
+  <div class="catchList"><span class="bk">🪣</span>${B.caught.length?B.caught.map((c,i)=>miniFish(c.sp,c.v,'r'+B.pi+'_'+i)).join(''):'<small>아직 잡은 물고기가 없어요</small>'}</div></div>`;}
+function confetti(){const cols=['#ff5a6e','#ffd23f','#3d8bff','#3ccf8a','#b56bff'];
+  for(let i=0;i<60;i++){const c=document.createElement('i');c.className='conf';c.style.left=rnd(2,98)+'vw';c.style.background=pick(cols);
+    c.style.setProperty('--fy',innerHeight*rnd(.8,1.1)+'px');c.style.animationDelay=rnd(0,.5)+'s';c.style.borderRadius=Math.random()<.4?'50%':'2px';document.body.appendChild(c);setTimeout(()=>c.remove(),2300);}}
+let rzT=0;addEventListener('resize',()=>{if(game.state==='off'||!boards.length)return;clearTimeout(rzT);rzT=setTimeout(()=>{
+  const [c,r]=gridShape(cfg.players),box=$('boards');box.style.gridTemplateColumns=`repeat(${c},minmax(0,1fr))`;box.style.gridTemplateRows=`repeat(${r},minmax(0,1fr))`;boards.forEach(b=>b.relayout());},80);});
+
+// ---------- 버튼 ----------
+$('startBtn').onclick=()=>{try{AC().resume&&actx.resume();}catch(e){}start();};
+$('againBtn').onclick=start;
+const toLobby=()=>{game.state='off';cancelAnimationFrame(raf);['game','resultOv','homeOv'].forEach(id=>$(id).classList.add('hide'));$('lobby').classList.remove('hide');sync();};
+$('setBtn').onclick=toLobby;
+$('homeBtn').onclick=()=>{if(game.state!=='run')return;game.state='pause';$('homeOv').classList.remove('hide');};
+$('homeYes').onclick=toLobby;$('homeNo').onclick=()=>{$('homeOv').classList.add('hide');if(game.state==='pause'){game.state='run';last=performance.now();}};
+const syncSound=()=>{$('soundBtn').innerHTML=(cfg.sound?'🔊':'🔇')+'<small>소리</small>';};
+$('soundBtn').onclick=()=>{cfg.sound=!cfg.sound;syncSound();saveCfg();};syncSound();
+const root=document.documentElement,fsOK=!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
+document.querySelectorAll('.fsBtn').forEach(b=>{if(!fsOK){b.style.display='none';return;}
+  b.onclick=()=>{try{if(document.fullscreenElement||document.webkitFullscreenElement)(document.exitFullscreen||document.webkitExitFullscreen).call(document);
+    else (root.requestFullscreen||root.webkitRequestFullscreen).call(root);}catch(e){}};});
+const GAMEZONE_URL='/';
+try{if(window.top===window)$('zoneBtn').hidden=false;}catch(e){}
+document.addEventListener('contextmenu',e=>{if(e.target.tagName!=='INPUT')e.preventDefault();});
+// 🏆 랭킹: 1인 · 채운 바구니 (같으면 빨리 끝낸 사람이 앞서요 · 수 · 방식 · 빠르기마다 따로)
+const SPN={'.6':'느리게','0.6':'느리게','1':'보통','1.5':'빠르게'};
+function rankLv(){return `${cfg.range}|${cfg.mode==='time'?'t'+cfg.time:'c'+cfg.num}|${cfg.speed}`;}
+function rankName(){return `${cfg.range==='3'?'세 자리 수':'두 자리 수'} · ${cfg.mode==='time'?cfg.time+'초 동안':cfg.num+'바구니'} · ${SPN[String(cfg.speed)]||'보통'}`;}
+TMRank.setup({game:'place-fishing',title:'자릿값 낚시',note:'1인용 순위예요 · 채운 바구니가 많을수록, 같으면 빨리 끝낼수록 앞서요 (설정마다 따로)',kind:'score',levels:[],level:rankLv,lvName:rankName,mount:['.top-btns']});
+buildLobby();
+if(/[?&]test/.test(location.search))window.__fish={get boards(){return boards},get T(){return T},endGame,get state(){return game.state}};
+})();</script></body></html>

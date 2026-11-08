@@ -77,7 +77,8 @@ const RULES = {
   'fraction-pool':     { kind:'score', level:DYN, max:90, rate:1.5 },
   'fraction-picture':  { kind:'score', level:DYN, max:60, rate:1 },
   'fraction-kick':     { kind:'score', level:DYN, max:30, rate:1 },
-  'number-squadron':   { kind:'score', level:/^(all|[0-9])$/, max:20000000, rate:3000 }
+  'number-squadron':   { kind:'score', level:/^(all|[0-9])$/, max:20000000, rate:3000 },
+  'place-fishing':     { kind:'score', level:DYN, max:200, rate:1.5 }
 };
 // 게임 엔진(tyrano-quiz.js)으로 새로 만든 게임은 따로 적지 않아도 '문제 맞히기' 규칙을 써요
 // 목록에 없는 새 게임도 점수 랭킹은 바로 쓸 수 있어요 (다시 배포하지 않아도 돼요)

@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>티라노 사다리 게임 · TyranoMath</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Fredoka:wght@500;700&display=swap">
+<style>
+/* Layout: TyranoMath 놀이판 — 왼쪽 세로줄에 도착(위)·출발(아래) 공간 + 100칸 판, 오른쪽 플레이어·주사위 3개·계산 패널. 세로 화면은 판 위, 패널 아래 */
+:root{
+  color-scheme: light;
+  --bg:#FFF8EC; --card:#FFFFFF; --ink:#22314A; --muted:#5D6C83; --line:#ECDFC8;
+  --green:#4CB963; --green-d:#2F8A47; --leaf:#E4F5D6;
+  --orange:#FF9F43; --orange-d:#D97A1F; --orange-l:#FFE7CC;
+  --pink:#FF8FA3; --red:#E5546B; --sky:#DDF0FF; --gold:#FFD43B; --sad:#6C8DB5; --sad-l:#E3ECF7;
+  --cellA:#FFFFFF; --cellB:#FFF3DC; --wood:#C9864A; --wood-d:#7A4A1E;
+  --earth:#9A7350; --earth-d:#5E4128; --hole:#2B1E15;
+  --shadow:0 6px 0 rgba(34,49,74,.08), 0 14px 30px rgba(34,49,74,.08);
+  --display:"Jua","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --num:"Fredoka","Jua",system-ui,sans-serif;
+  --scale:1; --ds:clamp(56px,5.6vw,104px);
+}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);overflow:hidden;display:flex;flex-direction:column;
+  word-break:keep-all;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+
+/* 플레이어 색 */
+.c0{--d-main:#5CC46F;--d-tail:#4CB963;--d-leg:#3A9D51;--d-belly:#E8F7C8;--d-spike:#FF9F43;--d-line:#2E6B3A;--pc:#4CB963;--pd:#2F8A47;--pl:#E4F5D6}
+.c1{--d-main:#FFAE5C;--d-tail:#FF9F43;--d-leg:#E0801F;--d-belly:#FFF2DC;--d-spike:#4CB963;--d-line:#8A4A12;--pc:#FF9F43;--pd:#C9671A;--pl:#FFE7CC}
+.c2{--d-main:#B86BDD;--d-tail:#A75BCC;--d-leg:#7E3A9E;--d-belly:#F4E5FB;--d-spike:#FFD43B;--d-line:#5A2672;--pc:#A75BCC;--pd:#7E3A9E;--pl:#F1E2FA}
+.c3{--d-main:#F7CB3A;--d-tail:#EDBB22;--d-leg:#C99A12;--d-belly:#FFF6D2;--d-spike:#5CC46F;--d-line:#7A5A08;--pc:#E8B51C;--pd:#A9800A;--pl:#FFF4C9}
+.d-main{fill:var(--d-main)} .d-tail{fill:var(--d-tail)} .d-leg{fill:var(--d-leg)} .d-belly{fill:var(--d-belly)}
+.d-spike{fill:var(--d-spike)} .d-eye{fill:#fff;stroke:var(--d-line);stroke-width:2} .d-pupil{fill:var(--ink)}
+.d-hl{fill:#fff} .d-cheek{fill:var(--pink);opacity:.65} .d-mouth{fill:none;stroke:var(--d-line);stroke-width:3.5;stroke-linecap:round}
+.d-open{fill:#9E2A3A;stroke:var(--d-line);stroke-width:3} .d-tongue{fill:#FF8FA3} .d-brow{fill:none;stroke:var(--d-line);stroke-width:4;stroke-linecap:round}
+.d-tear{fill:#7CC4F5}
+
+/* ---------- 위쪽 줄 ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:clamp(8px,1vw,14px) 16px 0}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--display);color:var(--green-d);font-size:clamp(18px,1.7vw,28px);white-space:nowrap;min-width:0}
+.brand svg{width:clamp(36px,3vw,50px);height:auto;flex:none}
+.brand b{color:var(--orange);font-weight:400}
+.brand small{font-size:.8em;color:var(--ink);margin-left:6px}
+.tools{display:flex;gap:6px;flex-wrap:wrap}
+.tool{border:3px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-family:var(--display);font-size:clamp(13px,1vw,17px);color:var(--ink)}
+.tool[aria-pressed="false"]{color:var(--muted);text-decoration:line-through}
+.tool.home{background:var(--green);border-color:var(--green-d);color:#fff}
+
+/* ---------- 본문 ---------- */
+.app{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) clamp(330px,34vw,680px);
+  gap:clamp(10px,1.4vw,22px);padding-block:clamp(8px,1vw,14px) 4px;padding-inline:16px}
+.board-area{min-width:0;min-height:0;container-type:size;display:grid;place-items:center}
+/* 판 좌표: 가로 1150(왼쪽 150 = 출발·도착 공간) × 세로 1000 */
+.board{position:relative;width:min(100cqw,115cqh);aspect-ratio:115/100;border-radius:22px;background:var(--card);
+  border:5px solid var(--line);box-shadow:var(--shadow);overflow:hidden;box-sizing:border-box;container-type:inline-size}
+.cells{position:absolute;left:13.0435%;top:0;width:86.9565%;height:100%;display:grid;grid-template-columns:repeat(10,1fr);grid-template-rows:repeat(10,1fr)}
+.cell{position:relative;background:var(--cellA);border:1px solid #F3E8D6}
+.cell.alt{background:var(--cellB)}
+.cell b{position:absolute;left:7%;top:4%;font-family:var(--num);font-weight:700;font-size:calc(1.9cqw*var(--scale));color:#A8967A;line-height:1}
+.cell.c-first{box-shadow:inset 0 0 0 4px var(--green)} .cell.c-last{box-shadow:inset 0 0 0 4px var(--gold)}
+.zone{position:absolute;left:0;width:13.0435%;height:50%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:4%;gap:1%;box-sizing:border-box;
+  font-family:var(--display);text-align:center}
+.zone .zt{font-size:2.7cqw;line-height:1}
+.zone .zs{font-size:1.25cqw;opacity:.85}
+.zone .zi{font-size:3.4cqw;line-height:1}
+.z-goal{top:0;background:repeating-linear-gradient(45deg,#FFE58A 0 14px,#FFD43B 14px 28px);color:#7A5600;border-right:4px solid #E8B51C;border-bottom:3px dashed #E8B51C}
+.z-start{bottom:0;background:var(--leaf);color:var(--green-d);border-right:4px solid var(--green)}
+.z-start::before{content:"";position:absolute;top:0;left:0;right:0;height:10px;background:repeating-linear-gradient(90deg,#fff 0 12px,var(--green) 12px 24px)}
+.zone .arrow{font-size:2cqw;animation:nudge 1.2s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateX(5px)}}
+.paths{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.token{position:absolute;width:7.6%;transform:translate(-50%,-62%);transition:left .16s ease-out,top .16s ease-out;z-index:3;
+  filter:drop-shadow(0 3px 0 rgba(34,49,74,.25));pointer-events:none}
+.token svg{display:block;width:100%;height:auto;transition:opacity .25s,transform .25s,filter .25s}
+.token.now{z-index:5}
+.token.now::after{content:"";position:absolute;left:18%;right:18%;bottom:-8%;height:12%;border-radius:50%;background:var(--pc);opacity:.55;animation:glow 1s ease-in-out infinite}
+@keyframes glow{50%{opacity:.15;transform:scaleX(1.3)}}
+.token.hop svg{animation:hop .16s ease-out}
+@keyframes hop{50%{transform:translateY(-22%)}}
+.token.climb svg{animation:climb .25s ease-in-out infinite}
+@keyframes climb{50%{transform:translateY(-10%) rotate(-6deg)}}
+.token.sink svg{animation:sink .4s ease-in forwards}
+@keyframes sink{to{transform:translateY(35%) scale(.1);opacity:0}}
+.token.under svg{transform:scale(.5);opacity:.3;filter:grayscale(1) brightness(.4)}
+.token.under::after{display:none}
+.token.pop svg{animation:popout .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes popout{from{transform:translateY(35%) scale(.1);opacity:0}to{transform:none;opacity:1}}
+
+/* ---------- 티라노 반응 (사다리: 신나요 / 터널: 속상해요) ---------- */
+.react{position:absolute;inset:0;z-index:10;display:grid;justify-items:center;align-items:center;padding:3% 0;box-sizing:border-box;pointer-events:none}
+.r-card{width:40%;background:rgba(255,255,255,.96);border:5px solid var(--green);border-radius:28px;box-shadow:var(--shadow);
+  padding:2% 2% 2.4%;display:flex;flex-direction:column;align-items:center;animation:cardIn .35s cubic-bezier(.2,1.5,.4,1)}
+.react.bad .r-card{border-color:var(--sad);background:rgba(240,245,252,.97)}
+.react.out .r-card{animation:cardOut .3s ease-in forwards}
+@keyframes cardIn{from{transform:scale(.4);opacity:0}}
+@keyframes cardOut{to{transform:scale(.6);opacity:0}}
+.r-tag{font-family:var(--display);font-size:1.6cqw;color:#fff;background:var(--green);border-radius:999px;padding:.3% 4%}
+.react.bad .r-tag{background:var(--sad)}
+.r-stage{position:relative;width:62%;aspect-ratio:1.1;display:grid;place-items:center}
+.r-dino{width:78%;transform-origin:50% 95%}
+.r-dino svg{display:block;width:100%;height:auto}
+.r-cap{margin:0;font-family:var(--display);font-size:2.7cqw;color:var(--green-d);text-align:center;line-height:1.2}
+.react.bad .r-cap{color:#3F5E86}
+.r-sub{margin:.4em 0 0;font-family:var(--num);font-weight:700;font-size:1.7cqw;color:var(--muted)}
+.fx{position:absolute;font-size:3cqw;line-height:1;pointer-events:none}
+/* 신나요 1: 만세 점프 */
+.a-jump .r-dino{animation:aJump .7s ease-in-out infinite}
+@keyframes aJump{0%,100%{transform:translateY(0) scale(1.08,.9)}15%{transform:translateY(0) scale(.95,1.08)}50%{transform:translateY(-28%) scale(1)}85%{transform:translateY(0) scale(1.06,.92)}}
+.a-jump .fx{animation:burst 1.4s ease-out infinite}
+@keyframes burst{0%{transform:translate(0,0) scale(.3);opacity:0}25%{opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(1.2);opacity:0}}
+/* 신나요 2: 빙글빙글 */
+.a-spin .r-dino{animation:aSpin 1s cubic-bezier(.5,0,.5,1) infinite}
+@keyframes aSpin{0%{transform:rotate(0)}60%{transform:rotate(360deg) scale(1.1)}100%{transform:rotate(360deg)}}
+.a-spin .fx{animation:twinkle .8s ease-in-out infinite alternate}
+@keyframes twinkle{from{transform:scale(.4) rotate(0);opacity:.3}to{transform:scale(1.2) rotate(40deg);opacity:1}}
+/* 신나요 3: 하트 뿅뿅 */
+.a-hearts .r-dino{animation:aSway 1s ease-in-out infinite}
+@keyframes aSway{50%{transform:rotate(-6deg) scale(1.05)}}
+.a-hearts .fx{animation:floatUp 1.6s ease-out infinite}
+@keyframes floatUp{0%{transform:translateY(0) scale(.4);opacity:0}20%{opacity:1}100%{transform:translateY(-140%) scale(1.2);opacity:0}}
+/* 신나요 4: 신나는 춤 */
+.a-dance .r-dino{animation:aDance .5s ease-in-out infinite}
+@keyframes aDance{0%,100%{transform:rotate(-10deg) translateX(-6%)}50%{transform:rotate(10deg) translateX(6%) translateY(-6%)}}
+.a-dance .fx{animation:note 1.4s ease-out infinite}
+@keyframes note{0%{transform:translate(0,0) rotate(0);opacity:0}20%{opacity:1}100%{transform:translate(var(--tx),-120%) rotate(25deg);opacity:0}}
+/* 신나요 5: 로켓 발사 */
+.a-rocket .r-dino{animation:aRocket 1.3s ease-in-out infinite}
+@keyframes aRocket{0%{transform:translateY(8%) rotate(0)}15%{transform:translateY(10%) scale(1.06,.9)}55%{transform:translateY(-40%) rotate(-8deg)}80%{transform:translateY(-34%) rotate(4deg)}100%{transform:translateY(8%)}}
+.a-rocket .fx{animation:puff 1.3s ease-out infinite}
+@keyframes puff{0%,10%{transform:translateY(0) scale(.3);opacity:0}30%{opacity:1}100%{transform:translateY(60%) scale(1.6);opacity:0}}
+/* 속상해요 1: 눈물 뚝뚝 */
+.a-cry .r-dino{animation:aSob .45s ease-in-out infinite}
+@keyframes aSob{50%{transform:translateY(3%) scale(1.02,.97)}}
+.a-cry .fx{animation:drip 1s ease-in infinite}
+@keyframes drip{0%{transform:translateY(0) scale(.5);opacity:0}15%{opacity:1}100%{transform:translateY(220%) scale(1);opacity:0}}
+/* 속상해요 2: 어질어질 */
+.a-dizzy .r-dino{animation:aWobble 1.2s ease-in-out infinite}
+@keyframes aWobble{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+.a-dizzy .orbit{position:absolute;left:50%;top:8%;width:46%;aspect-ratio:2.4;transform:translateX(-50%);animation:orbit 1s linear infinite}
+.a-dizzy .orbit .fx{position:absolute;font-size:2.4cqw}
+@keyframes orbit{to{transform:translateX(-50%) rotate(360deg)}}
+/* 속상해요 3: 깜짝 놀람 */
+.a-shock .r-dino{animation:aShock 1.2s ease-out infinite}
+@keyframes aShock{0%{transform:none}10%{transform:translateY(-16%) scale(1.08)}20%{transform:translateY(0) translateX(-4%)}26%{transform:translateX(4%)}32%{transform:translateX(-3%)}38%,100%{transform:none}}
+.a-shock .fx{animation:bang 1.2s ease-out infinite}
+@keyframes bang{0%,5%{transform:scale(0);opacity:0}15%{transform:scale(1.4);opacity:1}40%{transform:scale(1)}80%{opacity:1}100%{opacity:0}}
+/* 속상해요 4: 털썩 주저앉기 */
+.a-flop .r-dino{animation:aFlop 1.4s ease-in-out infinite}
+@keyframes aFlop{0%,15%{transform:none}35%,75%{transform:scale(1.18,.62)}100%{transform:none}}
+.a-flop .fx{animation:dust 1.4s ease-out infinite}
+@keyframes dust{0%,30%{transform:translateX(0) scale(.3);opacity:0}40%{opacity:1}80%{transform:translateX(var(--tx)) scale(1.3);opacity:0}100%{opacity:0}}
+/* 속상해요 5: 비구름 */
+.a-rain .r-dino{animation:aShiver .18s linear infinite}
+@keyframes aShiver{50%{transform:translateX(1.5%)}}
+.a-rain .cloud{position:absolute;top:-2%;left:50%;transform:translateX(-50%);font-size:5.5cqw;animation:cloud 2s ease-in-out infinite}
+@keyframes cloud{50%{transform:translateX(-46%)}}
+.a-rain .fx{animation:rainDrop .7s linear infinite}
+@keyframes rainDrop{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(260%);opacity:0}}
+
+.panel{display:flex;flex-direction:column;gap:clamp(8px,1.1vh,14px);min-height:0;min-width:0;overflow:auto;padding-bottom:4px}
+.players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.pcard{display:flex;align-items:center;gap:8px;background:var(--card);border:3px solid var(--line);border-radius:18px;padding:6px 10px;min-width:0;transition:border-color .2s,background .2s}
+.pcard svg{width:clamp(34px,3vw,52px);height:auto;flex:none}
+.pcard .who{min-width:0;display:flex;flex-direction:column;line-height:1.15}
+.pcard .nm{font-family:var(--display);font-size:calc(clamp(15px,1.2vw,21px)*var(--scale));color:var(--pd);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pcard .pos{font-size:calc(clamp(12px,.95vw,15px)*var(--scale));color:var(--muted)}
+.pcard .pos b{font-family:var(--num);font-weight:700;color:var(--ink);font-size:1.25em}
+.pcard.now{border-color:var(--pc);background:var(--pl)}
+.turn{display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--display);font-size:calc(clamp(20px,2vw,34px)*var(--scale));
+  background:var(--pl,var(--leaf));border:3px solid var(--pc,var(--green));border-radius:20px;padding:6px 14px;text-align:center}
+.turn b{font-weight:400;color:var(--pd,var(--green-d))}
+.turn svg{width:clamp(34px,3vw,50px);height:auto}
+
+/* 주사위 3개 (입체) */
+.dice{display:flex;justify-content:center;gap:clamp(18px,3vw,46px);perspective:800px;padding:clamp(10px,2vh,24px) 0 calc(var(--ds)*.32);cursor:pointer}
+.die-slot{position:relative;width:var(--ds);height:var(--ds)}
+.die-slot::after{content:"";position:absolute;left:-12%;right:-12%;bottom:-34%;height:22%;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(34,49,74,.32),rgba(34,49,74,0));z-index:-1}
+.die-hop{width:100%;height:100%;transform-style:preserve-3d}
+.die-hop.rolling{animation:dhop 1.15s ease-out}
+@keyframes dhop{0%{transform:translateY(0)}22%{transform:translateY(-70%)}48%{transform:translateY(0)}64%{transform:translateY(-24%)}80%{transform:translateY(0)}90%{transform:translateY(-6%)}}
+.die{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 1.15s cubic-bezier(.18,.75,.25,1)}
+.face{position:absolute;inset:0;border-radius:18%;background:var(--dc);border:3px solid var(--dd);box-sizing:border-box;
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:13%;backface-visibility:hidden;box-shadow:inset 0 0 0 3px rgba(255,255,255,.22)}
+.face.f1{transform:translateZ(calc(var(--ds)/2))}
+.face.f6{transform:rotateY(180deg) translateZ(calc(var(--ds)/2))}
+.face.f2{transform:rotateY(90deg) translateZ(calc(var(--ds)/2));filter:brightness(.82)}
+.face.f5{transform:rotateY(-90deg) translateZ(calc(var(--ds)/2));filter:brightness(.82)}
+.face.f3{transform:rotateX(90deg) translateZ(calc(var(--ds)/2));filter:brightness(1.06)}
+.face.f4{transform:rotateX(-90deg) translateZ(calc(var(--ds)/2));filter:brightness(.7)}
+.pip{width:72%;height:72%;border-radius:50%;background:#22314A;place-self:center}
+.pip.red{background:#E5394B;width:95%;height:95%}
+.dy{--dc:#F7CB3A;--dd:#9C7A10} .dp{--dc:#B565DB;--dd:#6E2E8C} .dg{--dc:#5CC46F;--dd:#2F7A40}
+
+.act{display:flex;flex-direction:column;align-items:stretch;gap:8px;min-height:calc(clamp(110px,15vh,170px)*var(--scale))}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:3px solid var(--green-d);border-radius:18px;
+  padding:12px 24px;background:var(--green);color:#fff;box-shadow:0 5px 0 var(--green-d);font-family:var(--display);font-size:clamp(18px,1.6vw,26px);transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--green-d)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.alt{background:var(--card);color:var(--green-d)}
+.btn.orange{background:var(--orange);border-color:var(--orange-d);box-shadow:0 5px 0 var(--orange-d)}
+.roll{font-size:calc(clamp(24px,2.4vw,40px)*var(--scale));padding:clamp(12px,2vh,22px);background:var(--pc,var(--green));border-color:var(--pd,var(--green-d));box-shadow:0 6px 0 var(--pd,var(--green-d))}
+.roll:active{box-shadow:0 1px 0 var(--pd,var(--green-d))}
+.eqn{display:flex;align-items:center;justify-content:center;gap:12px;background:var(--card);border:3px solid var(--line);border-radius:18px;padding:6px 12px;
+  font-family:var(--num);font-weight:700;font-size:calc(clamp(26px,2.6vw,46px)*var(--scale))}
+.eqn .op{color:var(--orange)}
+.ans{min-width:2.2em;text-align:center;border:3px solid var(--pc,var(--green));border-radius:14px;padding:0 10px;background:var(--bg)}
+.ans.empty{color:#D9C9AC}
+.ans.ok{background:var(--green);border-color:var(--green-d);color:#fff}
+.ans.bad{background:var(--red);border-color:#B93A50;color:#fff;animation:shake .42s}
+@keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+.keypad{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-top:8px}
+.key{border:3px solid var(--line);border-radius:14px;background:var(--card);box-shadow:0 5px 0 var(--line);
+  font-family:var(--num);font-weight:700;font-size:calc(clamp(22px,2vw,36px)*var(--scale));padding:clamp(6px,1.2vh,14px) 0;line-height:1.1}
+.key.down,.key:active{transform:translateY(4px);box-shadow:0 1px 0 var(--line)}
+.key.del{font-family:var(--display);font-weight:400;font-size:calc(clamp(14px,1.2vw,20px)*var(--scale));color:var(--muted)}
+.key.ok{font-family:var(--display);font-weight:400;font-size:calc(clamp(16px,1.4vw,24px)*var(--scale));background:var(--pc,var(--green));border-color:var(--pd,var(--green-d));color:#fff;box-shadow:0 5px 0 var(--pd,var(--green-d))}
+.msg{margin:0;text-align:center;font-family:var(--display);font-size:calc(clamp(17px,1.5vw,26px)*var(--scale));min-height:1.3em;color:var(--ink)}
+.msg .up{color:var(--green-d)} .msg .down{color:#3F5E86} .msg .bonus{color:var(--orange-d)}
+.legend{margin:0;text-align:center;color:var(--muted);font-size:clamp(12px,1vw,15px)}
+.copy{flex:none;text-align:right;padding:2px 16px 6px;font-size:clamp(11px,.8vw,13px);color:var(--muted)}
+
+/* ---------- 오버레이 ---------- */
+.overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:16px;background:rgba(255,248,236,.94);overflow:auto}
+.sheet,.dialog{background:var(--card);border:4px solid var(--line);border-radius:28px;box-shadow:var(--shadow);width:100%;box-sizing:border-box}
+.sheet{max-width:1000px;max-height:100%;overflow:auto;padding:clamp(18px,2.4vw,32px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 28px}
+.sheet header,.sheet .wide{grid-column:1/-1}
+.sheet header{display:flex;align-items:center;gap:18px}
+.sheet header svg{width:clamp(70px,8vw,110px);height:auto;flex:none}
+.sheet h2{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(26px,3vw,44px);color:var(--green-d);text-wrap:balance}
+.sheet h2 b{font-weight:400;color:var(--orange)}
+.lead{margin:6px 0 0;color:var(--muted);font-size:clamp(15px,1.2vw,19px)}
+.sheet section{display:flex;flex-direction:column;gap:8px;min-width:0}
+.sheet h3{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(15px,1.2vw,19px);color:var(--green-d)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{border:3px solid var(--line);background:var(--card);border-radius:16px;padding:9px 16px;font-family:var(--display);font-size:clamp(17px,1.4vw,22px);
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;box-shadow:0 4px 0 var(--line)}
+.chips button small{font-family:var(--body);font-size:13px;color:var(--muted)}
+.chips button[aria-pressed="true"]{border-color:var(--orange-d);background:var(--orange);color:#fff;box-shadow:0 4px 0 var(--orange-d)}
+.chips button[aria-pressed="true"] small{color:#FFF4E6}
+.chips.big button{flex-direction:row;align-items:center;padding:10px 18px;font-size:clamp(20px,1.8vw,28px)}
+.chips.big svg{width:30px;height:auto}
+.names{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.names label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.names input{font-family:var(--display);font-size:19px;padding:8px 10px;border-radius:14px;border:3px solid var(--line);background:var(--card);color:var(--pd);min-width:0;-webkit-user-select:text;user-select:text}
+.rules-note{margin:0;font-size:14px;color:var(--muted);line-height:1.6;background:var(--bg);border:3px dashed var(--line);border-radius:16px;padding:10px 14px}
+.start{grid-column:1/-1;font-size:clamp(24px,2.4vw,36px);padding:14px}
+.devrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--sky);border:3px solid #C7E3F7;border-radius:18px;padding:10px 12px}
+.devtabs{display:flex;gap:6px;flex-wrap:wrap}
+.devtabs button,.fontbtns button{font-family:var(--display);font-size:clamp(15px,1.2vw,19px);min-height:44px;padding:6px 14px;border-radius:14px;
+  border:3px solid #B9DAF2;background:#fff;color:#2A5A86;display:inline-flex;align-items:center;gap:6px}
+.devtabs button[aria-pressed="true"]{background:#2F7FC1;border-color:#2F7FC1;color:#fff}
+.auto-hint{font-size:14px;color:#2A5A86}
+.fontbtns{display:flex;gap:6px;align-items:center;margin-left:auto}
+.fontbtns span{font-family:var(--display);color:#2A5A86;min-width:3.2em;text-align:center}
+.dialog{max-width:620px;padding:clamp(22px,3vw,40px);text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.dialog > svg{width:clamp(100px,11vw,150px);height:auto;animation:jump .8s ease-in-out infinite}
+@keyframes jump{50%{transform:translateY(-10px)}}
+.dialog h2{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(32px,4vw,58px)}
+.eyebrow{margin:0;font-family:var(--display);font-size:clamp(16px,1.4vw,22px);color:var(--orange-d)}
+.row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.rank{list-style:none;margin:0;padding:0;width:100%;display:flex;flex-direction:column;gap:6px}
+.rank li{display:flex;align-items:center;gap:10px;border:3px solid var(--line);border-radius:16px;padding:6px 12px;background:var(--pl)}
+.rank li svg{width:36px;height:auto}
+.rank li .r{font-family:var(--num);font-weight:700;font-size:22px;width:1.6em}
+.rank li .n{font-family:var(--display);font-size:20px;color:var(--pd);flex:1;text-align:left}
+.rank li .p{font-size:14px;color:var(--muted)}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+
+/* ---------- 기기별 화면 ---------- */
+html[data-device="board"] .tool{font-size:clamp(16px,1.1vw,20px);padding:8px 16px}
+html[data-device="board"]{--ds:clamp(70px,6vw,120px)}
+html[data-layout="stack"] .app{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+html[data-layout="stack"] .panel{overflow:visible}
+html[data-layout="stack"] .players{grid-template-columns:repeat(4,minmax(0,1fr))}
+html[data-layout="stack"] .legend{display:none}
+html[data-layout="stack"]{--ds:clamp(50px,7vw,84px)}
+html[data-layout="stack"] .act{min-height:0}
+html[data-layout="stack"] .r-card{width:58%}
+html[data-device="phone"]{--ds:44px}
+html[data-device="phone"] .brand small,html[data-device="phone"] .tool .txt{display:none}
+html[data-device="phone"] .brand{font-size:17px}
+html[data-device="phone"] .brand svg{width:30px}
+html[data-device="phone"] .tool{padding:4px 9px;font-size:16px}
+html[data-device="phone"] .app{gap:8px;padding-inline:10px;padding-block:6px 2px}
+html[data-device="phone"] .board{border-width:3px;border-radius:14px}
+html[data-device="phone"] .r-card{width:70%;border-width:3px;border-radius:18px}
+html[data-device="phone"] .panel{gap:6px}
+html[data-device="phone"] .players{gap:4px}
+html[data-device="phone"] .pcard{padding:3px 5px;gap:3px;border-radius:12px;border-width:2px}
+html[data-device="phone"] .pcard svg{width:22px}
+html[data-device="phone"] .pcard .nm{font-size:12px}
+html[data-device="phone"] .pcard .pos{font-size:11px}
+html[data-device="phone"] .turn{font-size:17px;padding:3px 10px;border-radius:14px}
+html[data-device="phone"] .turn svg{width:26px}
+html[data-device="phone"] .dice{padding:8px 0 16px;gap:26px}
+html[data-device="phone"] .eqn{font-size:24px;padding:3px 10px}
+html[data-device="phone"] .key{font-size:20px;padding:6px 0;border-radius:10px;border-width:2px;box-shadow:0 3px 0 var(--line)}
+html[data-device="phone"] .key.ok{box-shadow:0 3px 0 var(--pd,var(--green-d))}
+html[data-device="phone"] .roll{font-size:22px;padding:10px}
+html[data-device="phone"] .msg{font-size:15px}
+html[data-device="phone"] .copy{font-size:10px;padding:0 10px 4px}
+@media (max-height:560px){ html[data-layout="wide"]{--ds:44px} html[data-layout="wide"] .legend,html[data-layout="wide"] .brand small{display:none} }
+@media (max-width:820px){ .sheet{grid-template-columns:minmax(0,1fr)} .names{grid-template-columns:1fr 1fr} }
+@media (prefers-reduced-motion:reduce){
+  .die-hop.rolling,.token.now::after,.dialog>svg,.ans.bad,.token svg,.r-dino,.fx,.orbit,.cloud,.zone .arrow{animation:none!important}
+  .die{transition-duration:.2s}
+}
+a.tool{text-decoration:none;display:inline-flex;align-items:center}
+.tool[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="dino-logo"></span><span>Tyrano<b>Math</b></span><small>티라노 사다리 게임</small></div>
+  <div class="tools">
+    <a class="tool zone-back" id="btnZone" href="../gamezone.html" hidden>←<span class="txt"> 게임존</span></a>
+    <button class="tool" id="btnSound" aria-pressed="true" aria-label="소리">🔊<span class="txt"> 소리</span></button>
+    <button class="tool" id="btnFull" aria-label="전체 화면">⛶<span class="txt"> 전체 화면</span></button>
+    <button class="tool home" id="btnHome" aria-label="처음 화면">🏠<span class="txt"> 처음 화면</span></button>
+  </div>
+</header>
+
+<div class="app">
+  <div class="board-area"><div class="board" id="board">
+    <div class="zone z-goal"><span class="zi">🏆</span><span class="zt">도착</span><span class="zs">100 다음 칸</span></div>
+    <div class="zone z-start"><span class="zi">🚩</span><span class="zt">출발</span><span class="arrow">➜ 1</span></div>
+    <div class="cells" id="cells"></div>
+    <svg class="paths" id="paths" viewBox="0 0 1150 1000" aria-hidden="true"></svg>
+    <div id="tokens"></div>
+    <div class="react" id="react" hidden></div>
+  </div></div>
+  <aside class="panel">
+    <div class="players" id="players"></div>
+    <div class="turn" id="turn"></div>
+    <div class="dice" id="dice" aria-label="주사위"></div>
+    <div class="act">
+      <button class="btn roll" id="btnRoll">🎲 주사위 던지기</button>
+      <div id="calc" hidden>
+        <div class="eqn" id="eqn"></div>
+        <div class="keypad" id="keypad"></div>
+      </div>
+    </div>
+    <p class="msg" id="msg" aria-live="polite"></p>
+    <p class="legend">🪜 사다리는 위로 올라가는 길 · 🕳️ 터널은 아래로 내려가는 길</p>
+  </aside>
+</div>
+<footer class="copy">© 2026 TyranoMath 백태진 All rights reserved.</footer>
+
+<!-- 설정 -->
+<div class="overlay" id="setup">
+  <div class="sheet" role="dialog" aria-labelledby="setupTitle">
+    <header>
+      <span class="dino-logo"></span>
+      <div>
+        <h2 id="setupTitle">크앙! 티라노 <b>사다리</b> 게임</h2>
+        <p class="lead">출발 지점에서 주사위 3개를 던져 나온 수를 모두 더한 만큼 앞으로 가요. 100칸을 지나 도착 지점에 먼저 들어오면 이겨요!</p>
+      </div>
+    </header>
+    <section class="wide">
+      <h3>화면 설정</h3>
+      <div class="devrow">
+        <div class="devtabs" id="devTabs">
+          <button data-mode="auto">✨ 자동</button><button data-mode="board">🧑‍🏫 전자칠판</button>
+          <button data-mode="pad">📲 패드</button><button data-mode="phone">📱 스마트폰</button><button data-mode="pc">💻 컴퓨터</button>
+        </div>
+        <span class="auto-hint" id="autoHint"></span>
+        <div class="fontbtns"><button id="fontDown" aria-label="글자 작게">가−</button><span id="fontVal">100%</span><button id="fontUp" aria-label="글자 크게">가+</button></div>
+      </div>
+    </section>
+    <section class="wide">
+      <h3>몇 명이 할까요?</h3>
+      <div class="chips big" data-key="n" data-type="num" id="nChips"></div>
+    </section>
+    <section class="wide">
+      <h3>이름</h3>
+      <div class="names" id="names"></div>
+    </section>
+    <section>
+      <h3>주사위 합 구하기</h3>
+      <div class="chips" data-key="calc" data-type="bool">
+        <button data-v="1">직접 계산해서 입력<small>예) 4 + 2 + 5 = 11</small></button>
+        <button data-v="0">자동으로 이동<small>합을 바로 보여줘요</small></button>
+      </div>
+    </section>
+    <section>
+      <h3>도착 규칙</h3>
+      <div class="chips" data-key="exact" data-type="bool">
+        <button data-v="0">넘어도 도착<small>빠르게 끝나요</small></button>
+        <button data-v="1">딱 맞춰 도착<small>넘친 만큼 되돌아가요</small></button>
+      </div>
+    </section>
+    <section class="wide">
+      <h3>보너스</h3>
+      <div class="chips" data-key="bonus" data-type="bool">
+        <button data-v="1">세 주사위가 모두 같으면 한 번 더!</button>
+        <button data-v="0">보너스 없음</button>
+      </div>
+    </section>
+    <p class="rules-note wide">🪜 <b>사다리</b>는 올라가는 길이에요. 사다리 아래 칸에 멈추면 꼭대기로 올라가고 티라노가 신나해요. 🕳️ <b>터널</b>은 내려가는 길이에요. 터널 입구에 멈추면 출구까지 내려가고 티라노가 속상해해요.</p>
+    <button class="btn start" id="btnStart">시작하기 🦖</button>
+  </div>
+</div>
+
+<div class="overlay" id="winOv" hidden>
+  <div class="dialog">
+    <span class="dino-logo"></span>
+    <p class="eyebrow" id="winWhy">도착!</p>
+    <h2 id="winTitle">초록 티라노 승리!</h2>
+    <ol class="rank" id="rank"></ol>
+    <div class="row">
+      <button class="btn orange" id="btnAgain">다시 하기</button>
+      <button class="btn alt" id="btnSetup">설정 바꾸기</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confetti" hidden></canvas>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const ri = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const store = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }, set(k,v){ try { localStorage.setItem(k,v); } catch(e){} } };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* TyranoMath 티라노 (표정: 기본 / 신남 / 슬픔 / 놀람) */
+const DINO_BODY = `
+  <path class="d-tail" d="M58 142 Q18 142 6 106 Q30 126 62 118 Z"/>
+  <path class="d-spike" d="M86 88 L80 68 L98 82 Z M71 98 L60 80 L81 92 Z M59 112 L44 98 L67 106 Z M108 34 L110 14 L126 28 Z M128 28 L136 9 L146 26 Z"/>
+  <rect class="d-leg" x="68" y="156" width="25" height="32" rx="11"/><rect class="d-leg" x="106" y="156" width="25" height="32" rx="11"/>
+  <ellipse class="d-main" cx="96" cy="128" rx="47" ry="44"/><ellipse class="d-belly" cx="108" cy="134" rx="26" ry="32"/>
+  <rect class="d-main" x="92" y="26" width="112" height="80" rx="38"/>
+  <ellipse class="d-cheek" cx="174" cy="76" rx="10" ry="5.5"/>`;
+const FACES = {
+  base: `<circle class="d-eye" cx="150" cy="56" r="15"/><circle class="d-pupil" cx="154" cy="58" r="8.5"/><circle class="d-hl" cx="157.5" cy="54" r="3"/>
+    <path class="d-mouth" d="M140 84 Q166 104 194 82"/><path class="d-leg" d="M136 118 q16 -4 20 8 q-3 5 -9 2 q-4 -4 -11 -1 Z"/>`,
+  happy: `<path class="d-brow" d="M136 54 Q150 40 166 54"/>
+    <path class="d-open" d="M138 80 Q166 118 198 78 Z"/><path class="d-tongue" d="M156 92 Q168 104 180 92 Q168 88 156 92Z"/>
+    <path class="d-leg" d="M136 112 q10 -18 26 -22 q4 4 -1 8 q-12 4 -17 18 Z"/>`,
+  sad: `<path class="d-brow" d="M138 38 L166 46"/><circle class="d-eye" cx="152" cy="60" r="13"/><circle class="d-pupil" cx="154" cy="64" r="7"/><circle class="d-hl" cx="156.5" cy="61" r="2.5"/>
+    <path class="d-mouth" d="M146 96 Q168 80 192 94"/><path class="d-tear" d="M146 72 q-6 10 0 14 q6 -4 0 -14Z"/>
+    <path class="d-leg" d="M136 124 q14 4 18 14 q-5 3 -9 -1 q-3 -6 -9 -8 Z"/>`,
+  shock: `<circle class="d-eye" cx="150" cy="54" r="18"/><circle class="d-pupil" cx="152" cy="54" r="5"/>
+    <ellipse class="d-open" cx="172" cy="88" rx="10" ry="12"/><path class="d-brow" d="M134 30 Q150 22 166 32"/>
+    <path class="d-leg" d="M136 116 q8 -22 22 -26 q4 4 -1 8 q-10 6 -14 20 Z"/>`
+};
+const dinoSvg = (c, face='base') => `<svg viewBox="0 0 220 200" aria-hidden="true" class="c${c}">${DINO_BODY}${FACES[face]}</svg>`;
+document.querySelectorAll('.dino-logo').forEach(el => { const w = document.createElement('span'); w.innerHTML = dinoSvg(0); el.replaceWith(w.firstChild); });
+
+/* ---------------- 판 (가로 1150 × 세로 1000, 왼쪽 150은 출발·도착 공간) ---------------- */
+const LADDERS = {4:25, 13:46, 33:49, 42:63, 50:69, 62:81, 74:92};     // 올라가는 길
+const TUNNELS = {27:5, 40:3, 43:18, 54:31, 66:45, 76:58, 89:53, 95:75, 99:41};  // 내려가는 길
+const START = 0, GOAL = 101, SIDE = 150, W = 1150;
+const colRow = n => { const r = Math.floor((n-1)/10), k = (n-1)%10; return [r % 2 === 0 ? k : 9-k, r]; };
+const center = n => { const [c,r] = colRow(n); return [SIDE + c*100+50, (9-r)*100+50]; };
+const ZONE_SPOTS = { [START]: [[52,700],[98,775],[52,850],[98,925]], [GOAL]: [[52,200],[98,275],[52,350],[98,425]] };
+
+function buildCells(){
+  let h = '';
+  for (let vr = 0; vr < 10; vr++){
+    const r = 9 - vr;
+    for (let c = 0; c < 10; c++){
+      const n = r % 2 === 0 ? r*10 + c + 1 : r*10 + (10 - c);
+      h += `<div class="cell${(r + c) % 2 ? ' alt' : ''}${n === 1 ? ' c-first' : ''}${n === 100 ? ' c-last' : ''}"><b>${n}</b></div>`;
+    }
+  }
+  $('#cells').innerHTML = h;
+}
+const bez = (p0,p1,p2,p3,t) => { const u = 1-t; return [0,1].map(i => u*u*u*p0[i] + 3*u*u*t*p1[i] + 3*u*t*t*p2[i] + t*t*t*p3[i]); };
+const tunnelCurve = {};
+function hole(x, y, big){
+  const s = big ? 1 : .78;
+  return `<g transform="translate(${x} ${y+8}) scale(${s})">
+    <ellipse cx="0" cy="6" rx="44" ry="26" style="fill:var(--earth-d)"/>
+    <ellipse cx="0" cy="0" rx="42" ry="24" style="fill:var(--earth)"/>
+    <ellipse cx="0" cy="3" rx="30" ry="16" style="fill:var(--hole)"/>
+    ${big ? `<circle cx="-9" cy="2" r="3" fill="#FFD43B"/><circle cx="7" cy="2" r="3" fill="#FFD43B"/>` : `<path d="M-14 -2 q14 -10 28 0" fill="none" stroke="#7A5A3A" stroke-width="3" stroke-linecap="round"/>`}
+    <path d="M-40 -6 l-6 -12 l9 6 l1 -12 l6 12 M34 -8 l4 -12 l3 10 l8 -6 l-5 12" fill="none" stroke="#5CC46F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>`;
+}
+function buildPaths(){
+  let under = '', holes = '', ladders = '';
+  Object.entries(TUNNELS).forEach(([a,b],i) => {
+    const p0 = center(+a), p3 = center(+b), dx = p3[0]-p0[0], dy = p3[1]-p0[1], L = Math.hypot(dx,dy);
+    const px = -dy/L, py = dx/L, bend = (i % 2 ? 1 : -1) * Math.min(80, L*0.25);
+    const p1 = [p0[0]+dx*.3+px*bend, p0[1]+dy*.3+py*bend], p2 = [p0[0]+dx*.7-px*bend, p0[1]+dy*.7-py*bend];
+    tunnelCurve[a] = [p0,p1,p2,p3];
+    const path = `M${p0[0]} ${p0[1]} C${p1[0]} ${p1[1]} ${p2[0]} ${p2[1]} ${p3[0]} ${p3[1]}`;
+    under += `<path d="${path}" fill="none" style="stroke:var(--earth)" stroke-width="30" stroke-linecap="round" opacity=".22"/>
+      <path d="${path}" fill="none" style="stroke:var(--earth-d)" stroke-width="5" stroke-linecap="round" stroke-dasharray="4 16" opacity=".55"/>`;
+    holes += hole(p0[0], p0[1], true) + hole(p3[0], p3[1], false);
+  });
+  Object.entries(LADDERS).forEach(([a,b]) => {
+    const p0 = center(+a), p1 = center(+b), dx = p1[0]-p0[0], dy = p1[1]-p0[1], L = Math.hypot(dx,dy);
+    const px = -dy/L*17, py = dx/L*17;
+    let rungs = '';
+    const n = Math.max(2, Math.round(L/42));
+    for (let k = 1; k < n; k++){ const t = k/n, x = p0[0]+dx*t, y = p0[1]+dy*t; rungs += `<line x1="${x+px}" y1="${y+py}" x2="${x-px}" y2="${y-py}"/>`; }
+    const rails = `<line x1="${p0[0]+px}" y1="${p0[1]+py}" x2="${p1[0]+px}" y2="${p1[1]+py}"/><line x1="${p0[0]-px}" y1="${p0[1]-py}" x2="${p1[0]-px}" y2="${p1[1]-py}"/>`;
+    ladders += `<g filter="url(#sh)" stroke-linecap="round"><g style="stroke:var(--wood-d)" stroke-width="15">${rungs}${rails}</g><g style="stroke:var(--wood)" stroke-width="9">${rungs}${rails}</g></g>`;
+  });
+  $('#paths').innerHTML = `<defs><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="0" flood-color="#22314A" flood-opacity=".18"/></filter></defs>`
+    + under + holes + ladders;
+}
+
+/* ---------------- 설정 ---------------- */
+const DEF_NAMES = ['초록 티라노','주황 티라노','보라 티라노','노랑 티라노'];
+let cfg = {n:2, names:DEF_NAMES.slice(), calc:true, exact:false, bonus:true};
+try { const s = JSON.parse(store.get('tyrano-ladder-cfg')||'null'); if (s && s.n) cfg = Object.assign(cfg, s); } catch(e){}
+const saveCfg = () => store.set('tyrano-ladder-cfg', JSON.stringify(cfg));
+const nm = i => cfg.names[i] || DEF_NAMES[i];
+
+/* ---------------- 소리 ---------------- */
+let ac = null, soundOn = true;
+function ensureAudio(){ if (!ac){ try { ac = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} } if (ac && ac.state === 'suspended') ac.resume(); }
+function tone(f, dur, type='sine', vol=.14, when=0, f2){
+  if (!soundOn || !ac) return;
+  const t = ac.currentTime + when, o = ac.createOscillator(), g = ac.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t+dur);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t+.01); g.gain.exponentialRampToValueAtTime(.0001, t+dur);
+  o.connect(g).connect(ac.destination); o.start(t); o.stop(t+dur+.03);
+}
+const sfx = {
+  roll: () => { for (let i = 0; i < 9; i++) tone(180+Math.random()*320, .04, 'square', .045, i*.1 + Math.random()*.03); },
+  key: () => tone(900,.04,'triangle',.05),
+  step: () => tone(620,.06,'triangle',.07),
+  ok: () => { tone(660,.12); tone(990,.2,'sine',.14,.09); },
+  bad: () => tone(170,.28,'square',.05),
+  up: () => { tone(330,.7,'triangle',.12,0,1100); [784,988,1175,1568].forEach((f,i)=>tone(f,.14,'triangle',.1,.7+i*.08)); },
+  down: () => { tone(700,1,'sine',.12,0,120); [392,349,311].forEach((f,i)=>tone(f,.28,'triangle',.08,1+i*.22)); },
+  bonus: () => [784,988,1175].forEach((f,i)=>tone(f,.15,'triangle',.12,i*.09)),
+  win: () => [523,659,784,1047,1319].forEach((f,i)=>tone(f,.35,'triangle',.15,i*.12)),
+};
+
+/* ---------------- 주사위 3개 ---------------- */
+const PIPS = {1:[5],2:[1,9],3:[1,5,9],4:[1,3,7,9],5:[1,3,5,7,9],6:[1,3,4,6,7,9]};
+const FACE_ROT = {1:[0,0],2:[0,-90],3:[-90,0],4:[90,0],5:[0,90],6:[0,180]};
+const DIE_CLS = ['dy','dp','dg'];
+const dieState = [0,1,2].map(() => ({rx:0, ry:0, rz:0}));
+function buildDice(){
+  $('#dice').innerHTML = DIE_CLS.map((c,i) => `<div class="die-slot"><div class="die-hop" id="hop${i}"><div class="die ${c}" id="die${i}">` +
+    [1,2,3,4,5,6].map(v => `<div class="face f${v}">` + PIPS[v].map(p => `<i class="pip${v===1?' red':''}" style="grid-area:${Math.ceil(p/3)}/${(p-1)%3+1}"></i>`).join('') + '</div>').join('') +
+    `</div></div></div>`).join('');
+  [3,5,2].forEach((v,i) => setDie(i, v, false));
+}
+function setDie(i, v, spin){
+  const st = dieState[i], [fx, fy] = FACE_ROT[v];
+  const turnsX = spin ? ri(2,3) : 0, turnsY = spin ? ri(2,3) : 0;
+  st.rx = Math.ceil(st.rx/360)*360 + turnsX*360 + fx;
+  st.ry = Math.ceil(st.ry/360)*360 + turnsY*360 + fy;
+  st.rz = ri(-14,14);
+  $('#die'+i).style.transform = `rotateX(-20deg) rotateY(${i===1?20:-22}deg) rotateZ(${st.rz}deg) rotateX(${st.rx}deg) rotateY(${st.ry}deg)`;
+  if (spin){ const h = $('#hop'+i); h.classList.remove('rolling'); h.offsetWidth; h.style.animationDelay = (i*0.06)+'s'; h.classList.add('rolling'); }
+}
+
+/* ---------------- 티라노 반응 5가지 + 5가지 ---------------- */
+const fxs = (list) => list.map(([t,x,y,extra='']) => `<span class="fx" style="left:${x}%;top:${y}%;${extra}">${t}</span>`).join('');
+const GOOD = {
+  jump:   {cap:'크앙! 신난다!', face:'happy', fx:() => fxs([['⭐',45,40,'--tx:-180%;--ty:-160%'],['🎉',50,40,'--tx:160%;--ty:-170%;animation-delay:.2s'],['✨',48,45,'--tx:-220%;--ty:30%;animation-delay:.4s'],['⭐',46,45,'--tx:220%;--ty:20%;animation-delay:.6s'],['🎉',47,38,'--tx:0;--ty:-230%;animation-delay:.8s']])},
+  spin:   {cap:'빙글빙글 기분 최고!', face:'happy', fx:() => fxs([['✨',6,12],['⭐',82,8,'animation-delay:.2s'],['✨',88,62,'animation-delay:.4s'],['⭐',4,66,'animation-delay:.6s'],['✨',46,-4,'animation-delay:.3s']])},
+  hearts: {cap:'사다리 정말 좋아!', face:'happy', fx:() => fxs([['💖',12,70],['💗',80,64,'animation-delay:.3s'],['💖',30,60,'animation-delay:.6s'],['💗',66,72,'animation-delay:.9s'],['💖',48,66,'animation-delay:1.2s']])},
+  dance:  {cap:'룰루랄라~ 올라가요!', face:'happy', fx:() => fxs([['🎵',14,50,'--tx:-60%'],['🎶',78,46,'--tx:60%;animation-delay:.35s'],['🎵',70,60,'--tx:80%;animation-delay:.7s'],['🎶',20,62,'--tx:-80%;animation-delay:1s']])},
+  rocket: {cap:'슝~ 위로 날아가요!', face:'happy', fx:() => fxs([['💨',30,78],['💨',56,80,'animation-delay:.15s'],['🔥',43,76,'animation-delay:.05s'],['✨',10,20,'animation-delay:.4s'],['✨',84,24,'animation-delay:.6s']])},
+};
+const BAD = {
+  cry:   {cap:'으앙… 내려가기 싫어', face:'sad', fx:() => fxs([['💧',60,30],['💧',64,32,'animation-delay:.5s'],['💧',57,34,'animation-delay:.25s'],['💧',66,30,'animation-delay:.75s']])},
+  dizzy: {cap:'어질어질~ 터널은 깜깜해', face:'sad', fx:() => `<div class="orbit">${fxs([['💫',0,30],['⭐',80,0],['💫',85,60],['🌀',30,-20]])}</div>`},
+  shock: {cap:'앗! 깜짝이야!', face:'shock', fx:() => fxs([['❗',70,0],['❗',82,10,'animation-delay:.1s'],['💦',18,16,'animation-delay:.2s']])},
+  flop:  {cap:'털썩… 다시 힘내자!', face:'sad', fx:() => fxs([['💨',20,78,'--tx:-120%'],['💨',66,78,'--tx:120%;animation-delay:.05s'],['💨',30,82,'--tx:-60%;animation-delay:.1s'],['💨',58,82,'--tx:60%;animation-delay:.12s']])},
+  rain:  {cap:'주룩주룩… 그래도 괜찮아!', face:'sad', fx:() => `<span class="cloud">🌧️</span>` + fxs([['💧',36,18],['💧',50,20,'animation-delay:.2s'],['💧',62,16,'animation-delay:.4s'],['💧',44,22,'animation-delay:.55s']])},
+};
+let lastGood = '', lastBad = '';
+function showReaction(i, good, from, to, force){
+  const set = good ? GOOD : BAD;
+  let key = force; if (!key) do { key = pick(Object.keys(set)); } while (key === (good ? lastGood : lastBad));
+  good ? lastGood = key : lastBad = key;
+  const r = set[key], el = $('#react');
+  el.className = 'react ' + (good ? 'good' : 'bad') + ' a-' + key;
+  el.innerHTML = `<div class="r-card c${i}"><span class="r-tag">${good ? '🪜 사다리 타고 올라가요!' : '🕳️ 터널로 내려가요…'}</span>
+    <div class="r-stage">${r.fx()}<div class="r-dino">${dinoSvg(i, r.face)}</div></div>
+    <p class="r-cap"></p><p class="r-sub">${from} → ${to}</p></div>`;
+  el.querySelector('.r-cap').textContent = `${nm(i)}: ${r.cap}`;
+  // 말이 움직이는 곳을 가리지 않게, 말이 위쪽에 있으면 아래에, 아래쪽에 있으면 위에 띄워요
+  const avg = (cellXY(i, from)[1] + cellXY(i, to)[1]) / 2;
+  el.style.alignItems = avg < 50 ? 'end' : 'start';
+  el.hidden = false;
+}
+async function hideReaction(){
+  const el = $('#react'); if (el.hidden) return;
+  el.classList.add('out'); await sleep(300); el.hidden = true; el.innerHTML = '';
+}
+
+/* ---------------- 게임 ---------------- */
+const G = {players:[], cur:0, phase:'idle', dice:[1,1,1], sum:0, input:'', wrong:0, gen:0};
+const posLabel = n => n === START ? '출발' : n === GOAL ? '도착!' : n + '칸';
+function buildPlayers(){
+  $('#players').innerHTML = G.players.map((p,i) => `<div class="pcard c${i}" id="pc${i}">${dinoSvg(i)}
+    <div class="who"><span class="nm"></span><span class="pos"><b id="pp${i}">출발</b> · <span id="pt${i}">0</span>번 던짐</span></div></div>`).join('');
+  G.players.forEach((p,i) => $(`#pc${i} .nm`).textContent = nm(i));
+  $('#players').style.gridTemplateColumns = G.players.length === 1 ? '1fr' : '';
+  $('#tokens').innerHTML = G.players.map((p,i) => `<div class="token c${i}" id="tk${i}">${dinoSvg(i)}</div>`).join('');
+}
+const OFFS = [[-1.6,-1.4],[1.6,-1.4],[-1.6,1.6],[1.6,1.6]];
+function placeTok(i, x, y){ const t = $('#tk'+i); t.style.left = x + '%'; t.style.top = y + '%'; }
+function cellXY(i, n){
+  if (n === START || n === GOAL){ const [x,y] = ZONE_SPOTS[n][i]; return [x/W*100, y/10]; }
+  const [cx, cy] = center(n), same = G.players.filter(p => p.pos === n).length;
+  const o = same > 1 ? OFFS[i] : [0,0];
+  return [cx/W*100 + o[0], cy/10 + o[1]];
+}
+function layoutTokens(){ G.players.forEach((p,i) => { const [x,y] = cellXY(i, p.pos); placeTok(i, x, y); }); }
+function renderTurn(){
+  const i = G.cur, c = 'c' + i;
+  ['#turn','.panel'].forEach(s => { const el = $(s); el.classList.remove('c0','c1','c2','c3'); el.classList.add(c); });
+  $('#turn').innerHTML = dinoSvg(i) + '<span><b></b> ' + (G.players.length === 1 ? `${G.players[0].turns + 1}번째 던지기!` : '차례예요!') + '</span>';
+  $('#turn b').textContent = nm(i);
+  G.players.forEach((p,j) => { $('#pc'+j).classList.toggle('now', j === i); $('#tk'+j).classList.toggle('now', j === i); });
+}
+function renderPlayer(i){ $('#pp'+i).textContent = posLabel(G.players[i].pos); $('#pt'+i).textContent = G.players[i].turns; }
+function msg(html){ $('#msg').innerHTML = html; }
+function josa(w){ const c = w.charCodeAt(w.length-1); if (c < 0xAC00 || c > 0xD7A3) return '이(가)'; return (c-0xAC00)%28 ? '이' : '가'; }
+
+function newGame(){
+  G.gen++;
+  G.players = Array.from({length:cfg.n}, () => ({pos:START, turns:0}));
+  G.cur = 0; G.phase = 'roll'; G.input = ''; G.wrong = 0;
+  $('#react').hidden = true;
+  buildPlayers(); layoutTokens(); renderTurn(); G.players.forEach((p,i) => renderPlayer(i));
+  showRoll(); $('#keypad').hidden = false;
+  msg(cfg.n === 1 ? '몇 번 만에 도착 지점에 들어올 수 있을까요?' : '출발 지점에서 주사위를 던져 출발해요!');
+  ['#setup','#winOv'].forEach(s => $(s).hidden = true);
+}
+function showRoll(){ $('#btnRoll').hidden = false; $('#btnRoll').disabled = false; $('#calc').hidden = true; }
+
+async function roll(){
+  if (G.phase !== 'roll') return;
+  ensureAudio();
+  const gen = G.gen;
+  G.phase = 'rolling'; $('#btnRoll').disabled = true;
+  G.dice = [ri(1,6), ri(1,6), ri(1,6)]; G.sum = G.dice[0] + G.dice[1] + G.dice[2];
+  G.players[G.cur].turns++; renderPlayer(G.cur);
+  G.dice.forEach((v,i) => setDie(i, v, true)); sfx.roll();
+  msg('데구르르…');
+  await sleep(reduced ? 300 : 1300); if (gen !== G.gen) return;
+  $('#btnRoll').hidden = true; $('#calc').hidden = false;
+  if (cfg.calc){
+    G.phase = 'answer'; G.input = ''; G.wrong = 0; $('#keypad').hidden = false;
+    renderEqn(); msg('주사위 세 수를 모두 더하면 얼마일까요?');
+  } else {
+    $('#keypad').hidden = true; G.input = String(G.sum); renderEqn('ok');
+    msg(`${G.sum}칸 앞으로 가요!`);
+    await sleep(700); if (gen !== G.gen) return;
+    move();
+  }
+}
+function renderEqn(state){
+  const [a,b,c] = G.dice;
+  $('#eqn').innerHTML = `<span>${a}</span><span class="op">+</span><span>${b}</span><span class="op">+</span><span>${c}</span><span class="op">=</span>
+    <span class="ans ${G.input ? '' : 'empty'} ${state||''}">${G.input || '?'}</span>`;
+}
+function press(k){
+  if (G.phase !== 'answer') return;
+  if (k === 'ok') return submit();
+  if (k === 'del') G.input = G.input.slice(0,-1);
+  else if (G.input.length < 2) G.input = (G.input === '0' ? '' : G.input) + k;
+  sfx.key(); renderEqn();
+}
+async function submit(){
+  if (!G.input){ renderEqn('bad'); return; }
+  const gen = G.gen;
+  if (Number(G.input) === G.sum){
+    G.phase = 'moving'; renderEqn('ok'); sfx.ok();
+    msg(`정답! ${G.sum}칸 앞으로 가요!`);
+    await sleep(600); if (gen !== G.gen) return;
+    move();
+  } else {
+    G.wrong++; renderEqn('bad'); sfx.bad();
+    if (G.wrong >= 2){
+      G.phase = 'moving';
+      msg(`괜찮아요! ${G.dice.join(' + ')} = <b>${G.sum}</b>이에요.`);
+      await sleep(1500); if (gen !== G.gen) return;
+      G.input = String(G.sum); renderEqn('ok');
+      await sleep(400); if (gen !== G.gen) return;
+      move();
+    } else {
+      msg('다시 한 번 더해 볼까요?');
+      await sleep(500); if (gen !== G.gen) return;
+      G.input = ''; renderEqn();
+    }
+  }
+}
+async function animatePath(i, pts, ms){
+  const t = $('#tk'+i), lens = [0];
+  for (let k = 1; k < pts.length; k++) lens.push(lens[k-1] + Math.hypot(pts[k][0]-pts[k-1][0], pts[k][1]-pts[k-1][1]));
+  const total = lens[lens.length-1] || 1;
+  t.style.transition = 'none';
+  await new Promise(res => {
+    const t0 = performance.now();
+    const f = now => {
+      let u = Math.min(1, (now - t0) / ms); u = u < .5 ? 2*u*u : 1 - Math.pow(-2*u+2, 2)/2;
+      const d = u * total; let k = 1; while (k < lens.length-1 && lens[k] < d) k++;
+      const s = (d - lens[k-1]) / ((lens[k] - lens[k-1]) || 1);
+      placeTok(i, pts[k-1][0] + (pts[k][0]-pts[k-1][0])*s, pts[k-1][1] + (pts[k][1]-pts[k-1][1])*s);
+      if (u < 1) requestAnimationFrame(f); else res();
+    };
+    requestAnimationFrame(f);
+  });
+  t.style.transition = '';
+}
+async function climbLadder(i, from, to, gen){
+  const tk = $('#tk'+i);
+  showReaction(i, true, from, to); sfx.up();
+  await sleep(reduced ? 200 : 500); if (gen !== G.gen) return false;
+  tk.classList.add('climb');
+  await animatePath(i, [cellXY(i, from), cellXY(i, to)], reduced ? 100 : 1100);
+  tk.classList.remove('climb'); if (gen !== G.gen) return false;
+  await sleep(reduced ? 500 : 1000); if (gen !== G.gen) return false;
+  await hideReaction(); return true;
+}
+async function goTunnel(i, from, to, gen){
+  const tk = $('#tk'+i), cv = tunnelCurve[from];
+  showReaction(i, false, from, to); sfx.down();
+  await sleep(reduced ? 200 : 400); if (gen !== G.gen) return false;
+  tk.classList.add('sink'); await sleep(400);
+  tk.classList.remove('sink'); tk.classList.add('under');
+  const pts = []; for (let k = 0; k <= 40; k++){ const q = bez(...cv, k/40); pts.push([q[0]/W*100, q[1]/10]); }
+  await animatePath(i, pts, reduced ? 100 : 1100); if (gen !== G.gen) return false;
+  tk.classList.remove('under'); tk.classList.add('pop'); await sleep(500); tk.classList.remove('pop');
+  await sleep(reduced ? 400 : 900); if (gen !== G.gen) return false;
+  await hideReaction(); return true;
+}
+async function move(){
+  const gen = G.gen, i = G.cur, p = G.players[i];
+  G.phase = 'moving';
+  let steps = G.sum, dir = 1;
+  const tk = $('#tk'+i);
+  while (steps-- > 0){
+    if (p.pos === GOAL){ if (!cfg.exact) break; dir = -1; }
+    p.pos += dir;
+    const [x,y] = cellXY(i, p.pos);
+    tk.classList.remove('hop'); tk.offsetWidth; tk.classList.add('hop');
+    placeTok(i, x, y); sfx.step(); renderPlayer(i);
+    await sleep(reduced ? 60 : 190); if (gen !== G.gen) return;
+  }
+  if (dir === -1) msg(`앗, 도착 지점을 넘쳐서 <span class="down">${p.pos}칸</span>으로 되돌아왔어요.`);
+  let extra = '';
+  if (LADDERS[p.pos]){
+    const from = p.pos, to = LADDERS[from];
+    msg(`🪜 사다리다! <span class="up">${from}칸 → ${to}칸</span>으로 올라가요!`);
+    p.pos = to;
+    if (!(await climbLadder(i, from, to, gen))) return;
+    extra = `🪜 사다리를 타고 <span class="up">${to}칸</span>까지 올라왔어요!`;
+  } else if (TUNNELS[p.pos]){
+    const from = p.pos, to = TUNNELS[from];
+    msg(`🕳️ 터널에 빠졌어요! <span class="down">${from}칸 → ${to}칸</span>으로 내려가요.`);
+    p.pos = to;
+    if (!(await goTunnel(i, from, to, gen))) return;
+    extra = `🕳️ 터널을 지나 <span class="down">${to}칸</span>으로 내려왔어요.`;
+  }
+  renderPlayer(i); layoutTokens();
+  if (p.pos === GOAL) return finish(i);
+  if (extra) msg(extra); else if (dir !== -1) msg(`${esc(nm(i))}${josa(nm(i))} ${p.pos}칸에 도착했어요.`);
+  await sleep(extra ? 700 : 650); if (gen !== G.gen) return;
+  const triple = G.dice[0] === G.dice[1] && G.dice[1] === G.dice[2];
+  if (cfg.bonus && triple){
+    sfx.bonus(); msg(`<span class="bonus">🎲 세 주사위가 모두 ${G.dice[0]}! 한 번 더 던져요!</span>`);
+  } else {
+    G.cur = (G.cur + 1) % G.players.length;
+    if (G.players.length > 1) msg(`${esc(nm(G.cur))} 차례예요. 주사위를 던져요!`);
+  }
+  G.phase = 'roll'; renderTurn(); showRoll();
+}
+function finish(w){
+  G.phase = 'over';
+  const solo = G.players.length === 1, p = G.players[w];
+  const old = $('#winOv svg'), w2 = document.createElement('span'); w2.innerHTML = dinoSvg(w, 'happy'); old.replaceWith(w2.firstChild);
+  $('#winTitle').textContent = solo ? `${p.turns}번 만에 도착!` : `${nm(w)} 승리!`;
+  $('#winTitle').style.color = getComputedStyle($('#pc'+w)).getPropertyValue('--pd');
+  $('#winWhy').textContent = solo ? '크앙! 도착 지점에 들어왔어요!' : '크앙! 도착 지점에 가장 먼저 들어왔어요!';
+  msg(`🏆 ${esc(nm(w))} 도착!`);
+  const order = G.players.map((q,j) => ({j, pos:q.pos, turns:q.turns})).sort((a,b) => b.pos - a.pos || a.turns - b.turns);
+  $('#rank').innerHTML = order.map((o,k) => `<li class="c${o.j}"><span class="r">${k+1}</span>${dinoSvg(o.j)}<span class="n"></span><span class="p">${posLabel(o.pos)} · ${o.turns}번 던짐</span></li>`).join('');
+  $('#rank').querySelectorAll('.n').forEach((el,k) => el.textContent = nm(order[k].j));
+  $('#btnRoll').disabled = true;
+  setTimeout(() => { $('#winOv').hidden = false; sfx.win(); confetti(); }, 600);
+}
+
+/* ---------------- 꽃가루 ---------------- */
+function confetti(){
+  if (reduced) return;
+  const colors = ['#5CC46F','#FF9F43','#B565DB','#F7CB3A','#FFFFFF'];
+  const c = $('#confetti'), ctx = c.getContext('2d'), dpr = devicePixelRatio || 1;
+  c.hidden = false; c.width = innerWidth*dpr; c.height = innerHeight*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+  const parts = Array.from({length:170}, () => ({x:Math.random()*innerWidth, y:-20-Math.random()*innerHeight*.6, vx:(Math.random()-.5)*3, vy:2+Math.random()*3.5,
+    r:Math.random()*6.28, vr:(Math.random()-.5)*.3, w:7+Math.random()*7, h:4+Math.random()*5, c:pick(colors)}));
+  const t0 = performance.now();
+  (function frame(t){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    parts.forEach(p => { p.x += p.vx; p.y += p.vy; p.r += p.vr; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore(); });
+    if (t - t0 < 4200) requestAnimationFrame(frame); else { ctx.clearRect(0,0,innerWidth,innerHeight); c.hidden = true; }
+  })(t0);
+}
+
+/* ---------------- 숫자판 ---------------- */
+$('#keypad').innerHTML = ['1','2','3','4','5','del','6','7','8','9','0','ok'].map(k =>
+  `<button class="key ${k==='del'?'del':k==='ok'?'ok':''}" data-k="${k}">${k==='del'?'지우기':k==='ok'?'확인':k}</button>`).join('');
+$('#keypad').querySelectorAll('.key').forEach(b => {
+  b.addEventListener('pointerdown', e => { e.preventDefault(); b.classList.add('down'); setTimeout(()=>b.classList.remove('down'),110); press(b.dataset.k); });
+  b.addEventListener('click', e => { if (e.detail === 0) press(b.dataset.k); });
+});
+$('#btnRoll').addEventListener('click', roll);
+$('#dice').addEventListener('click', roll);
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || !$('#setup').hidden || !$('#winOv').hidden) return;
+  if (G.phase === 'roll' && (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter')){ e.preventDefault(); roll(); return; }
+  if (G.phase !== 'answer') return;
+  let k = null;
+  if (/^(Digit|Numpad)[0-9]$/.test(e.code)) k = e.code.slice(-1);
+  else if (e.code === 'Enter' || e.code === 'NumpadEnter') k = 'ok';
+  else if (e.code === 'Backspace') k = 'del';
+  if (k){ e.preventDefault(); const b = $(`#keypad .key[data-k="${k}"]`); if (b){ b.classList.add('down'); setTimeout(()=>b.classList.remove('down'),110); } press(k); }
+});
+
+/* ---------------- 설정 화면 ---------------- */
+$('#nChips').innerHTML = [1,2,3,4].map(n => `<button data-v="${n}">${Array.from({length:n},(_,i)=>dinoSvg(i)).join('')} ${n}명</button>`).join('');
+$('#names').innerHTML = [0,1,2,3].map(i => `<label class="c${i}" id="nl${i}">${i+1}번<input id="nm${i}" maxlength="8"></label>`).join('');
+[0,1,2,3].forEach(i => { const inp = $('#nm'+i); inp.value = nm(i);
+  inp.addEventListener('input', () => { cfg.names[i] = inp.value.trim() || DEF_NAMES[i]; saveCfg(); }); });
+const conv = (v,t) => t === 'num' ? Number(v) : t === 'bool' ? v === '1' : v;
+function syncChips(){
+  document.querySelectorAll('.chips[data-key]').forEach(g => g.querySelectorAll('button').forEach(b =>
+    b.setAttribute('aria-pressed', cfg[g.dataset.key] === conv(b.dataset.v, g.dataset.type))));
+  [0,1,2,3].forEach(i => $('#nl'+i).hidden = i >= cfg.n);
+}
+document.querySelectorAll('.chips[data-key]').forEach(g => g.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  cfg[g.dataset.key] = conv(b.dataset.v, g.dataset.type); saveCfg(); syncChips();
+}));
+$('#btnStart').addEventListener('click', () => { ensureAudio(); newGame(); });
+$('#btnAgain').addEventListener('click', newGame);
+const goHome = () => { G.gen++; G.phase = 'idle'; $('#react').hidden = true; $('#winOv').hidden = true; $('#setup').hidden = false; syncChips(); };
+$('#btnSetup').addEventListener('click', goHome);
+try { if (window.top === window) $('#btnZone').hidden = false; } catch(e){}
+$('#btnHome').addEventListener('click', goHome);
+$('#btnSound').addEventListener('click', e => { soundOn = !soundOn; e.currentTarget.setAttribute('aria-pressed', soundOn); if (soundOn) ensureAudio(); });
+$('#btnFull').addEventListener('click', () => {
+  try { if (document.fullscreenElement) document.exitFullscreen();
+    else { const r = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (r && r.catch) r.catch(()=>{}); } } catch(e){}
+});
+
+/* ---------------- 기기별 화면 설정 (TyranoMath 사이트와 같은 저장 이름) ---------------- */
+const MODE_NAMES = { pc:'컴퓨터', phone:'스마트폰', pad:'패드', board:'전자칠판' };
+const SCALES = [0.85, 1, 1.15, 1.3, 1.5];
+let modeChoice = store.get('tm-mode') || 'auto';
+if (!(modeChoice in MODE_NAMES) && modeChoice !== 'auto') modeChoice = 'auto';
+let scaleIdx = Number(store.get('tm-scale') ?? 1);
+if (!(scaleIdx >= 0 && scaleIdx < SCALES.length)) scaleIdx = 1;
+function detectDevice(){
+  const w = window.innerWidth, touch = window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+  if (w < 640) return 'phone';
+  if (touch && w >= 1600) return 'board';
+  if (touch) return 'pad';
+  return 'pc';
+}
+function applyMode(){
+  const actual = modeChoice === 'auto' ? detectDevice() : modeChoice, root = document.documentElement;
+  root.dataset.device = actual;
+  root.dataset.layout = (actual === 'phone' || innerHeight > innerWidth * 1.05 || innerWidth < 760) ? 'stack' : 'wide';
+  root.style.setProperty('--scale', SCALES[scaleIdx]);
+  document.querySelectorAll('#devTabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === modeChoice));
+  $('#autoHint').textContent = modeChoice === 'auto' ? '(감지됨: ' + MODE_NAMES[actual] + ')' : '';
+  $('#fontVal').textContent = Math.round(SCALES[scaleIdx]*100) + '%';
+  if (G.players.length) layoutTokens();
+}
+document.querySelectorAll('#devTabs button').forEach(b => b.addEventListener('click', () => { modeChoice = b.dataset.mode; store.set('tm-mode', modeChoice); applyMode(); }));
+$('#fontUp').addEventListener('click', () => { scaleIdx = Math.min(SCALES.length-1, scaleIdx+1); store.set('tm-scale', scaleIdx); applyMode(); });
+$('#fontDown').addEventListener('click', () => { scaleIdx = Math.max(0, scaleIdx-1); store.set('tm-scale', scaleIdx); applyMode(); });
+let rT; window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(applyMode, 150); });
+
+/* 첫 화면: 판과 말이 출발 지점에 놓인 상태로 설정 창 표시 */
+buildCells(); buildPaths(); buildDice(); applyMode(); syncChips();
+G.players = Array.from({length:cfg.n}, () => ({pos:START, turns:0}));
+buildPlayers(); layoutTokens(); renderTurn(); G.phase = 'idle';
+msg('출발 지점에서 주사위를 던져 출발해요!');
+
+})();
+</script>
+</body>
+</html>
