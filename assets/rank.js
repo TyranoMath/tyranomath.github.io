@@ -160,7 +160,8 @@ const CSS = `
 .tmr-go:disabled{opacity:.6;cursor:wait}
 .tmr-done{text-align:center;font-family:'Jua',sans-serif;font-size:22px;line-height:1.5}
 .tmr-done small{display:block;font-family:'Gowun Dodum',sans-serif;font-size:14px;color:#5D6C83}
-@media (max-width:480px){.tq-top .tmr-btn .tmr-t{display:none}.tq-top .tmr-btn{padding:4px 9px}}
+@media (max-width:480px){.tq-top .tmr-btn .tmr-t,.top-btns .tmr-btn .tmr-t{display:none}.tq-top .tmr-btn,.top-btns .tmr-btn{padding:4px 9px}}
+#lobby .brand h1{word-break:keep-all}@media (max-width:480px){#lobby .brand h1{font-size:1.4em}}
 @media (prefers-reduced-motion:reduce){.tmr-live i{animation:none}}
 `;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
