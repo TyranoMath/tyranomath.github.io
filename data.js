@@ -167,7 +167,11 @@ const GAMES = [
   { title:'분수 페널티킥',          desc:'힘 게이지를 분수만큼 채우고 슛! 혼자 골인 도전 또는 두 팀으로 나눠 승부차기 대결.', grade:'3~4학년', area:'수와 연산', icon:'⚽', image:'games/thumbs/fraction-kick.svg', color:'#DDF5E0', date:'2026-11-02', file:'games/fraction-kick.html' },
   { title:'숫자 비행단',            desc:'홀수·짝수·배수 규칙에 맞는 숫자는 피하고 나머지 적기는 격파해요! 조종사를 골라 출격하는 슈팅 게임.', grade:'3~5학년', area:'수와 연산', icon:'✈️', image:'games/thumbs/number-squadron.svg', color:'#14303F', date:'2026-11-02', file:'games/number-squadron.html' },
   { title:'자릿값 낚시',            desc:'수를 자릿값으로 가르는 물고기를 낚아요! 95라면 90과 5. 헷갈리는 물고기는 놓아주고 바구니를 채워요. 혼자 또는 최대 4명이 함께.', grade:'1~3학년', area:'수와 연산', icon:'🎣', image:'games/thumbs/place-fishing.svg', color:'#D6EEFF', date:'2026-11-08', file:'games/place-fishing.html' },
-  { title:'티라노 사다리 게임',      desc:'주사위 3개를 던져 나온 수를 더한 만큼 앞으로! 사다리는 올라가고 터널은 내려가요. 판 크기 100~1000칸, 카드 아이템, 컴퓨터 티라노와 함께 4마리가 달려요.', grade:'1~3학년', area:'수와 연산', icon:'🪜', image:'games/thumbs/ladder.svg', color:'#FFF1D6', date:'2026-11-08', file:'games/ladder.html' }
+  { title:'티라노 사다리 게임',      desc:'주사위 3개를 던져 나온 수를 더한 만큼 앞으로! 사다리는 올라가고 터널은 내려가요. 판 크기 100~1000칸, 카드 아이템, 컴퓨터 티라노와 함께 4마리가 달려요.', grade:'1~3학년', area:'수와 연산', icon:'🪜', image:'games/thumbs/ladder.svg', color:'#FFF1D6', date:'2026-11-08', file:'games/ladder.html' },
+  { title:'티라노 캐슬 디펜스',      desc:'몬스터가 티라노 성으로 다가와요! 모두 동시에 문제를 풀어 성을 지켜요. 맞힐수록 내 티라노의 불꽃이 더 강해지는 협동 게임.', grade:'1~6학년', area:'수와 연산', icon:'🏰', image:'games/thumbs/castle-defense.svg', color:'#E6E0FF', date:'2026-11-14', file:'games/castle-defense.html' },
+  { title:'티라노 화물선',          desc:'부두의 상자를 배에 실어 목표 무게와 딱 맞추면 ⚓ 출항! 먼저 출항한 팀이 이기는 덧셈 팀 대결.', grade:'1~4학년', area:'수와 연산', icon:'🚢', image:'games/thumbs/cargo-ship.svg', color:'#D6EEFF', date:'2026-11-14', file:'games/cargo-ship.html' },
+  { title:'티라노 알 줄 세우기',     desc:'숫자가 적힌 공룡알을 작은 수(또는 큰 수) 순서로 줄 세워요. 먼저 바르게 세우면 아기 티라노가 태어나요! 최대 4명 대결.', grade:'1~4학년', area:'수와 연산', icon:'🥚', image:'games/thumbs/egg-order.svg', color:'#FFF1D6', date:'2026-11-14', file:'games/egg-order.html' },
+  { title:'티라노 홀짝 금고',        desc:'카드의 식을 계산해 답이 홀수(또는 짝수)인 카드 번호로 금고 비밀번호를 맞혀요. 금고가 열리면 금화와 아기 티라노가!', grade:'2~5학년', area:'수와 연산', icon:'🔐', image:'games/thumbs/odd-even-vault.svg', color:'#FFE9C7', date:'2026-11-14', file:'games/odd-even-vault.html' }
 ];
 
 /* ---------------------------------------------------------
@@ -212,5 +216,9 @@ const PUZZLES = [
   { title:'티라노 켄켄', desc:'줄마다 같은 수 없이, 묶음 칸의 계산 결과를 맞춰 칸을 채워요. 3×3부터 7×7까지.', grade:'2~6학년', area:'수 퍼즐', icon:'🧮', image:'puzzles/thumbs/kenken.svg', color:'#E4F5D6', date:'2026-10-17', file:'puzzles/kenken.html' },
   { title:'티라노 장기', desc:'친구와 둘이서, 또는 컴퓨터 티라노와 장기를 둬요. 외통수로 왕을 잡으면 승리!', grade:'3~6학년', area:'전략 퍼즐', icon:'🀄', image:'puzzles/thumbs/janggi.svg', color:'#F6E3C6', date:'2026-10-17', file:'puzzles/janggi.html' },
   { title:'티라노 체스', desc:'친구와 둘이서, 또는 컴퓨터 티라노와 체스를 둬요. 체크메이트로 킹을 잡으면 승리!', grade:'3~6학년', area:'전략 퍼즐', icon:'♟️', image:'puzzles/thumbs/chess.svg', color:'#EFE6FF', date:'2026-10-17', file:'puzzles/chess.html' },
-  { title:'티라노 도형퍼즐', desc:'칠교판·패턴블록·펜토미노 등 여러 조각으로 그림자 모양을 맞춰요! 돌리고 뒤집어 작품을 완성해요.', grade:'1~6학년', area:'도형 퍼즐', icon:'🧩', image:'puzzles/thumbs/shape-puzzle.svg', color:'#EFE6FF', date:'2026-10-25', file:'puzzles/shape-puzzle.html' }
+  { title:'티라노 도형퍼즐', desc:'칠교판·패턴블록·펜토미노 등 여러 조각으로 그림자 모양을 맞춰요! 돌리고 뒤집어 작품을 완성해요.', grade:'1~6학년', area:'도형 퍼즐', icon:'🧩', image:'puzzles/thumbs/shape-puzzle.svg', color:'#EFE6FF', date:'2026-10-25', file:'puzzles/shape-puzzle.html' },
+  { title:'티라노 10 만들기', desc:'같은 숫자나 더해서 10이 되는 짝을 찾아 지워요! 이어진 숫자만 지울 수 있고, 한 줄을 다 지우면 줄이 사라져요.', grade:'1~3학년', area:'수 퍼즐', icon:'🔟', image:'puzzles/thumbs/make-ten.svg', color:'#DDF0FF', date:'2026-11-14', file:'puzzles/make-ten.html' },
+  { title:'티라노 블록 퍼즐', desc:'블록을 끌어다 놓아 가로줄·세로줄·3×3 칸을 꽉 채우면 사라져요! 모양 채우기 스테이지도 있어요.', grade:'1~6학년', area:'도형 퍼즐', icon:'🧱', image:'puzzles/thumbs/block-puzzle.svg', color:'#FFE6EC', date:'2026-11-14', file:'puzzles/block-puzzle.html' },
+  { title:'티라노 보도블록 퍼즐', desc:'수레의 보도블록을 모래 바닥에 빈칸 없이 깔아 그림을 완성해요. 블록은 돌릴 수 없으니 자리를 잘 생각해요!', grade:'1~6학년', area:'도형 퍼즐', icon:'🧱', image:'puzzles/thumbs/paver-puzzle.svg', color:'#F6E3C6', date:'2026-11-14', file:'puzzles/paver-puzzle.html' },
+  { title:'티라노 틱택토', desc:'✖와 ⭕를 번갈아 놓아 한 줄을 먼저 만들면 이겨요! 3×3부터 큰 판까지, 컴퓨터 티라노나 친구와 대결해요.', grade:'1~6학년', area:'전략 퍼즐', icon:'⭕', image:'puzzles/thumbs/tictactoe.svg', color:'#E4F5D6', date:'2026-11-14', file:'puzzles/tictactoe.html' }
 ];
