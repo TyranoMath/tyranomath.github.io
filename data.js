@@ -171,7 +171,9 @@ const GAMES = [
   { title:'티라노 캐슬 디펜스',      desc:'몬스터가 티라노 성으로 다가와요! 모두 동시에 문제를 풀어 성을 지켜요. 맞힐수록 내 티라노의 불꽃이 더 강해지는 협동 게임.', grade:'1~6학년', area:'수와 연산', icon:'🏰', image:'games/thumbs/castle-defense.svg', color:'#E6E0FF', date:'2026-11-14', file:'games/castle-defense.html' },
   { title:'티라노 화물선',          desc:'부두의 상자를 배에 실어 목표 무게와 딱 맞추면 ⚓ 출항! 먼저 출항한 팀이 이기는 덧셈 팀 대결.', grade:'1~4학년', area:'수와 연산', icon:'🚢', image:'games/thumbs/cargo-ship.svg', color:'#D6EEFF', date:'2026-11-14', file:'games/cargo-ship.html' },
   { title:'티라노 알 줄 세우기',     desc:'숫자가 적힌 공룡알을 작은 수(또는 큰 수) 순서로 줄 세워요. 먼저 바르게 세우면 아기 티라노가 태어나요! 최대 4명 대결.', grade:'1~4학년', area:'수와 연산', icon:'🥚', image:'games/thumbs/egg-order.svg', color:'#FFF1D6', date:'2026-11-14', file:'games/egg-order.html' },
-  { title:'티라노 홀짝 금고',        desc:'카드의 식을 계산해 답이 홀수(또는 짝수)인 카드 번호로 금고 비밀번호를 맞혀요. 금고가 열리면 금화와 아기 티라노가!', grade:'2~5학년', area:'수와 연산', icon:'🔐', image:'games/thumbs/odd-even-vault.svg', color:'#FFE9C7', date:'2026-11-14', file:'games/odd-even-vault.html' }
+  { title:'티라노 홀짝 금고',        desc:'카드의 식을 계산해 답이 홀수(또는 짝수)인 카드 번호로 금고 비밀번호를 맞혀요. 금고가 열리면 금화와 아기 티라노가!', grade:'2~5학년', area:'수와 연산', icon:'🔐', image:'games/thumbs/odd-even-vault.svg', color:'#FFE9C7', date:'2026-11-14', file:'games/odd-even-vault.html' },
+  { title:'티라노 도형 버블',        desc:'티라노가 쏜 도형 버블을 같은 도형 옆에 붙여 3개 이상이면 팡! 평면도형·삼각형·사각형·입체도형 이름을 익혀요. 1~4명이 함께.', grade:'2~6학년', area:'도형과 측정', icon:'🔷', image:'games/thumbs/shape-bubble.svg', color:'#E6F0FF', date:'2026-11-21', file:'games/shape-bubble.html' },
+  { title:'티라노 점 잇기',          desc:'숫자 순서대로 점을 이으면 그림이 나타나요! 뛰어 세기·거꾸로 세기·구구단·계산 식으로도 도전해요.', grade:'1~3학년', area:'수와 연산', icon:'✏️', image:'games/thumbs/dots.svg', color:'#FFF3D6', date:'2026-11-21', file:'games/dots.html' }
 ];
 
 /* ---------------------------------------------------------
@@ -220,5 +222,9 @@ const PUZZLES = [
   { title:'티라노 10 만들기', desc:'같은 숫자나 더해서 10이 되는 짝을 찾아 지워요! 이어진 숫자만 지울 수 있고, 한 줄을 다 지우면 줄이 사라져요.', grade:'1~3학년', area:'수 퍼즐', icon:'🔟', image:'puzzles/thumbs/make-ten.svg', color:'#DDF0FF', date:'2026-11-14', file:'puzzles/make-ten.html' },
   { title:'티라노 블록 퍼즐', desc:'블록을 끌어다 놓아 가로줄·세로줄·3×3 칸을 꽉 채우면 사라져요! 모양 채우기 스테이지도 있어요.', grade:'1~6학년', area:'도형 퍼즐', icon:'🧱', image:'puzzles/thumbs/block-puzzle.svg', color:'#FFE6EC', date:'2026-11-14', file:'puzzles/block-puzzle.html' },
   { title:'티라노 보도블록 퍼즐', desc:'수레의 보도블록을 모래 바닥에 빈칸 없이 깔아 그림을 완성해요. 블록은 돌릴 수 없으니 자리를 잘 생각해요!', grade:'1~6학년', area:'도형 퍼즐', icon:'🧱', image:'puzzles/thumbs/paver-puzzle.svg', color:'#F6E3C6', date:'2026-11-14', file:'puzzles/paver-puzzle.html' },
-  { title:'티라노 틱택토', desc:'✖와 ⭕를 번갈아 놓아 한 줄을 먼저 만들면 이겨요! 3×3부터 큰 판까지, 컴퓨터 티라노나 친구와 대결해요.', grade:'1~6학년', area:'전략 퍼즐', icon:'⭕', image:'puzzles/thumbs/tictactoe.svg', color:'#E4F5D6', date:'2026-11-14', file:'puzzles/tictactoe.html' }
+  { title:'티라노 틱택토', desc:'✖와 ⭕를 번갈아 놓아 한 줄을 먼저 만들면 이겨요! 3×3부터 큰 판까지, 컴퓨터 티라노나 친구와 대결해요.', grade:'1~6학년', area:'전략 퍼즐', icon:'⭕', image:'puzzles/thumbs/tictactoe.svg', color:'#E4F5D6', date:'2026-11-14', file:'puzzles/tictactoe.html' },
+  { title:'티라노 버블 팡', desc:'방울을 쏘아 같은 색 3개 이상을 붙이면 팡! 매달린 곳이 끊긴 방울은 우수수 떨어져 점수가 두 배. 혼자 기록 도전 또는 최대 4명.', grade:'1~6학년', area:'논리 퍼즐', icon:'🫧', image:'puzzles/thumbs/bubble.svg', color:'#DDF0FF', date:'2026-11-21', file:'puzzles/bubble.html' },
+  { title:'티라노 보석 대결', desc:'떨어지는 보석을 쌓다가 같은 색 폭탄 구슬로 한꺼번에 팡! 많이 터뜨릴수록 상대 판에 숫자 보석이 쏟아지는 대결 퍼즐.', grade:'2~6학년', area:'전략 퍼즐', icon:'💎', image:'puzzles/thumbs/gem-battle.svg', color:'#EFE6FF', date:'2026-11-21', file:'puzzles/gem-battle.html' },
+  { title:'티라노 세균전', desc:'옆 칸은 복제, 두 칸 떨어진 곳은 점프! 도착한 곳 둘레의 상대 세균을 감염시켜 판을 차지해요. 스테이지·컴퓨터·친구 대결.', grade:'2~6학년', area:'전략 퍼즐', icon:'🦠', image:'puzzles/thumbs/germ-war.svg', color:'#E4F5D6', date:'2026-11-21', file:'puzzles/germ-war.html' },
+  { title:'티라노 젤리 팡', desc:'같은 색 젤리 4개가 이어지면 팡! 연쇄가 길수록 상대 판에 방해 젤리가 우르르 쏟아지는 대결 퍼즐.', grade:'1~6학년', area:'전략 퍼즐', icon:'🍬', image:'puzzles/thumbs/jelly-pang.svg', color:'#FFE6EC', date:'2026-11-21', file:'puzzles/jelly-pang.html' }
 ];
