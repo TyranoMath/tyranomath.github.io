@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>티라노 거울 대칭 그리기 · TyranoMath</title>
+<title>티라노 대칭 도구 · TyranoMath</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
@@ -162,16 +162,65 @@ button:disabled{opacity:.45}
 .pal button{width:48px;height:48px;min-height:0;padding:0;border-radius:50%;border:4px solid #fff;box-shadow:0 0 0 2px #d9e3e0,0 3px 0 rgba(0,0,0,.12);font-size:1.2em}
 .pal button.on{box-shadow:0 0 0 4px #26323a,0 3px 0 rgba(0,0,0,.12);transform:scale(1.1)}
 .main.port .pal{flex:1 1 100%}.main.port .pal button{width:40px;height:40px}
+
+/* ---------- 자유 대칭 그리기 ---------- */
+#appSeg button{min-height:max(64px,calc(var(--ui)*3.8));font-size:1.1em}
+#studio{position:fixed;inset:0;display:flex;flex-direction:column;
+  background:radial-gradient(circle at 10% 16%,rgba(255,255,255,.6) 0 70px,transparent 71px),radial-gradient(circle at 92% 86%,rgba(255,255,255,.5) 0 110px,transparent 111px),linear-gradient(165deg,#fde8f4 0,#efe6ff 46%,#dcecff 100%)}
+.sside{width:clamp(230px,24vw,310px);gap:9px}
+.sec{display:flex;flex-direction:column;gap:5px}
+.sec>b{font-size:.82em;font-weight:800;color:var(--accent-dark);display:flex;justify-content:space-between;align-items:center;gap:.4em}
+.sec>b small{font-weight:600;color:var(--muted)}
+.mini{display:grid;gap:5px}
+.mini button{min-height:40px;padding:.15em .2em;font-size:.8em;line-height:1.1;white-space:normal;word-break:keep-all;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.mini button i{font-style:normal;font-size:1.25em}
+.m4{grid-template-columns:repeat(4,1fr)}.m3{grid-template-columns:repeat(3,1fr)}.m5{grid-template-columns:repeat(5,1fr)}.m2{grid-template-columns:repeat(2,1fr)}
+.spal{display:flex;flex-wrap:wrap;gap:5px}
+.spal button,.spal label{width:34px;height:34px;min-height:0;padding:0;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #d9e3e0;font-size:.95em;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;transition:transform .1s}
+.spal .on{box-shadow:0 0 0 3px #26323a;transform:scale(1.1)}
+.spal .rb{background:conic-gradient(#ff4d6a,#ff9b3d,#ffd23a,#3fbf5a,#3f8cff,#a86cff,#ff4d6a)}
+.spal label input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;border:0;padding:0}
+.cvs{position:relative;touch-action:none;cursor:crosshair}
+.cvs canvas{position:absolute;left:0;top:0}
+#cvGd{pointer-events:none}
+#foldL{position:absolute;inset:0;pointer-events:none;perspective:1600px}
+#foldL canvas,#foldL div{position:absolute;backface-visibility:visible}
+#foldL canvas{background:rgba(255,255,255,.22);box-shadow:0 0 0 2px rgba(168,108,255,.55)}
+.sboard{box-shadow:0 0 0 6px #ffd3ec,0 0 0 9px #fff,0 14px 30px rgba(170,60,140,.2)}
+.tgl{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.tgl button{min-height:38px;font-size:.82em;padding:0 .3em}
+.main.port .sside{width:auto;max-height:42%;overflow:auto;align-items:stretch}
+.main.port .sside .sec{flex:1 1 230px}
+.wgal{display:grid;grid-template-columns:repeat(auto-fill,minmax(7em,1fr));gap:.6em;max-height:55vh;overflow:auto;padding:.2em;margin-top:.5em}
+.wk{position:relative;border:2px solid var(--line);border-radius:.9em;overflow:hidden;background:#fff;cursor:pointer}
+.wk img{display:block;width:100%;aspect-ratio:1}
+.wk small{display:block;font-size:.72em;color:var(--muted);padding:.25em;font-weight:700}
+.wk .del{position:absolute;top:4px;right:4px;min-height:0;height:28px;padding:0 .55em;font-size:.75em;border-radius:99px;border-width:2px}
+.wk .del.sure{background:#ff6b6b;color:#fff;border-color:#e03131}
+@media (max-width:640px){#studio .gbar .mid{visibility:hidden}#studio .tbs{gap:4px}}
+.empty{grid-column:1/-1;color:var(--muted);padding:1.5em;font-size:.9em;line-height:1.6}
 .copy{text-align:center;color:#8A94A6;font-size:13px;margin:18px 0 6px}
 .zone[hidden]{display:none!important}
 #lobby .brand h1{word-break:keep-all}@media (max-width:480px){#lobby .brand h1{font-size:1.4em}}
 </style></head>
 <body>
 <div id="lobby"><div class="lwrap">
-  <header class="top"><div class="brand"><img class="dino" alt="티라노"><div><div class="kicker">TyranoMath 수학도구존</div><h1>티라노 거울 대칭 그리기</h1></div></div>
+  <header class="top"><div class="brand"><img class="dino" alt="티라노"><div><div class="kicker">TyranoMath 수학도구존</div><h1>티라노 대칭 도구</h1></div></div>
     <div class="top-btns"><a class="zone" id="zoneBtn" href="../toolzone.html" hidden>← 도구존</a><button class="icon-btn fsBtn" title="전체 화면" aria-label="전체 화면">⛶</button></div></header>
-  <section class="hero" style="background:linear-gradient(120deg,#ff7ac8,#a86cff 50%,#3fb7ff)"><div class="heroI" id="heroI"><svg viewBox='0 0 100 100'><rect x='4' y='4' width='92' height='92' rx='12' fill='#fff'/><g fill='#ff4d6a'><rect x='14' y='24' width='12' height='12'/><rect x='26' y='24' width='12' height='12'/><rect x='14' y='36' width='12' height='12'/><rect x='26' y='36' width='12' height='12'/><rect x='38' y='36' width='12' height='12'/><rect x='26' y='48' width='12' height='12'/><rect x='38' y='48' width='12' height='12'/><rect x='38' y='60' width='12' height='12'/></g><g fill='#ff4d6a' opacity='.35'><rect x='74' y='24' width='12' height='12'/><rect x='62' y='24' width='12' height='12'/><rect x='74' y='36' width='12' height='12'/><rect x='62' y='36' width='12' height='12'/><rect x='50' y='36' width='12' height='12'/><rect x='62' y='48' width='12' height='12'/><rect x='50' y='48' width='12' height='12'/><rect x='50' y='60' width='12' height='12'/></g><path d='M50,10 V90' stroke='#3f8cff' stroke-width='3' stroke-dasharray='5 4'/></svg></div><div><h2>거울에 비친 모양을 그려요!</h2><p>반쪽 그림을 보고 <b>거울에 비친 나머지 반쪽</b>을 칸에 색칠해요. <b>선대칭</b>(세로·가로 거울)과 <b>점대칭</b>(반 바퀴 돌리기)을 연습해요.</p></div></section>
-  <section class="card">
+  <section class="hero" style="background:linear-gradient(120deg,#ff7ac8,#a86cff 50%,#3fb7ff)"><div class="heroI" id="heroI"><svg viewBox='0 0 100 100'><rect x='4' y='4' width='92' height='92' rx='12' fill='#fff'/><g fill='#ff4d6a'><rect x='14' y='24' width='12' height='12'/><rect x='26' y='24' width='12' height='12'/><rect x='14' y='36' width='12' height='12'/><rect x='26' y='36' width='12' height='12'/><rect x='38' y='36' width='12' height='12'/><rect x='26' y='48' width='12' height='12'/><rect x='38' y='48' width='12' height='12'/><rect x='38' y='60' width='12' height='12'/></g><g fill='#ff4d6a' opacity='.35'><rect x='74' y='24' width='12' height='12'/><rect x='62' y='24' width='12' height='12'/><rect x='74' y='36' width='12' height='12'/><rect x='62' y='36' width='12' height='12'/><rect x='50' y='36' width='12' height='12'/><rect x='62' y='48' width='12' height='12'/><rect x='50' y='48' width='12' height='12'/><rect x='50' y='60' width='12' height='12'/></g><path d='M50,10 V90' stroke='#3f8cff' stroke-width='3' stroke-dasharray='5 4'/></svg></div><div><h2>거울에 비친 모양을 그려요!</h2><p>반쪽 그림을 보고 <b>거울에 비친 나머지 반쪽</b>을 칸에 색칠해요. <b>선대칭</b>(세로·가로 거울)과 <b>점대칭</b>(반 바퀴 돌리기)을 연습하고, <b>자유 그리기</b>로 나만의 대칭 무늬도 만들어요.</p></div></section>
+  <section class="card"><div class="label">무엇을 할까요?</div>
+    <div class="grid g2" id="appSeg"><button data-v="puzzle">🧩 거울 퍼즐<small>반쪽을 보고 나머지 칠하기</small></button><button data-v="free">🎨 자유 대칭 그리기<small>선대칭·점대칭·만화경 무늬 만들기</small></button></div></section>
+  <section class="card hide" id="freeCard">
+    <div class="grid g2 two">
+      <div><div class="label">그리기 방식</div><div class="grid g2" id="fkindSeg"><button data-v="grid">🟩 칸 그리기<small>모눈 칸을 색칠해요</small></button><button data-v="pen">✏️ 펜 그리기<small>자유롭게 선을 그어요</small></button></div></div>
+      <div id="fsizeBox"><div class="label">칸 개수</div><div class="grid g5" id="fsizeSeg"><button data-v="8">8×8</button><button data-v="10">10×10</button><button data-v="12">12×12</button><button data-v="16">16×16</button><button data-v="20">20×20</button></div></div>
+    </div>
+    <div class="label">대칭 종류 <small>그리는 중에도 바꿀 수 있어요</small></div>
+    <div class="grid g4" id="lsymSeg"></div>
+    <p class="help">한쪽에 그리면 거울·회전으로 반대쪽에 저절로 그려져요. 🪄 접어보기로 정말 대칭인지 확인하고, 칸 그림은 🧩 반쪽을 숨긴 문제로 바꿔 친구에게 낼 수 있어요. 그리기 방식이나 칸 개수를 바꾸면 새 종이로 시작해요.</p>
+    <button id="lWorksBtn">🖼️ 내 작품함 열기</button>
+  </section>
+  <section class="card" id="puzCard">
   <div class="label">대칭 종류</div>
   <div class="grid g3" id="modeSeg"><button data-v="v">↔️ 세로 거울<small>왼쪽을 보고 오른쪽 그리기</small></button><button data-v="h">↕️ 가로 거울<small>위를 보고 아래 그리기</small></button><button data-v="p">🔄 점대칭<small>반 바퀴 돌린 모양</small></button></div>
   <div class="grid g2 two">
@@ -186,7 +235,7 @@ button:disabled{opacity:.45}
   <p class="copy">© 2026 TyranoMath 백태진 All rights reserved.</p>
 </div></div>
 <div id="game" class="hide">
-  <div class="gbar"><div class="ttl"><img class="dino" alt=""><span>티라노 거울 대칭 그리기</span></div>
+  <div class="gbar"><div class="ttl"><img class="dino" alt=""><span>티라노 대칭 도구</span></div>
     <div class="mid"><div class="rnd"><b id="rndT"></b><small id="rndS"></small></div></div>
     <div class="tbs"><button id="helpBtn" class="tb" aria-label="방법">📖<small>방법</small></button><button id="homeBtn" class="tb home" aria-label="처음으로">🏠<small>처음으로</small></button>
       <button id="soundBtn" class="tb" aria-label="소리">🔊</button><button class="fsBtn tb" aria-label="전체 화면">⛶<small>전체</small></button></div></div>
@@ -200,6 +249,30 @@ button:disabled{opacity:.45}
 </div>
 
 </div>
+<div id="studio" class="hide">
+  <div class="gbar"><div class="ttl"><img class="dino" alt=""><span>자유 대칭 그리기</span></div>
+    <div class="mid"><div class="rnd" style="--tc:#a86cff"><b id="symT"></b><small id="symS"></small></div></div>
+    <div class="tbs"><button id="undoBtn" class="tb" aria-label="되돌리기">↶<small>되돌리기</small></button><button id="redoBtn" class="tb" aria-label="다시 하기">↷<small>다시</small></button>
+      <button id="foldBtn" class="tb" aria-label="접어보기">🪄<small>접어보기</small></button><button id="saveBtn" class="tb" aria-label="저장">💾<small>저장</small></button>
+      <button id="sHelpBtn" class="tb" aria-label="방법">📖<small>방법</small></button><button id="sHomeBtn" class="tb home" aria-label="처음으로">🏠<small>처음으로</small></button><button class="fsBtn tb" aria-label="전체 화면">⛶<small>전체</small></button></div></div>
+  <div class="guide min" id="sguide"><div class="gtitle"><b>📖 이렇게 해요</b><button id="sguideBtn" class="gtog">닫기 ✕</button></div><div class="gtxt" id="sguideTxt"></div></div>
+  <div class="main" id="sMain">
+    <div class="side sside">
+      <div class="bubble" id="sbubble">한쪽에 그려 보세요!</div>
+      <div class="sec"><b>대칭 종류</b><div class="mini m4" id="symSeg"></div></div>
+      <div class="sec onlyRot"><b>몇 쪽으로 돌릴까요?</b><div class="mini m5" id="foldSeg"><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button><button data-v="6">6</button><button data-v="8">8</button></div></div>
+      <div class="sec"><b>도구</b><div class="mini m3" id="toolSeg"><button data-v="pen"><i>✏️</i>그리기</button><button data-v="erase"><i>🧽</i>지우개</button><button data-v="fill" class="onlyGrid"><i>🪣</i>채우기</button></div></div>
+      <div class="sec onlyPen"><b>굵기</b><div class="mini m4" id="bsSeg"><button data-v="0"><i style="font-size:.7em">●</i>가늘게</button><button data-v="1"><i style="font-size:1em">●</i>보통</button><button data-v="2"><i style="font-size:1.35em">●</i>굵게</button><button data-v="3"><i style="font-size:1.8em;line-height:.8">●</i>아주</button></div></div>
+      <div class="sec"><b>색깔</b><div class="spal" id="spal"></div></div>
+      <div class="sec"><b>보기</b><div class="tgl"><button id="gdTgl">📏 거울선</button><button id="grTgl" class="onlyPen">▦ 모눈</button></div></div>
+      <div class="sec"><b>더 해보기</b><div class="mini m2"><button id="findBtn"><i>🔍</i>대칭 찾기</button><button id="puzBtn" class="onlyGrid"><i>🧩</i>문제 만들기</button><button id="replayBtn" class="onlyPen"><i>▶️</i>그리는 과정</button>
+        <button id="dlBtn"><i>⬇️</i>그림 받기</button><button id="worksBtn"><i>🖼️</i>작품함</button><button id="sclearBtn"><i>🗑️</i>모두 지우기</button></div></div>
+    </div>
+    <div class="bwrap" id="sbwrap"><div class="mboard sboard"><div class="cvs" id="cvs"><canvas id="cvBg"></canvas><canvas id="cvArt"></canvas><div id="foldL"></div><canvas id="cvGd"></canvas></div></div></div>
+  </div>
+</div>
+<div class="overlay hide" id="worksOv"><div class="modal" style="width:min(100%,calc(var(--ui)*40))"><h2>🖼️ 내 작품함</h2><p class="help">작품을 누르면 이어서 그릴 수 있어요. (이 기기·브라우저에만 저장돼요)</p>
+  <div class="wgal" id="wgal"></div><div class="actions"><button id="worksClose">닫기</button></div></div></div>
 <div class="overlay hide" id="homeOv"><div class="modal"><h2>처음으로 갈까요?</h2><p class="help">지금 하던 것은 끝나고 설정 화면으로 돌아가요.</p>
   <div class="actions"><button id="homeNo">계속하기</button><button class="primary" id="homeYes">🏠 처음으로</button></div></div></div>
 <div class="overlay hide" id="resultOv"><div class="modal"><div class="resIcon" id="resIcon"></div><h2 id="resTitle"></h2><div class="rstars" id="resStars"></div><p class="help" id="resInfo"></p>
@@ -305,8 +378,8 @@ function bootShell(){
   GAME.lobby&&GAME.lobby();syncSegs();}
 function postDone(type,detail){try{if(window.parent!==window)window.parent.postMessage({type:'tyranomath:'+type,...detail},'*');}catch(e){}}
 
-// ================= 티라노 거울 대칭 그리기 =================
-loadCfg('tyranomath-mirror-v1',{mode:'v',help:'on',size:8,pic:0,done:{},sound:true});
+// ================= 티라노 대칭 도구 =================
+loadCfg('tyranomath-mirror-v1',{mode:'v',help:'on',size:8,pic:0,done:{},sound:true,app:'puzzle',fkind:'grid',fsize:12,sym:'v',fold:6,stool:'pen',sbs:1,scol:'r',sguide:true,sgrid:true});
 const COL={r:'#ff4d6a',o:'#ff9b3d',y:'#ffd23a',g:'#3fbf5a',b:'#3f8cff',s:'#8fd3ff',p:'#a86cff',i:'#ff9fd0',n:'#9a6b4b',k:'#2b2b38'};
 const ART={8:[
  {n:'하트',h:['.rr.','rrrr','rirr','rrrr','.rrr','..rr','...r','....']},
@@ -341,13 +414,14 @@ let S=null;
 const GAME={guide:['파란 점선이 거울(가운데 선)이에요.','아래 색을 고르고, 거울 반대쪽 칸을 누르거나 쓱 끌어서 색칠해요.','세로 거울: 왼쪽 칸과 거울에서 같은 거리만큼 떨어진 오른쪽 칸에 칠해요.','점대칭: 그림을 반 바퀴(180°) 돌렸을 때 겹치는 자리에 칠해요.','🧽 지우개로 잘못 칠한 칸을 지워요. ✅ 확인하기로 맞았는지 봐요!'],
   lobby(){bindSeg('modeSeg','mode',{after:()=>{cfg.pic=0;save();gal();}});bindSeg('helpSeg','help',{after:()=>S&&draw()});bindSeg('sizeSeg','size',{after:()=>{cfg.pic=0;save();gal();}});gal();
     $('checkBtn').onclick=()=>check(true);$('hintBtn').onclick=hint;$('clearBtn').onclick=()=>{if(!S||S.done)return;for(let r=0;r<S.n;r++)for(let c=0;c<S.n;c++)if(!given(S.mode,S.n,r,c))S.cur[r][c]='.';S.marks=null;draw();};},
-  start(){const n=cfg.size,T=target(cfg.mode,n,cfg.pic);S={n,mode:cfg.mode,pic:cfg.pic,T,cur:T.map((row,r)=>row.map((v,c)=>given(cfg.mode,n,r,c)?v:'.')),brush:null,chk:0,hints:0,marks:null,done:false};
+  start(cu){const custom=cu&&cu.T?cu:null,n=custom?custom.n:cfg.size,mode=custom?custom.mode:cfg.mode,T=custom?custom.T.map(r=>r.slice()):target(mode,n,cfg.pic);
+    S={n,mode,pic:cfg.pic,custom,T,cur:T.map((row,r)=>row.map((v,c)=>given(mode,n,r,c)?v:'.')),brush:null,chk:0,hints:0,marks:null,done:false};
     const used=[...new Set(T.flat().filter(v=>v!=='.'))];S.brush=used[0];$('pal').innerHTML=used.map(k=>`<button data-k="${k}" style="background:${COL[k]}"></button>`).join('')+`<button data-k="." style="background:#fff">🧽</button>`;
     $('pal').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.brush=b.dataset.k;SFX.click();pal();});pal();
-    $('rndT').textContent=({v:'세로 거울',h:'가로 거울',p:'점대칭'})[S.mode]+' · '+items()[S.pic].n;$('rndS').textContent=S.mode==='p'?'반 바퀴 돌린 자리에 칠해요':'거울 반대편에 칠해요';
+    $('rndT').textContent=({v:'세로 거울',h:'가로 거울',p:'점대칭'})[S.mode]+' · '+(S.custom?'내가 만든 문제':items()[S.pic].n);$('rndS').textContent=S.mode==='p'?'반 바퀴 돌린 자리에 칠해요':'거울 반대편에 칠해요';
     let need=0;for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(!given(S.mode,n,r,c)&&T[r][c]!=='.')need++;$('needT').textContent=need;$('chkN').textContent=0;$('hintN').textContent=0;
     showGame();say(S.mode==='p'?'반 바퀴 돌린 모양을 칠해요!':'거울 반대편에 색칠해요!');},
-  restart(){GAME.start();},busy:()=>S&&!S.done,
+  restart(){GAME.start(S&&S.custom);},busy:()=>S&&!S.done,
   layout(){if(!S)return;setPort();const w=$('bwrap').getBoundingClientRect();const s=Math.floor(Math.min(w.width-44,w.height-44));const cv=$('cv');const dpr=Math.min(3,devicePixelRatio||1);const sz=Math.max(200,s);
     cv.width=sz*dpr;cv.height=sz*dpr;cv.style.width=cv.style.height=sz+'px';S.sz=sz;S.dpr=dpr;draw();}};
 function pal(){$('pal').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.k===S.brush));}
@@ -375,8 +449,10 @@ function flash(r,c){const n=S.n,cs=S.sz/n,cx=$('cv').getContext('2d');cx.strokeS
 $('cv').addEventListener('pointerdown',e=>{if(!S||S.done)return;resume();painting=true;try{$('cv').setPointerCapture(e.pointerId);}catch(_){}paintAt(e);});
 $('cv').addEventListener('pointermove',e=>{if(painting&&S&&!S.done)paintAt(e);});addEventListener('pointerup',()=>{if(painting){painting=false;if(S&&!S.done)check(false);}});
 function check(manual){const n=S.n;let wrong=0,miss=0;const marks=new Set();for(let r=0;r<n;r++)for(let c=0;c<n;c++){if(given(S.mode,n,r,c))continue;const v=S.cur[r][c],t=S.T[r][c];if(v!==t){if(v==='.')miss++;else{wrong++;marks.add(r*n+c);}}}
-  if(!wrong&&!miss){S.done=true;S.marks=null;draw();SFX.win();confetti(Object.values(COL));const st=Math.max(1,3-Math.max(0,S.chk-1)-S.hints);const k=`${S.mode}-${S.n}-${S.pic}`;cfg.done[k]=Math.max(cfg.done[k]||0,Math.min(3,st));save();say('완벽한 대칭! 🎉');
-    const nxt=(S.pic+1)%items().length;result({icon:'🪞',title:`${items()[S.pic].n} 완성!`,stars:Math.min(3,st),info:`확인 ${S.chk}번 · 힌트 ${S.hints}번`,next:['▶ 다음 그림',()=>{cfg.pic=nxt;save();GAME.start();}],again:['↺ 다시',GAME.start]});postDone('mirror-clear',{mode:S.mode,pic:S.pic});return;}
+  if(!wrong&&!miss){S.done=true;S.marks=null;draw();SFX.win();confetti(Object.values(COL));const st=Math.max(1,3-Math.max(0,S.chk-1)-S.hints);say('완벽한 대칭! 🎉');
+    if(S.custom){const cu=S.custom;result({icon:'🎨',title:'내가 만든 문제 완성!',stars:Math.min(3,st),info:`확인 ${S.chk}번 · 힌트 ${S.hints}번`,next:['🎨 그리기로',()=>openStudio()],again:['↺ 다시',()=>GAME.start(cu)]});return;}
+    const k=`${S.mode}-${S.n}-${S.pic}`;cfg.done[k]=Math.max(cfg.done[k]||0,Math.min(3,st));save();
+    const nxt=(S.pic+1)%items().length;result({icon:'🪞',title:`${items()[S.pic].n} 완성!`,stars:Math.min(3,st),info:`확인 ${S.chk}번 · 힌트 ${S.hints}번`,next:['▶ 다음 그림',()=>{cfg.pic=nxt;save();GAME.start();}],again:['↺ 다시',()=>GAME.start()]});postDone('mirror-clear',{mode:S.mode,pic:S.pic});return;}
   if(manual){S.chk++;$('chkN').textContent=S.chk;S.marks=marks;draw();if(wrong){SFX.bad();say(`✕ 표시한 ${wrong}칸이 틀렸어요. 거울 건너편을 다시 봐요!`);}else{SFX.ok();say(`지금까지 맞아요! ${miss}칸만 더 칠해요.`);}}}
 function hint(){if(!S||S.done)return;const n=S.n,c=[];for(let r=0;r<n;r++)for(let k=0;k<n;k++)if(!given(S.mode,n,r,k)&&S.cur[r][k]!==S.T[r][k])c.push([r,k]);if(!c.length)return;const [r,k]=pick(c);
   S.cur[r][k]=S.T[r][k];S.hints++;$('hintN').textContent=S.hints;SFX.hint();draw();flash(r,k);const [a,b]=mirrorOf(S.mode,n,r,k);say(`(${a+1}줄, ${b+1}칸)의 짝을 칠했어요!`);check(false);}
@@ -385,5 +461,201 @@ if(TEST)window.__t={get S(){return S},setup:n=>{if(n==='board'){cfg.mode='h';cfg
     const o={clientX:b.left+(cc+.5)/n*b.width,clientY:b.top+(rr+.5)/n*b.height,pointerId:1,bubbles:true};$('cv').dispatchEvent(new PointerEvent('pointerdown',o));dispatchEvent(new PointerEvent('pointerup',o));return S.cur[rr][cc]===S.T[rr][cc];},
   solve:async()=>{S.cur=S.T.map(r=>r.slice());check(true);return {done:S.done};}};
 
+// ================= 자유 대칭 그리기 (스튜디오) =================
+Object.assign(COL,{l:'#b6e35a',t:'#22c1b0',a:'#a3adb8'});
+const PKEYS=['r','o','y','l','g','t','s','b','p','i','n','a','k'];
+const SYMS={none:['✖️','대칭 없음'],v:['↔️','세로 거울'],h:['↕️','가로 거울'],d:['⤡','대각선 거울'],vh:['✚','네 쪽 거울'],p:['🔄','점대칭'],rot:['🌀','회전 대칭'],kal:['❄️','만화경']};
+const SYM_ORDER=Object.keys(SYMS);
+const SYM_SUB={none:()=>'마음대로 그려요',v:()=>'세로 거울선에 비쳐요 (선대칭)',h:()=>'가로 거울선에 비쳐요 (선대칭)',d:()=>'비스듬한 거울선에 비쳐요 (선대칭)',vh:()=>'거울 두 개 · 네 쪽이 같아요',
+  p:()=>'반 바퀴(180°) 돌려도 같아요',rot:N=>`${360/N}°씩 돌려도 같아요`,kal:N=>`거울 ${N}개 · 눈꽃 무늬`};
+const SYM_TIP={none:'대칭 없이 마음대로 그려요. 다 그리고 🔍 대칭 찾기를 눌러 봐요!',v:'↔️ 세로 거울: 한쪽에 그리면 거울 건너편에 뒤집혀 그려져요.',h:'↕️ 가로 거울: 위에 그리면 아래에 뒤집혀 그려져요.',
+  d:'⤡ 대각선 거울: 비스듬한 선을 거울로 삼아 그려져요.',vh:'✚ 거울이 두 개! 한 번 그리면 네 군데에 그려져요.',p:'🔄 점대칭: 빨간 점을 중심으로 반 바퀴(180°) 돌린 자리에 그려져요.',
+  rot:'🌀 회전 대칭: 가운데를 중심으로 빙글빙글 돌아가며 그려져요.',kal:'❄️ 만화경: 돌리고 거울에 비춰서 눈꽃 무늬가 생겨요.'};
+const SGUIDE=['대칭을 고르고 한쪽에 그리면 반대쪽에 저절로 그려져요.','🔄 점대칭: 빨간 점을 중심으로 반 바퀴 돌린 자리에 그려져요.','🌀 회전 대칭·❄️ 만화경으로 눈꽃 같은 무늬를 만들어요.',
+  '🪄 접어보기 / 🔄 돌려보기로 정말 대칭인지 눈으로 확인해요.','🔍 대칭 찾기: 그림에 어떤 대칭이 숨어 있는지 알려 줘요.','🧩 문제 만들기: 칸 그림의 반쪽을 숨겨 친구에게 문제로 내요.','💾 저장하면 🖼️ 작품함에서 다시 열어 이어 그릴 수 있어요.'];
+const BW=[.006,.012,.022,.04];
+// 변환 (0~1 좌표, 가운데 0.5)
+const RT=a=>{const c=Math.cos(a),s=Math.sin(a);return (x,y)=>{const dx=x-.5,dy=y-.5;return[.5+dx*c-dy*s,.5+dx*s+dy*c];};};
+const ID=(x,y)=>[x,y],FX=(x,y)=>[1-x,y],FY=(x,y)=>[x,1-y],SW=(x,y)=>[y,x],AS=(x,y)=>[1-y,1-x],R2=(x,y)=>[1-x,1-y];
+function xforms(sym,N){switch(sym){case'v':return[ID,FX];case'h':return[ID,FY];case'd':return[ID,SW];case'vh':return[ID,FX,FY,R2];case'p':return[ID,R2];
+  case'rot':return[...Array(N)].map((_,k)=>k?RT(2*Math.PI*k/N):ID);
+  case'kal':{const a=[];for(let k=0;k<N;k++){const r=k?RT(2*Math.PI*k/N):ID;a.push(r,(x,y)=>r(1-x,y));}return a;}}return[ID];}
+let F=null,studioOn=false;
+const curN=()=>(F?F.kind:cfg.fkind)==='grid'?4:cfg.fold;
+const emptyGrid=n=>Array.from({length:n},()=>Array(n).fill('.'));
+function newF(){F={kind:cfg.fkind,n:cfg.fsize,grid:emptyGrid(cfg.fsize),strokes:[],undo:[],redo:[],pid:null,cur:null,workId:null,sz:0,dpr:1,busy:false};}
+const isEmpty=()=>F.kind==='grid'?F.grid.every(r=>r.every(v=>v==='.')):!F.strokes.some(s=>!s.e);
+function ssay(t){const b=$('sbubble');b.innerHTML=t;b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');}
+function openStudio(){if(!F||F.kind!==cfg.fkind||(cfg.fkind==='grid'&&F.n!==cfg.fsize))newF();
+  ['lobby','game','resultOv','homeOv','worksOv'].forEach(id=>$(id).classList.add('hide'));playing=false;$('studio').classList.remove('hide');studioOn=true;
+  syncStudio();ssay(SYM_TIP[cfg.sym]);requestAnimationFrame(layoutS);}
+function closeStudio(){studioOn=false;$('studio').classList.add('hide');}
+function layoutS(){if(!F||!studioOn)return;const m=$('sMain'),r0=m.getBoundingClientRect();m.classList.toggle('port',r0.height>r0.width*.95);
+  const w=$('sbwrap').getBoundingClientRect();const sz=Math.max(200,Math.floor(Math.min(w.width-40,w.height-40)));const dpr=Math.min(3,devicePixelRatio||1);
+  F.sz=sz;F.dpr=dpr;const box=$('cvs');box.style.width=box.style.height=sz+'px';
+  ['cvBg','cvArt','cvGd'].forEach(id=>{const c=$(id);c.width=c.height=Math.round(sz*dpr);c.style.width=c.style.height=sz+'px';});renderAll();}
+const cx=id=>{const c=$(id).getContext('2d');c.setTransform(F.dpr,0,0,F.dpr,0,0);c.globalCompositeOperation='source-over';return c;};
+function renderAll(){renderBg();renderArt();renderGd();syncUR();}
+function gridLines(c,S,n,col){const cs=S/n;c.strokeStyle=col;c.lineWidth=1;c.beginPath();for(let i=1;i<n;i++){c.moveTo(i*cs,0);c.lineTo(i*cs,S);c.moveTo(0,i*cs);c.lineTo(S,i*cs);}c.stroke();}
+function renderBg(){const c=cx('cvBg'),S=F.sz;c.fillStyle='#fff';c.fillRect(0,0,S,S);if(F.kind==='pen'&&cfg.sgrid)gridLines(c,S,16,'#e5ebf2');}
+// 펜 획 그리기
+function styleFor(c,S,st,i){c.globalCompositeOperation=st.e?'destination-out':'source-over';const col=st.c==='rainbow'?`hsl(${(i*5)%360},90%,55%)`:st.c;c.strokeStyle=c.fillStyle=col;c.lineWidth=st.w*S;c.lineCap='round';c.lineJoin='round';}
+const fsOf=st=>st._f||(Object.defineProperty(st,'_f',{value:xforms(st.s,st.N),enumerable:false}),st._f);
+function segTo(c,S,st,a,b,i){styleFor(c,S,st,i);c.beginPath();for(const f of fsOf(st)){const[x1,y1]=f(a[0],a[1]),[x2,y2]=f(b[0],b[1]);c.moveTo(x1*S,y1*S);c.lineTo(x2*S,y2*S);}c.stroke();}
+function dotTo(c,S,st,a,i){styleFor(c,S,st,i);const r=st.w*S/2;c.beginPath();for(const f of fsOf(st)){const[x,y]=f(a[0],a[1]);c.moveTo(x*S+r,y*S);c.arc(x*S,y*S,r,0,Math.PI*2);}c.fill();}
+function strokeTo(c,S,st){const p=st.p;if(p.length===1)dotTo(c,S,st,p[0],0);else for(let i=1;i<p.length;i++)segTo(c,S,st,p[i-1],p[i],i);}
+function artTo(c,S){if(F.kind==='grid'){const n=F.n,cs=S/n;for(let r=0;r<n;r++)for(let k=0;k<n;k++){const v=F.grid[r][k];if(v==='.')continue;
+    c.fillStyle=COL[v]||'#999';c.beginPath();c.roundRect(k*cs+cs*.06,r*cs+cs*.06,cs*.88,cs*.88,cs*.18);c.fill();c.fillStyle='rgba(255,255,255,.35)';c.fillRect(k*cs+cs*.16,r*cs+cs*.14,cs*.3,cs*.12);}}
+  else for(const st of F.strokes)strokeTo(c,S,st);c.globalCompositeOperation='source-over';}
+function renderArt(){const c=cx('cvArt');c.clearRect(0,0,F.sz,F.sz);artTo(c,F.sz);}
+function renderGd(extra){const c=cx('cvGd'),S=F.sz,m=S/2;c.clearRect(0,0,S,S);if(F.kind==='grid')gridLines(c,S,F.n,'rgba(150,160,180,.45)');
+  const line=(x1,y1,x2,y2)=>{c.moveTo(x1,y1);c.lineTo(x2,y2);};
+  if(cfg.sguide&&!extra){const sym=cfg.sym,N=curN();c.strokeStyle='rgba(63,140,255,.85)';c.lineWidth=Math.max(2.5,S*.007);c.setLineDash([S*.025,S*.017]);c.beginPath();
+    if(sym==='v'||sym==='vh')line(m,0,m,S);if(sym==='h'||sym==='vh')line(0,m,S,m);if(sym==='d')line(0,0,S,S);
+    if(sym==='kal')for(let k=0;k<N;k++){const a=Math.PI/2+Math.PI*k/N,dx=Math.cos(a)*S*.75,dy=Math.sin(a)*S*.75;line(m-dx,m-dy,m+dx,m+dy);}c.stroke();
+    if(sym==='rot'){c.strokeStyle='rgba(168,108,255,.6)';c.lineWidth=Math.max(2,S*.005);c.setLineDash([S*.012,S*.014]);c.beginPath();for(let k=0;k<N;k++){const a=-Math.PI/2+2*Math.PI*k/N;line(m,m,m+Math.cos(a)*S*.75,m+Math.sin(a)*S*.75);}c.stroke();}
+    c.setLineDash([]);if(['p','rot','kal','vh'].includes(sym)){c.fillStyle='#ff4d6a';c.beginPath();c.arc(m,m,Math.max(5,S*.014),0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=2.5;c.stroke();}}
+  if(extra){c.strokeStyle='#ff9f1a';c.lineWidth=Math.max(3,S*.009);c.setLineDash([S*.02,S*.012]);c.beginPath();
+    for(const id of extra){if(id==='v')line(m,0,m,S);if(id==='h')line(0,m,S,m);if(id==='d')line(0,0,S,S);if(id==='a')line(S,0,0,S);}c.stroke();c.setLineDash([]);
+    if(extra.some(id=>id==='p'||id[0]==='r')){c.fillStyle='#ff9f1a';c.beginPath();c.arc(m,m,Math.max(6,S*.017),0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();}}}
+// 칸 그리기
+function cellsOf(r,k){const n=F.n,out=[],seen=new Set();for(const f of xforms(cfg.sym,4)){const[x,y]=f((k+.5)/n,(r+.5)/n);const a=Math.round(y*n-.5),b=Math.round(x*n-.5);
+  if(a<0||b<0||a>=n||b>=n)continue;const key=a*n+b;if(!seen.has(key)){seen.add(key);out.push([a,b]);}}return out;}
+function paintCell(r,k,v){let ch=false;for(const[a,b]of cellsOf(r,k))if(F.grid[a][b]!==v){F.grid[a][b]=v;ch=true;}if(ch){F.changed=true;SFX.pop(r%8);renderArt();}}
+function floodFill(r,k,v){const n=F.n,src=F.grid[r][k];if(src===v)return;const q=[[r,k]],seen=new Set([r*n+k]),reg=[];
+  while(q.length){const[a,b]=q.pop();reg.push([a,b]);for(const[da,db]of[[1,0],[-1,0],[0,1],[0,-1]]){const A=a+da,B=b+db;if(A<0||B<0||A>=n||B>=n)continue;const key=A*n+B;if(seen.has(key)||F.grid[A][B]!==src)continue;seen.add(key);q.push([A,B]);}}
+  for(const[a,b]of reg)for(const[c2,d2]of cellsOf(a,b))F.grid[c2][d2]=v;F.changed=true;SFX.ok();renderArt();}
+const tool=()=>F.kind==='pen'&&cfg.stool==='fill'?'pen':cfg.stool;
+const penColor=()=>cfg.scol==='rainbow'?'rainbow':PKEYS.includes(cfg.scol)?COL[cfg.scol]:/^#[0-9a-f]{6}$/i.test(cfg.scol)?cfg.scol:COL.r;
+const gridColor=()=>PKEYS.includes(cfg.scol)?cfg.scol:'r';
+// 되돌리기
+const snap=()=>F.kind==='grid'?F.grid.map(r=>r.slice()):F.strokes.slice();
+function pushUndo(){F._redo=F.redo;F.undo.push(snap());if(F.undo.length>120)F.undo.shift();F.redo=[];}
+function restoreS(s){if(F.kind==='grid')F.grid=s;else F.strokes=s;renderArt();syncUR();}
+function undoS(){if(!F||F.busy||!F.undo.length)return;F.redo.push(snap());restoreS(F.undo.pop());SFX.undo();}
+function redoS(){if(!F||F.busy||!F.redo.length)return;F.undo.push(snap());restoreS(F.redo.pop());SFX.undo();}
+function syncUR(){$('undoBtn').disabled=!F||!F.undo.length;$('redoBtn').disabled=!F||!F.redo.length;}
+// 포인터
+const cvs=$('cvs');
+const posOf=e=>{const r=F.rect;return[Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))];};
+const cellAt=(x,y)=>[Math.min(F.n-1,Math.floor(y*F.n)),Math.min(F.n-1,Math.floor(x*F.n))];
+cvs.addEventListener('pointerdown',e=>{if(!F||F.busy||F.pid!=null||e.button>0)return;resume();F.pid=e.pointerId;F.rect=cvs.getBoundingClientRect();try{cvs.setPointerCapture(e.pointerId);}catch(_){}
+  const[x,y]=posOf(e);pushUndo();F.changed=false;
+  if(F.kind==='pen'){const er=tool()==='erase';const st={c:er?'#000':penColor(),w:BW[cfg.sbs]*(er?1.8:1),e:er,s:cfg.sym,N:curN(),p:[[x,y]]};F.strokes.push(st);F.cur=st;dotTo(cx('cvArt'),F.sz,st,st.p[0],0);F.changed=true;}
+  else{const[r,k]=cellAt(x,y);F.last=[r,k];if(tool()==='fill')floodFill(r,k,gridColor());else paintCell(r,k,tool()==='erase'?'.':gridColor());}});
+cvs.addEventListener('pointermove',e=>{if(!F||e.pointerId!==F.pid)return;
+  if(F.kind==='pen'){const st=F.cur,c=cx('cvArt');let evs=e.getCoalescedEvents?e.getCoalescedEvents():[];if(!evs.length)evs=[e];
+    for(const ev of evs){const p=posOf(ev),q=st.p[st.p.length-1];if(Math.hypot(p[0]-q[0],p[1]-q[1])<.0015)continue;st.p.push(p);segTo(c,F.sz,st,q,p,st.p.length-1);}c.globalCompositeOperation='source-over';}
+  else if(tool()!=='fill'){const[x,y]=posOf(e),[r,k]=cellAt(x,y),[r0,k0]=F.last;if(r===r0&&k===k0)return;const steps=Math.max(Math.abs(r-r0),Math.abs(k-k0)),v=tool()==='erase'?'.':gridColor();
+    for(let i=1;i<=steps;i++)paintCell(Math.round(r0+(r-r0)*i/steps),Math.round(k0+(k-k0)*i/steps),v);F.last=[r,k];}});
+const endP=e=>{if(!F||e.pointerId!==F.pid)return;F.pid=null;F.cur=null;if(!F.changed){F.undo.pop();F.redo=F._redo||[];}syncUR();};
+cvs.addEventListener('pointerup',endP);cvs.addEventListener('pointercancel',endP);
+// 대칭 검사
+function symOK(f){const n=F.n;for(let r=0;r<n;r++)for(let k=0;k<n;k++){const[x,y]=f((k+.5)/n,(r+.5)/n);const a=Math.round(y*n-.5),b=Math.round(x*n-.5);if(a<0||b<0||a>=n||b>=n)return false;if(F.grid[r][k]!==F.grid[a][b])return false;}return true;}
+function sample(){const N=72,c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d');g.drawImage($('cvArt'),0,0,N,N);return{N,d:g.getImageData(0,0,N,N).data};}
+function symScore(f,D){const{N,d}=D,on=(i,j)=>i>=0&&j>=0&&i<N&&j<N&&d[(j*N+i)*4+3]>90,near=(i,j)=>{for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)if(on(i+a,j+b))return true;return false;};
+  let uni=0,bad=0;for(let j=0;j<N;j++)for(let i=0;i<N;i++){const A=on(i,j);const[x,y]=f((i+.5)/N,(j+.5)/N);const I=Math.floor(x*N),J=Math.floor(y*N),B=on(I,J);if(!A&&!B)continue;uni++;
+    if(A&&!B){if(!near(I,J))bad++;}else if(!A&&B){if(!near(i,j))bad++;}else{const o=(j*N+i)*4,o2=(J*N+I)*4;if(Math.abs(d[o]-d[o2])+Math.abs(d[o+1]-d[o2+1])+Math.abs(d[o+2]-d[o2+2])>170)bad++;}}
+  return uni?bad/uni:0;}
+const isSym=(f,D)=>F.kind==='grid'?symOK(f):symScore(f,D)<.06;
+const CHK=[['v','세로 선대칭',FX],['h','가로 선대칭',FY],['d','대각선(↘) 선대칭',SW],['a','대각선(↙) 선대칭',AS],['p','점대칭',R2],['r4','90° 회전 대칭',RT(Math.PI/2)],['r3','120° 회전 대칭',RT(2*Math.PI/3)],['r6','60° 회전 대칭',RT(Math.PI/3)]];
+function findSym(){if(!F||F.busy)return;if(isEmpty()){ssay('먼저 그림을 그려요! ✏️');return;}const D=F.kind==='pen'?sample():null;
+  const list=CHK.filter(([id])=>F.kind==='pen'||(id!=='r3'&&id!=='r6')).filter(([,,f])=>isSym(f,D));
+  if(!list.length){SFX.bad();ssay('🔍 이 그림은 대칭이 아니에요.<br>대칭을 골라 그려 볼까요?');return;}
+  SFX.star();const names=list.map(x=>x[1]);ssay('🔍 찾았어요!<br>'+names.join(' · '));toast('🔍 대칭을 찾았어요',names.join(' · '),2400);
+  renderGd(list.map(x=>x[0]));clearTimeout(F._gt);F._gt=setTimeout(()=>F&&renderGd(),2600);}
+// 접어보기 / 돌려보기
+async function foldAnim(){if(!F||F.busy)return;const sym=cfg.sym;
+  if(sym==='none'){ssay('대칭을 고르면 🪄 접어 보거나 돌려 볼 수 있어요. 대칭 없이 그린 그림은 🔍 대칭 찾기!');return;}
+  if(isEmpty()){ssay('먼저 그림을 그려요! ✏️');return;}
+  F.busy=true;const L=$('foldL'),S=F.sz,src=$('cvArt'),dp=F.dpr;L.innerHTML='';
+  const piece=(x,y,w,h,clip)=>{const c=document.createElement('canvas');c.width=Math.round(w*dp);c.height=Math.round(h*dp);c.getContext('2d').drawImage(src,x*dp,y*dp,w*dp,h*dp,0,0,c.width,c.height);
+    c.style.cssText=`left:${x}px;top:${y}px;width:${w}px;height:${h}px;`+(clip?`clip-path:${clip};`:'');return c;};
+  const cover=css=>{const d=document.createElement('div');d.style.cssText='background:rgba(255,255,255,.93);'+css;L.appendChild(d);return d;};
+  const run=(el,kf,ms)=>el.animate(kf,{duration:TEST?10:ms,easing:'ease-in-out',fill:'forwards'}).finished;
+  const wait=ms=>new Promise(r=>setTimeout(r,TEST?5:ms));
+  const fold=async(msg,coverCss,pc,origin,from,to)=>{ssay(msg);const cv=cover(coverCss);L.appendChild(pc);pc.style.transformOrigin=origin;SFX.slide();
+    await run(pc,[{transform:from},{transform:to}],1000);SFX.pop(3);await wait(750);await run(pc,[{transform:to},{transform:from}],650);cv.remove();pc.remove();};
+  try{
+    if(sym==='v'||sym==='vh')await fold('↔️ 세로 거울선을 따라 반으로 접어요…',`left:${S/2}px;top:0;width:${S/2}px;height:${S}px`,piece(S/2,0,S/2,S),'left center','rotateY(0deg)','rotateY(-180deg)');
+    if(sym==='h'||sym==='vh')await fold('↕️ 가로 거울선을 따라 반으로 접어요…',`left:0;top:${S/2}px;width:${S}px;height:${S/2}px`,piece(0,S/2,S,S/2),'center top','rotateX(0deg)','rotateX(180deg)');
+    if(sym==='d'){const cl='polygon(0 0,0 100%,100% 100%)';await fold('⤡ 대각선을 따라 접어요…',`left:0;top:0;width:${S}px;height:${S}px;clip-path:${cl}`,piece(0,0,S,S,cl),'center center','rotate3d(1,1,0,0deg)','rotate3d(1,1,0,180deg)');}
+    if(['p','rot','kal'].includes(sym)){const ang=sym==='p'?180:360/curN();ssay(`🔄 가운데 점을 중심으로 ${ang}° 돌려요…`);
+      const cv=cover(`left:0;top:0;width:${S}px;height:${S}px;background:rgba(255,255,255,.62)`);const pc=piece(0,0,S,S);pc.style.boxShadow='none';pc.style.background='transparent';L.appendChild(pc);pc.style.transformOrigin='center center';SFX.slide();
+      await run(pc,[{transform:'rotate(0deg)'},{transform:`rotate(${ang}deg)`}],1400);SFX.pop(3);await wait(800);await run(pc,[{opacity:1,transform:`rotate(${ang}deg)`},{opacity:0,transform:`rotate(${ang}deg)`}],450);cv.remove();pc.remove();}
+    const N=curN(),VER={v:[FX],h:[FY],d:[SW],vh:[FX,FY],p:[R2],rot:[RT(2*Math.PI/N)],kal:[RT(2*Math.PI/N),FX]};const D=F.kind==='pen'?sample():null;
+    if(VER[sym].every(f=>isSym(f,D))){SFX.star();toast('딱 맞아요! ✨',`${SYMS[sym][1]} 그림이에요`,1800);ssay(`✨ 딱 겹쳐요! ${SYMS[sym][1]} 그림이 맞아요.`);}
+    else{SFX.bad();toast('어? 안 겹치는 곳이 있어요','다른 대칭으로 그린 부분이 있나 봐요',2000);ssay('어긋나는 곳이 있어요. 다른 대칭으로 그린 부분이 있는지 찾아봐요!');}
+  }catch(err){}finally{L.innerHTML='';F.busy=false;}}
+// 그리는 과정 다시 보기
+async function replay(){if(!F||F.busy||F.kind!=='pen'||!F.strokes.length)return;F.busy=true;const c=cx('cvArt'),S=F.sz;c.clearRect(0,0,S,S);const segs=[];
+  F.strokes.forEach(st=>{if(st.p.length===1)segs.push([st,0]);for(let i=1;i<st.p.length;i++)segs.push([st,i]);});
+  const per=Math.max(1,Math.ceil(segs.length/240));let i=0;ssay('▶️ 그리는 과정을 다시 보여 줄게요!');
+  await new Promise(res=>{const step=()=>{if(!studioOn){res();return;}for(let k=0;k<per&&i<segs.length;k++,i++){const[st,j]=segs[i];if(j===0)dotTo(c,S,st,st.p[0],0);else segTo(c,S,st,st.p[j-1],st.p[j],j);}
+    c.globalCompositeOperation='source-over';if(i<segs.length)requestAnimationFrame(step);else res();};step();});
+  F.busy=false;renderArt();ssay('짠! 다 그렸어요 🎉');}
+// 문제 만들기
+function makePuzzle(){if(!F||F.busy||F.kind!=='grid')return;if(isEmpty()){ssay('먼저 칸을 색칠해요! 🟩');return;}
+  const ok={v:symOK(FX),h:symOK(FY),p:symOK(R2)};let mode=ok[cfg.sym]?cfg.sym:['v','h','p'].find(m=>ok[m]);
+  if((cfg.sym==='rot'||cfg.sym==='kal')&&ok.p)mode='p';
+  if(!mode){SFX.bad();ssay('🧩 세로·가로 선대칭이나 점대칭인 그림만 문제로 만들 수 있어요!');return;}
+  const n=F.n;let need=0;for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(!given(mode,n,r,c)&&F.grid[r][c]!=='.')need++;
+  if(!need){ssay('숨길 반쪽에 칠한 칸이 없어요!');return;}
+  closeStudio();GAME.start({T:F.grid.map(r=>r.slice()),n,mode});toast('🧩 문제 완성!',({v:'세로 거울',h:'가로 거울',p:'점대칭'})[mode]+' 문제예요',1600);}
+// 내보내기 · 작품함
+function exportCanvas(S=1200){const c=document.createElement('canvas');c.width=c.height=S;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,S,S);
+  if(F.kind==='grid'){gridLines(g,S,F.n,'#e3e8ef');}const a=document.createElement('canvas');a.width=a.height=S;artTo(a.getContext('2d'),S);g.drawImage(a,0,0);return c;}
+const stamp=()=>{const d=new Date(),p=v=>String(v).padStart(2,'0');return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;};
+function download(){if(!F||F.busy)return;if(isEmpty()){ssay('먼저 그림을 그려요! ✏️');return;}try{const a=document.createElement('a');a.href=exportCanvas().toDataURL('image/png');a.download=`티라노-대칭그림-${stamp()}.png`;document.body.appendChild(a);a.click();a.remove();SFX.ok();ssay('⬇️ 그림 파일을 내려받았어요!');}catch(e){ssay('이 화면에서는 내려받기가 막혀 있어요. 💾 저장을 써 주세요.');}}
+const WKEY='tyranomath-mirror-works';
+const getWorks=()=>{try{const w=JSON.parse(localStorage.getItem(WKEY)||'[]');return Array.isArray(w)?w:[];}catch(e){return[];}};
+function saveWork(){if(!F||F.busy)return;if(isEmpty()){ssay('먼저 그림을 그려요! ✏️');return;}
+  const th=exportCanvas(160).toDataURL('image/jpeg',.82);
+  const data=F.kind==='grid'?F.grid.map(r=>r.join('')):F.strokes.map(s=>({c:s.c,w:+s.w.toFixed(4),e:s.e?1:0,s:s.s,N:s.N,p:s.p.map(q=>[+q[0].toFixed(4),+q[1].toFixed(4)])}));
+  const w={id:F.workId||Date.now(),t:Date.now(),kind:F.kind,n:F.n,sym:cfg.sym,data,th};let ws=getWorks().filter(x=>x.id!==w.id);ws.unshift(w);ws=ws.slice(0,30);
+  try{localStorage.setItem(WKEY,JSON.stringify(ws));F.workId=w.id;SFX.star();toast('💾 저장했어요!','🖼️ 작품함에서 다시 열 수 있어요');ssay('💾 작품함에 저장했어요!');}
+  catch(e){toast('저장 공간이 꽉 찼어요','작품함에서 옛 작품을 지워 주세요',2200);}}
+function openWorks(){const ws=getWorks(),g=$('wgal'),p=v=>String(v).padStart(2,'0');
+  g.innerHTML=ws.length?ws.map(w=>{const d=new Date(w.t);return `<div class="wk" data-id="${+w.id}"><img src="${String(w.th).replace(/"/g,'')}" alt=""><small>${w.kind==='grid'?'🟩 '+(+w.n)+'칸':'✏️ 펜'} · ${d.getMonth()+1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}</small><button class="del">✕</button></div>`;}).join('')
+    :'<div class="empty">아직 저장한 작품이 없어요.<br>그림을 그리고 💾 저장을 눌러 보세요!</div>';
+  g.querySelectorAll('.wk').forEach(el=>{const id=+el.dataset.id;el.onclick=()=>{const w=getWorks().find(x=>x.id===id);if(w){$('worksOv').classList.add('hide');loadWork(w);}};
+    const del=el.querySelector('.del');del.onclick=ev=>{ev.stopPropagation();if(!del.classList.contains('sure')){del.classList.add('sure');del.textContent='지울까요?';setTimeout(()=>{del.classList.remove('sure');del.textContent='✕';},2500);return;}
+      try{localStorage.setItem(WKEY,JSON.stringify(getWorks().filter(x=>x.id!==id)));}catch(e){}if(F&&F.workId===id)F.workId=null;SFX.undo();openWorks();};});
+  $('worksOv').classList.remove('hide');}
+function loadWork(w){cfg.fkind=w.kind==='pen'?'pen':'grid';if(cfg.fkind==='grid')cfg.fsize=+w.n||12;if(SYMS[w.sym])cfg.sym=w.sym;save();newF();F.workId=w.id;
+  if(F.kind==='grid')F.grid=w.data.map(s=>s.split(''));else F.strokes=w.data.map(s=>({...s,e:!!s.e}));syncSegs();openStudio();ssay('🖼️ 작품을 불러왔어요. 이어서 그려 봐요!');}
+function clearS(){if(!F||F.busy||isEmpty())return;pushUndo();if(F.kind==='grid')F.grid=emptyGrid(F.n);else F.strokes=[];renderArt();syncUR();SFX.undo();ssay('모두 지웠어요. ↶ 되돌리기로 다시 살릴 수 있어요.');}
+// 화면 동기화
+function renderPal(){const kind=F?F.kind:cfg.fkind,P=$('spal');if(kind==='grid'&&!PKEYS.includes(cfg.scol))cfg.scol='r';const custom=/^#[0-9a-f]{6}$/i.test(cfg.scol);
+  let h=PKEYS.map(k=>`<button data-k="${k}" style="background:${COL[k]}" aria-label="색"></button>`).join('');
+  if(kind==='pen'){const cus=custom?cfg.scol:'#ff66cc';h+=`<button data-k="rainbow" class="rb" aria-label="무지개 펜" title="무지개 펜"></button><label class="${custom?'on':''}" style="background:${cus}" title="내 색 고르기">🎨<input type="color" id="cpick" value="${cus}"></label>`;}
+  P.innerHTML=h;P.querySelectorAll('button').forEach(b=>{b.classList.toggle('on',b.dataset.k===cfg.scol);b.onclick=()=>{cfg.scol=b.dataset.k;if(cfg.stool==='erase')cfg.stool='pen';save();SFX.click();syncSegs();};});
+  const cp=$('cpick');if(cp){cp.oninput=()=>{cfg.scol=cp.value;if(cfg.stool==='erase')cfg.stool='pen';save();cp.parentNode.style.background=cp.value;P.querySelectorAll('.on').forEach(b=>b.classList.remove('on'));cp.parentNode.classList.add('on');};cp.onchange=()=>syncSegs();}}
+function syncStudio(){const kind=F?F.kind:cfg.fkind,rotS=cfg.sym==='rot'||cfg.sym==='kal',N=curN();
+  document.querySelectorAll('#studio .onlyPen').forEach(e=>e.classList.toggle('hide',kind!=='pen'));document.querySelectorAll('#studio .onlyGrid').forEach(e=>e.classList.toggle('hide',kind!=='grid'));
+  document.querySelectorAll('#studio .onlyRot').forEach(e=>e.classList.toggle('hide',!rotS||kind!=='pen'));
+  const s=SYMS[cfg.sym]||SYMS.v;$('symT').textContent=s[0]+' '+s[1]+(rotS?` · ${N}쪽`:'');$('symS').textContent=(SYM_SUB[cfg.sym]||SYM_SUB.v)(N);
+  const isRot=['p','rot','kal'].includes(cfg.sym);$('foldBtn').innerHTML=(isRot?'🔄':'🪄')+`<small>${isRot?'돌려보기':'접어보기'}</small>`;
+  $('gdTgl').classList.toggle('on',cfg.sguide);$('grTgl').classList.toggle('on',cfg.sgrid);renderPal();if(F&&F.sz&&studioOn){renderBg();renderGd();}}
+function syncLobby(){const free=cfg.app==='free';$('puzCard').classList.toggle('hide',free);$('freeCard').classList.toggle('hide',!free);$('startBtn').textContent=free?'🎨 그리기 시작!':'🪞 시작!';$('fsizeBox').classList.toggle('hide',cfg.fkind!=='grid');}
+function setSGuide(open){$('sguide').classList.toggle('min',!open);$('sHelpBtn').classList.toggle('on',open);requestAnimationFrame(layoutS);}
+function studioInit(){if(!SYMS[cfg.sym])cfg.sym='v';if(![3,4,5,6,8].includes(cfg.fold))cfg.fold=6;if(!BW[cfg.sbs])cfg.sbs=1;
+  $('symSeg').innerHTML=SYM_ORDER.map(k=>`<button data-v="${k}"><i>${SYMS[k][0]}</i>${SYMS[k][1]}</button>`).join('');
+  $('lsymSeg').innerHTML=SYM_ORDER.map(k=>`<button data-v="${k}">${SYMS[k][0]}<small>${SYMS[k][1]}</small></button>`).join('');
+  bindSeg('appSeg','app');bindSeg('fkindSeg','fkind');bindSeg('fsizeSeg','fsize');bindSeg('lsymSeg','sym');
+  bindSeg('symSeg','sym',{after:()=>ssay(SYM_TIP[cfg.sym])});bindSeg('foldSeg','fold',{after:()=>ssay(`${cfg.fold}쪽 회전! 가운데를 중심으로 ${360/cfg.fold}°씩 돌아가며 그려져요.`)});
+  bindSeg('toolSeg','stool',{after:()=>ssay(({pen:'✏️ 그리기: 끌어서 그려요.',erase:'🧽 지우개: 지운 곳도 대칭으로 지워져요.',fill:'🪣 채우기: 같은 색 영역을 한 번에 칠해요.'})[cfg.stool])});bindSeg('bsSeg','sbs');
+  $('sguideTxt').innerHTML=SGUIDE.map(t=>`<span>${t}</span>`).join('');
+  $('undoBtn').onclick=undoS;$('redoBtn').onclick=redoS;$('foldBtn').onclick=foldAnim;$('saveBtn').onclick=saveWork;
+  $('sHelpBtn').onclick=()=>setSGuide($('sguide').classList.contains('min'));$('sguideBtn').onclick=()=>setSGuide(false);
+  $('sHomeBtn').onclick=()=>{if(F&&F.busy)return;closeStudio();showLobby();};
+  $('findBtn').onclick=findSym;$('puzBtn').onclick=makePuzzle;$('replayBtn').onclick=replay;$('dlBtn').onclick=download;$('sclearBtn').onclick=clearS;
+  $('worksBtn').onclick=openWorks;$('lWorksBtn').onclick=openWorks;$('worksClose').onclick=()=>$('worksOv').classList.add('hide');
+  $('gdTgl').onclick=()=>{cfg.sguide=!cfg.sguide;save();SFX.click();syncStudio();};$('grTgl').onclick=()=>{cfg.sgrid=!cfg.sgrid;save();SFX.click();syncStudio();};
+  addEventListener('keydown',e=>{if(!studioOn||e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();if((e.ctrlKey||e.metaKey)&&k==='z'){e.preventDefault();e.shiftKey?redoS():undoS();}else if((e.ctrlKey||e.metaKey)&&k==='y'){e.preventDefault();redoS();}});
+  let rz=0;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(studioOn)layoutS();},80);});
+  GAME.sync=()=>{syncLobby();syncStudio();};}
+studioInit();
 bootShell();
+$('startBtn').onclick=()=>{resume();if(cfg.app==='free')openStudio();else GAME.start();};
 })();</script></body></html>
