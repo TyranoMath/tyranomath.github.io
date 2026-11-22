@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>티라노 쌓기나무 · TyranoMath</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2faf7; --panel:#ffffff; --ink:#22303f; --muted:#6f7d88;
+  --accent:#1f9d8f; --accent-dark:#167a6f; --accent-ink:#ffffff; --accent-soft:#e1f5f0; --accent-line:#bfe6dd;
+  --green:#4cb662; --green-dark:#36924b; --orange:#ff9f43; --orange-dark:#e9852a;
+  --line:#dfe9e6; --navy:#1f2f6b;
+  --shadow:0 8px 28px rgba(31,110,100,.14);
+  --title:"Jua","Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  --ui:clamp(13px, calc(1.1vmin + 7px), 26px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  overscroll-behavior:none;-webkit-text-size-adjust:100%;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;touch-action:none}
+input{-webkit-user-select:text;user-select:text;touch-action:manipulation}
+button{font:inherit;font-weight:700;border-radius:calc(var(--ui)*.85);border:2px solid var(--line);border-bottom-width:4px;
+  background:var(--panel);color:var(--ink);cursor:pointer;min-height:max(44px,calc(var(--ui)*2.7));padding:0 calc(var(--ui)*.8);
+  touch-action:manipulation;transition:transform .06s,background .12s,border-color .12s;white-space:nowrap}
+button:active{transform:translateY(2px);border-bottom-width:2px;margin-bottom:2px}
+button.on,button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent-dark)}
+button.go{background:var(--orange);color:#fff;border-color:var(--orange-dark)}
+button:disabled{opacity:.45}
+@media (hover:hover) and (pointer:fine){button:hover:not(.on):not(.primary):not(.go):not(:disabled){background:var(--accent-soft);border-color:var(--accent-line)}}
+.hide{display:none!important}
+
+/* ---------- 설정 화면 ---------- */
+#lobby{position:fixed;inset:0;overflow:auto;font-size:var(--ui);
+  padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));
+  background:radial-gradient(ellipse at 20% 0%,#dff6ef 0,transparent 55%),radial-gradient(ellipse at 100% 100%,#e6f0ff 0,transparent 50%),var(--bg)}
+.lwrap{max-width:calc(var(--ui)*48);margin:0 auto;display:flex;flex-direction:column;gap:calc(var(--ui)*.8)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:.5em}
+.brand{display:flex;align-items:center;gap:.6em;min-width:0}
+.brand img{width:calc(var(--ui)*3);height:auto}
+.kicker{font-size:.72em;font-weight:600;color:var(--muted)}
+.brand h1{margin:0;font-family:var(--title);font-weight:400;font-size:1.75em;line-height:1.1;color:var(--accent-dark)}
+.top-btns{display:flex;gap:.45em;align-items:center}
+.zone{display:inline-flex;align-items:center;text-decoration:none;font-weight:700;font-size:.9em;background:var(--accent);color:#fff;
+  border-radius:99px;padding:0 1em;min-height:max(40px,calc(var(--ui)*2.3));white-space:nowrap}
+.icon-btn{width:max(44px,calc(var(--ui)*2.7));padding:0;flex:none}
+.hero{display:flex;align-items:center;gap:1em;background:linear-gradient(120deg,#3a8dff,#37c3d6);color:#fff;border-radius:calc(var(--ui)*1.2);
+  padding:calc(var(--ui)*.9) calc(var(--ui)*1.2);box-shadow:var(--shadow);overflow:hidden;position:relative}
+.hero h2{margin:0;font-family:var(--title);font-weight:400;font-size:1.6em}
+.hero p{margin:.25em 0 0;font-size:.88em;opacity:.95;line-height:1.45}
+.hero .plane{font-size:3em;flex:none;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
+.card{background:var(--panel);border:2px solid var(--accent-line);border-radius:calc(var(--ui)*1.1);padding:calc(var(--ui)*.9);
+  display:flex;flex-direction:column;gap:calc(var(--ui)*.55)}
+.label{font-size:.9em;font-weight:800;color:var(--accent-dark);display:flex;justify-content:space-between;align-items:center;gap:.5em}
+.label small{font-weight:600;color:var(--muted);font-size:.85em}
+.grid{display:grid;gap:calc(var(--ui)*.45)}
+.g4{grid-template-columns:repeat(4,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g5{grid-template-columns:repeat(5,1fr)}
+.cnt button{min-height:max(54px,calc(var(--ui)*3.4));font-size:1.05em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1em;line-height:1.1}
+.cnt button small{font-size:.7em;opacity:.85;font-weight:600}
+.players{display:grid;grid-template-columns:repeat(auto-fit,minmax(calc(var(--ui)*10),1fr));gap:calc(var(--ui)*.5)}
+.pl{display:flex;align-items:center;gap:.5em;border:2px solid var(--line);border-radius:calc(var(--ui)*.85);padding:.35em .6em;background:var(--panel)}
+.pl i{width:1.5em;height:1.5em;border-radius:50%;flex:none;background:var(--pc);box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.pl input{flex:1;min-width:0;border:0;outline:none;background:transparent;font:inherit;font-weight:700;color:var(--ink);font-size:max(16px,1em)}
+.pl kbd{font-family:inherit;font-size:.68em;color:var(--muted);background:var(--accent-soft);border-radius:6px;padding:.15em .4em;white-space:nowrap}
+.dans button{font-size:1em;padding:0}
+.dans{grid-template-columns:repeat(8,1fr)}
+.numrow{display:flex;gap:calc(var(--ui)*.45);align-items:stretch}
+.numrow .nb{flex:1;min-width:0;padding:0;font-size:1.1em}
+.numbox{flex:2.2;display:flex;align-items:center;justify-content:center;gap:.35em;border:2px solid var(--accent-line);border-radius:calc(var(--ui)*.85);
+  background:var(--accent-soft);padding:0 .6em;min-height:max(48px,calc(var(--ui)*2.9))}
+.numbox:focus-within{border-color:var(--accent)}
+.numbox input{width:3.2em;min-width:0;border:0;outline:none;background:transparent;font:inherit;font-family:var(--title);font-size:max(20px,1.6em);
+  color:var(--accent-dark);text-align:center;-moz-appearance:textfield}
+.numbox input::-webkit-inner-spin-button,.numbox input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.numbox span{font-weight:800;color:var(--accent-dark)}
+#numSeg button{min-height:max(38px,calc(var(--ui)*2.3))}
+#numSeg{grid-template-columns:repeat(5,1fr)!important}
+.grid.g3 button{white-space:normal;line-height:1.15;word-break:keep-all;padding:.2em .3em}
+.help{font-size:.82em;color:var(--muted);line-height:1.5;margin:0}
+.startrow{display:flex;gap:.6em}
+.startrow button{flex:1;min-height:max(60px,calc(var(--ui)*3.6));font-size:1.25em;font-family:var(--title);font-weight:400}
+@media (max-width:560px){.dans{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(3,1fr)}}
+
+.g2{grid-template-columns:repeat(2,1fr)}.g6{grid-template-columns:repeat(6,1fr)}
+.grid button small{display:block;font-size:.72em;font-weight:600;opacity:.85}
+.grid button{white-space:normal;line-height:1.2;padding:.3em .3em}
+.grid.two{gap:calc(var(--ui)*.8)}.grid.two>div{display:flex;flex-direction:column;gap:calc(var(--ui)*.45)}
+@media (max-width:560px){.grid.two{grid-template-columns:1fr}.g6{grid-template-columns:repeat(3,1fr)}}
+.heroI{flex:none;width:4.6em;height:4em;display:flex;align-items:center;justify-content:center}
+.heroI svg,.heroI img{width:100%;height:100%}
+.lvrow{display:flex;gap:calc(var(--ui)*.45);align-items:stretch}
+.lvrow .nb{flex:1;min-width:0;padding:0;font-size:1.1em}
+.lvbox{flex:2.2;display:flex;align-items:center;justify-content:center;gap:.4em;border:2px solid var(--accent-line);border-radius:calc(var(--ui)*.85);background:var(--accent-soft);min-height:max(50px,calc(var(--ui)*3))}
+.lvbox span{font-weight:800;color:var(--accent-dark)}.lvbox b{font-family:var(--title);font-weight:400;font-size:1.9em;color:var(--accent-dark);line-height:1}
+
+#game{position:fixed;inset:0;display:flex;flex-direction:column;
+  background:radial-gradient(circle at 10% 16%,rgba(255,255,255,.6) 0 70px,transparent 71px),radial-gradient(circle at 92% 86%,rgba(255,255,255,.5) 0 110px,transparent 111px),var(--gbg,linear-gradient(165deg,#d5f4ec 0,#e3f6f1 46%,#dcecff 100%))}
+.gbar{flex:none;display:flex;align-items:center;gap:10px;padding:max(8px,env(safe-area-inset-top)) 12px 6px;font-size:clamp(12px,1.6vmin,20px)}
+.gbar .ttl{display:flex;align-items:center;gap:.45em;font-family:var(--title);color:var(--accent-dark);text-shadow:0 2px 0 #fff;font-size:1.25em;white-space:nowrap;min-width:0}
+.gbar .ttl img{width:1.9em;height:auto}
+.gbar .mid{flex:1;display:flex;justify-content:center;min-width:0}
+.rnd{display:flex;flex-direction:column;align-items:center;background:#fff;color:#1f2f6b;border:3px solid var(--tc,#fff);border-radius:.9em;padding:.12em 1.4em .28em;box-shadow:0 .25em 0 rgba(31,110,100,.18);max-width:100%}
+.rnd b{font-family:var(--title);font-weight:400;font-size:1.35em;color:var(--tc,var(--accent-dark));white-space:nowrap;line-height:1.15}.rnd small{font-size:.75em;white-space:nowrap;color:#4b5a66;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tbs{display:flex;gap:6px}
+.tbs .tb{width:54px;height:50px;min-height:0;padding:0;border-radius:14px;font-size:18px;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.tbs .tb small{font-size:9.5px;font-weight:800;color:var(--muted)}
+.tbs .tb.home{background:var(--orange);border-color:var(--orange-dark)}.tbs .tb.home small{color:#fff}
+.tbs .tb.on{background:#e1f5f0;border-color:var(--accent)}
+@media (max-width:600px){.gbar .ttl span{display:none}.tbs .tb{width:40px;height:40px;font-size:15px}.tbs .tb small{display:none}.rnd{padding:.1em .8em}}
+.guide{flex:none;margin:2px 14px 6px;background:#fff;border-radius:16px;box-shadow:0 4px 0 rgba(31,110,100,.15);padding:8px 14px 10px;font-size:clamp(13px,1.7vmin,18px)}
+.guide.min{display:none}
+.gtitle{display:flex;align-items:center;justify-content:space-between}.gtitle b{font-family:var(--title);font-weight:400;color:var(--accent-dark);font-size:1.2em}
+.gtog{min-height:0;height:2em;padding:0 .9em;font-size:.85em;border-radius:99px}
+.gtxt{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:4px;color:#334;line-height:1.4}
+.gtxt span{background:var(--accent-soft);border-radius:10px;padding:.3em .7em}
+
+.main{flex:1;min-height:0;display:flex;gap:14px;padding:4px 14px max(12px,env(safe-area-inset-bottom));align-items:stretch;font-size:clamp(13px,1.65vmin,19px)}
+.side{flex:none;width:clamp(170px,19vw,260px);background:#fff;border-radius:22px;padding:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 8px 20px rgba(31,110,100,.16);min-height:0;overflow:auto}
+.bubble{background:var(--accent-soft);border:2px solid var(--accent-line);color:var(--accent-dark);border-radius:14px;padding:.45em .7em;font-family:var(--title);font-size:1.05em;text-align:center;line-height:1.3;min-height:2.6em;display:flex;align-items:center;justify-content:center;word-break:keep-all}
+.bubble.pop{animation:popb .35s}@keyframes popb{50%{transform:scale(1.07)}}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.st{background:#f6faf9;border:2px solid var(--line);border-radius:14px;display:flex;flex-direction:column;align-items:center;padding:.2em 0 .3em;min-width:0}
+.st small{font-size:.75em;font-weight:800;color:var(--muted);white-space:nowrap}.st b{font-family:var(--title);font-weight:400;font-size:1.6em;color:var(--accent-dark);line-height:1.1;font-variant-numeric:tabular-nums}
+.sbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sbtns button{font-size:1em;padding:0 .3em;min-height:max(44px,calc(var(--ui)*2.6))}
+.sbtns .hint{background:#fff6d6;border-color:#f2cf62}
+.sbtns .wide{grid-column:1/3}
+.bwrap{flex:1;min-width:0;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
+.main.port{flex-direction:column}
+.main.port .side{width:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:8px 10px;gap:8px;border-radius:16px;overflow:visible}
+.main.port .side .bubble{flex:1 1 100%;min-height:2.2em;font-size:.95em}
+.main.port .stats{flex:1;grid-template-columns:repeat(4,1fr);gap:4px}.main.port .st b{font-size:1.25em}
+.main.port .sbtns{flex:1 1 100%;grid-template-columns:repeat(4,1fr);gap:6px}.main.port .sbtns .wide{grid-column:auto}.main.port .sbtns button{min-height:40px;font-size:.88em}
+.main.port .side .ponly{display:none}
+
+.overlay{position:fixed;inset:0;background:rgba(8,30,40,.55);display:flex;align-items:center;justify-content:center;padding:14px;z-index:40;font-size:var(--ui)}
+.modal{background:var(--panel);border:2px solid var(--accent-line);border-radius:calc(var(--ui)*1.2);padding:calc(var(--ui)*1.2);width:min(100%,calc(var(--ui)*32));max-height:100%;overflow:auto;box-shadow:var(--shadow);text-align:center}
+.modal h2{margin:.1em 0 .35em;font-family:var(--title);font-weight:400;font-size:2em;color:var(--accent-dark)}
+.modal .actions{display:flex;gap:.5em;margin-top:.9em}.modal .actions button{flex:1;padding:0 .3em}
+.resIcon{display:flex;justify-content:center;font-size:3.4em;line-height:1.1}.resIcon img,.resIcon svg{width:min(28vw,120px);height:auto;animation:bobp .6s ease-in-out infinite alternate}
+.rstars{font-size:2.2em;letter-spacing:.08em}
+@keyframes bobp{to{transform:translateY(-6px)}}
+.conf{position:fixed;width:10px;height:14px;top:-20px;z-index:55;pointer-events:none;animation:fall 1.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(var(--fy)) rotate(600deg);opacity:.3}}
+.toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;text-align:center;color:#fff;z-index:60;font-family:var(--title);font-size:clamp(20px,3.8vmin,40px);line-height:1.2;padding:.3em .9em;border-radius:1em;transition:transform .25s,opacity .25s;max-width:92vw;background:var(--tc2,rgba(31,157,143,.96));border:3px solid #fff;box-shadow:0 6px 0 rgba(0,0,0,.15)}
+.toast small{display:block;font-family:inherit;font-size:.58em}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.area{flex:1;min-width:0;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card2{background:#fff;border-radius:22px;box-shadow:0 8px 20px rgba(31,110,100,.16);padding:10px;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:0;min-width:0;overflow:hidden}
+.ttl2{font-family:var(--title);font-size:1.15em;color:var(--accent-dark)}
+.tview,.iso{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+.tview svg,.iso svg{max-width:100%;max-height:100%}
+.views3{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;height:100%;align-content:center}
+.vbox{display:flex;flex-direction:column;align-items:center;gap:4px;background:#f6faf9;border:2px solid var(--line);border-radius:14px;padding:6px}
+.vbox b{font-family:var(--title);font-weight:400;color:#5b6f76;font-size:.95em}.vbox svg{width:100%;max-width:150px;height:auto}
+.vbox.ok{border-color:#2fbf5a;background:#e6f9ec}.vbox.no{border-color:#ffb3bd}
+.tops{display:grid;gap:6px;flex:none}
+.tops button{width:var(--tb,56px);height:var(--tb,56px);min-height:0;padding:0;border-radius:12px;font-family:var(--title);font-weight:400;font-size:calc(var(--tb,56px)*.45);background:#f6f3ec;border-color:#e0d6c2;color:#7a4a1e}
+.tops button.h1{background:#ffe7b8}.tops button.h2{background:#ffd27a}.tops button.h3{background:#f2a33a;color:#fff}.tops button.h4{background:#d9822b;color:#fff}
+.tops button.hint{box-shadow:0 0 0 4px #ffcf3a}
+.myviews{display:flex;gap:6px;flex:none}.myviews .vbox{padding:3px 5px}.myviews .vbox svg{max-width:64px}.myviews .vbox b{font-size:.75em}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.opts button{min-height:max(64px,calc(var(--ui)*3.6));font-family:var(--title);font-weight:400;font-size:1.8em}
+.opts button.right{background:#2fbf5a;border-color:#1f8a3f;color:#fff}.opts button.wrong{background:#ffe3e3;border-color:#ff6b6b;color:#c92a2a}
+.qtop svg{width:150px;height:auto}
+.area.count #mcard,.area.count #buildBtns{display:none}.area.count #qcard{display:flex}
+.main.port .area{grid-template-columns:1fr;grid-template-rows:1fr 1.25fr}
+.copy{text-align:center;color:#8A94A6;font-size:13px;margin:18px 0 6px}
+.zone[hidden]{display:none!important}
+#lobby .brand h1{word-break:keep-all}@media (max-width:480px){#lobby .brand h1{font-size:1.4em}}
+</style></head>
+<body>
+<div id="lobby"><div class="lwrap">
+  <header class="top"><div class="brand"><img class="dino" alt="티라노"><div><div class="kicker">TyranoMath 퍼즐존</div><h1>티라노 쌓기나무</h1></div></div>
+    <div class="top-btns"><a class="zone" id="zoneBtn" href="../puzzlezone.html" hidden>← 퍼즐존</a><button class="icon-btn fsBtn" title="전체 화면" aria-label="전체 화면">⛶</button></div></header>
+  <section class="hero" style="background:linear-gradient(120deg,#ffb02e,#ff7a4d 45%,#3fb7ff)"><div class="heroI" id="heroI"><svg viewBox='0 0 100 100'><g stroke='#7a4a1e' stroke-width='1.6' stroke-linejoin='round'><g transform='translate(50 30)'><path d='M0,-14 L18,-5 L0,4 L-18,-5Z' fill='#ffd27a'/><path d='M-18,-5 L0,4 L0,24 L-18,15Z' fill='#f2a33a'/><path d='M0,4 L18,-5 L18,15 L0,24Z' fill='#d9822b'/></g><g transform='translate(32 59)'><path d='M0,-14 L18,-5 L0,4 L-18,-5Z' fill='#ffd27a'/><path d='M-18,-5 L0,4 L0,24 L-18,15Z' fill='#f2a33a'/><path d='M0,4 L18,-5 L18,15 L0,24Z' fill='#d9822b'/></g><g transform='translate(68 59)'><path d='M0,-14 L18,-5 L0,4 L-18,-5Z' fill='#ffd27a'/><path d='M-18,-5 L0,4 L0,24 L-18,15Z' fill='#f2a33a'/><path d='M0,4 L18,-5 L18,15 L0,24Z' fill='#d9822b'/></g><g transform='translate(50 50)'><path d='M0,-14 L18,-5 L0,4 L-18,-5Z' fill='#ffd27a'/><path d='M-18,-5 L0,4 L0,24 L-18,15Z' fill='#f2a33a'/><path d='M0,4 L18,-5 L18,15 L0,24Z' fill='#d9822b'/></g></g></svg></div><div><h2>쌓기나무를 보고, 세고, 쌓아 봐요!</h2><p>그림과 똑같이 <b>쌓기</b>, <b>앞·옆·위에서 본 모양</b>을 보고 쌓기, 쌓기나무 <b>개수 세기</b>까지! 위에서 본 칸을 눌러 층을 올리면 입체 모양이 바로 보여요.</p></div></section>
+  <section class="card">
+  <div class="label">놀이 방법</div>
+  <div class="grid g3" id="modeSeg"><button data-v="copy">🧱 똑같이 쌓기<small>그림을 보고 쌓아요</small></button><button data-v="views">👀 보고 쌓기<small>앞·옆·위 모양만 보고</small></button><button data-v="count">🔢 개수 세기<small>몇 개일까요?</small></button></div>
+  <div class="grid g2 two">
+    <div><div class="label">바닥 크기</div><div class="grid g2" id="sizeSeg"><button data-v="3">3×3<small>쉬움</small></button><button data-v="4">4×4<small>어려움</small></button></div></div>
+    <div><div class="label">문제 수</div><div class="grid g3" id="qSeg"><button data-v="5">5문제</button><button data-v="8">8문제</button><button data-v="10">10문제</button></div></div>
+  </div>
+</section>
+
+  <div class="startrow"><button class="go" id="startBtn">🧱 시작!</button></div>
+  <p class="copy">© 2026 TyranoMath 백태진 All rights reserved.</p>
+</div></div>
+<div id="game" class="hide">
+  <div class="gbar"><div class="ttl"><img class="dino" alt=""><span>티라노 쌓기나무</span></div>
+    <div class="mid"><div class="rnd"><b id="rndT"></b><small id="rndS"></small></div></div>
+    <div class="tbs"><button id="helpBtn" class="tb" aria-label="방법">📖<small>방법</small></button><button id="homeBtn" class="tb home" aria-label="처음으로">🏠<small>처음으로</small></button>
+      <button id="soundBtn" class="tb" aria-label="소리">🔊</button><button class="fsBtn tb" aria-label="전체 화면">⛶<small>전체</small></button></div></div>
+  <div class="guide min" id="guide"><div class="gtitle"><b>📖 이렇게 해요</b><button id="guideBtn" class="gtog">닫기 ✕</button></div><div class="gtxt" id="guideTxt"></div></div>
+  <div class="main" id="mainArea">
+  <div class="side"><div class="bubble" id="bubble">그림과 똑같이 쌓아요!</div>
+    <div class="stats"><div class="st"><small>문제</small><b id="qT">1/5</b></div><div class="st"><small>맞힘</small><b id="okT">0</b></div><div class="st"><small>내 쌓기나무</small><b id="cntT">0</b></div><div class="st"><small>힌트</small><b id="hintN">0</b></div></div>
+    <div class="sbtns" id="buildBtns"><button id="plusBtn" class="on">⬆ 올리기</button><button id="minusBtn">⬇ 내리기</button><button id="checkBtn" class="wide">✅ 다 쌓았어요</button><button id="hintBtn" class="hint">💡 힌트</button><button id="clearBtn">🧽 모두 치우기</button></div></div>
+  <div class="area" id="area">
+    <div class="card2" id="tcard"><div class="ttl2" id="tTitle">이렇게 쌓아요</div><div class="tview" id="tview"></div></div>
+    <div class="card2" id="mcard"><div class="ttl2">내가 쌓은 모양</div><div class="iso" id="miso"></div><div class="tops" id="tops"></div><div class="myviews" id="myviews"></div></div>
+    <div class="card2 hide" id="qcard"><div class="ttl2">쌓기나무는 모두 몇 개일까요?</div><div class="opts" id="opts"></div><button id="qHint" class="hint">💡 위에서 본 모양에 수 쓰기</button><div class="qtop" id="qtop"></div></div>
+  </div>
+</div>
+
+</div>
+<div class="overlay hide" id="homeOv"><div class="modal"><h2>처음으로 갈까요?</h2><p class="help">지금 하던 것은 끝나고 설정 화면으로 돌아가요.</p>
+  <div class="actions"><button id="homeNo">계속하기</button><button class="primary" id="homeYes">🏠 처음으로</button></div></div></div>
+<div class="overlay hide" id="resultOv"><div class="modal"><div class="resIcon" id="resIcon"></div><h2 id="resTitle"></h2><div class="rstars" id="resStars"></div><p class="help" id="resInfo"></p>
+  <div class="actions"><button id="setBtn">⚙️ 설정</button><button id="resClose">🔍 보기</button><button id="againBtn">↺ 다시</button><button class="go hide" id="nextBtn">▶ 다음</button></div></div></div>
+<script>(()=>{
+const DINO='data:image/png;base64,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';
+// ---------- 티라노매스 마스코트 (연필 든 티라노, 벡터) ----------
+function tyrano(p,opt={}){const pose=opt.pose||'pencil',ring=opt.ring===true||pose==='swim',water=opt.water,jer=pose==='soccer'?(opt.jersey||'#ff5a5a'):null;
+ const G='#5cbf6a',GD='#47a85a',GL='#7fd58a',OR='#f7a03c',DK='#2d6b3a';
+ const tri=(x1,y1,x2,y2,x3,y3)=>`<path d="M${x1},${y1} L${x2},${y2} L${x3},${y3}Z" fill="${OR}" stroke="${OR}" stroke-width="2.5" stroke-linejoin="round"/>`;
+ const RB=`<path d="M30,150 A64,20 0 0 1 158,150" fill="none" stroke="#c9d6e2" stroke-width="22"/><path d="M30,150 A64,20 0 0 1 158,150" fill="none" stroke="#ff6b6b" stroke-width="22" stroke-dasharray="26 24" stroke-dashoffset="8"/>`;
+ const RF=`<path d="M30,150 A64,20 0 0 0 158,150" fill="none" stroke="#e8eef4" stroke-width="22"/><path d="M30,150 A64,20 0 0 0 158,150" fill="none" stroke="#ff6b6b" stroke-width="22" stroke-dasharray="26 24" stroke-dashoffset="8"/>
+  <path d="M42,158 A54,14 0 0 0 92,168" stroke="#fff" stroke-width="4" fill="none" opacity=".8"/>`;
+ const body=(fill,dx=0,dy=0)=>`<g transform="translate(${dx},${dy})" fill="${fill}">
+  <path d="M58,116 C42,114 28,112 12,106 C20,122 36,132 58,138Z"/>
+  <ellipse cx="92" cy="135" rx="42" ry="38"/>
+  <path d="M92,82 C88,52 108,38 140,38 L163,38 C177,38 185,48 185,61 L185,87 C185,102 173,111 158,111 L122,111 C104,111 95,100 92,82Z"/>
+  <rect x="66" y="152" width="22" height="26" rx="9"/><rect x="99" y="152" width="22" height="26" rx="9"/></g>`;
+const PEN=` <g transform="rotate(-33 144 120)"><rect x="139" y="98" width="10" height="34" rx="2" fill="#f5c242"/><rect x="144" y="98" width="5" height="34" fill="#e3a92a"/>
+  <rect x="139" y="93" width="10" height="7" rx="2.5" fill="#f4a0b0"/><rect x="139" y="99" width="10" height="2.5" fill="#c9cfd6"/>
+  <path d="M139,132 L149,132 L144,143Z" fill="#f6dfb8"/><path d="M142.3,139 L145.7,139 L144,143Z" fill="#3a3a44"/></g>
+ <ellipse cx="135" cy="121" rx="8" ry="6" fill="${G}"/><path d="M130,118 q6,-4 11,1" stroke="${GD}" stroke-width="2" fill="none"/>
+`;
+ const JER=jer?`<clipPath id="${p}jc"><ellipse cx="92" cy="135" rx="42" ry="38"/></clipPath><g clip-path="url(#${p}jc)"><rect x="40" y="96" width="110" height="56" fill="${jer}"/><rect x="82" y="96" width="7" height="56" fill="#fff" opacity=".85"/><rect x="118" y="96" width="7" height="56" fill="#fff" opacity=".85"/><rect x="40" y="150" width="110" height="30" fill="#1f2f6b"/><rect x="40" y="150" width="110" height="3" fill="#fff" opacity=".6"/><rect x="40" y="96" width="110" height="8" fill="#fff" opacity=".25"/></g><path d="M112,104 l8,10 l8,-10" stroke="#fff" stroke-width="4" fill="none"/><text x="103.5" y="140" font-size="22" stroke="#1f2f6b" stroke-width="3" paint-order="stroke" text-anchor="middle" fill="#fff" font-weight="900" style="font-family:Jua,sans-serif">10</text>`:'';
+ const GOG=pose==='swim'?`<path d="M93,54 C120,46 160,44 184,50" stroke="#2b6fd6" stroke-width="6" fill="none"/><circle cx="121" cy="48" r="10" fill="#7fe0ff" stroke="#2b6fd6" stroke-width="3.5"/><circle cx="147" cy="47" r="10" fill="#7fe0ff" stroke="#2b6fd6" stroke-width="3.5"/><path d="M131,48 h6" stroke="#2b6fd6" stroke-width="3.5"/><path d="M116,45 a5,5 0 0 1 6,-3 M142,44 a5,5 0 0 1 6,-3" stroke="#fff" stroke-width="2" fill="none"/>`:'';
+ return `<g stroke-linecap="round" stroke-linejoin="round">
+ ${ring?RB:''}
+ ${body('#d8efcf',3,4)}
+ ${tri(48,112,51,100,62,108)}${tri(60,96,65,84,76,93)}${tri(76,86,82,74,92,84)}
+ ${tri(100,42,106,29,114,40)}${tri(120,39,127,26,134,38)}
+ ${body(G)}
+ <rect x="66" y="160" width="22" height="18" rx="8" fill="${GD}"/><rect x="99" y="160" width="22" height="18" rx="8" fill="${GD}"/>
+ <ellipse cx="101" cy="135" rx="23" ry="28" fill="#eaf6c6"/>
+ <path d="M86,124 h28 M84,136 h32 M87,148 h26" stroke="#cfe5a8" stroke-width="2.6"/>
+ ${JER}
+ <circle cx="137" cy="65" r="13.5" fill="#fff" stroke="#3f9a52" stroke-width="2.2"/><circle cx="140" cy="67" r="7.5" fill="#2a3060"/><circle cx="143" cy="63.5" r="2.6" fill="#fff"/>
+ ${GOG}
+ <circle cx="172" cy="61" r="2.2" fill="${DK}"/>
+ <ellipse cx="157" cy="83" rx="8.5" ry="4.8" fill="#e8a3a0" opacity=".9"/>
+ <path d="M128,92 Q152,99 175,88" stroke="${DK}" stroke-width="3" fill="none"/>
+ <path d="M140,95 l2.5,5 l3,-4.6Z M158,94.2 l2.6,4.8 l2.8,-5Z" fill="#fff"/>
+ ${pose==='pencil'?PEN:`<path d="M124,124 C138,130 156,128 166,113" stroke="${GD}" stroke-width="15" fill="none"/><path d="M124,124 C138,130 156,128 166,113" stroke="${jer||G}" stroke-width="11" fill="none"/>
+  <circle cx="168" cy="110" r="8" fill="${G}" stroke="${GD}" stroke-width="2"/>${pose==='swim'?'<path d="M178,100 q5,-4 9,0 M180,112 q5,-2 8,2" stroke="#fff" stroke-width="2.5" fill="none"/>':'<path d="M176,98 l6,-6 M180,108 l8,-2 M170,96 l2,-8" stroke="#ffd23f" stroke-width="3"/>'}`}
+ ${water?`<ellipse cx="94" cy="156" rx="88" ry="15" fill="none" stroke="#fff" stroke-width="4" opacity=".75"/>`:''}
+ ${ring?RF:''}
+ </g>`;}
+const DINO_SVG='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 20 190 166">${tyrano('L')}</svg>`);
+
+// ================= 티라노매스 퍼즐존 공통 틀 =================
+const $=id=>document.getElementById(id);
+const rnd=(a,b)=>a+Math.random()*(b-a), ri=(a,b)=>Math.floor(rnd(a,b+1)), pick=a=>a[Math.floor(Math.random()*a.length)];
+const TEST=/[?&]test/.test(location.search);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+document.querySelectorAll('img.dino').forEach(i=>i.src=DINO_SVG);
+document.body.insertAdjacentHTML('beforeend','<div class="toast" id="toast"></div>');
+let cfg={},CFG_KEY='';
+function loadCfg(key,def){CFG_KEY=key;cfg=JSON.parse(JSON.stringify(def));try{const o=JSON.parse(localStorage.getItem(key)||'null');if(o)for(const k in def){if(o[k]!==undefined&&typeof o[k]===typeof def[k])cfg[k]=(typeof def[k]==='object'&&!Array.isArray(def[k]))?{...def[k],...o[k]}:o[k];}}catch(e){}}
+const save=()=>{try{localStorage.setItem(CFG_KEY,JSON.stringify(cfg));}catch(e){}};
+// 세그먼트 버튼
+const SEGS=[];
+function bindSeg(id,key,opt={}){SEGS.push([id,key]);document.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{const v=b.dataset.v;cfg[key]=typeof cfg[key]==='number'?+v:v;save();syncSegs();opt.after&&opt.after();});}
+function syncSegs(){for(const [id,key] of SEGS)document.querySelectorAll(`#${id} button`).forEach(b=>b.classList.toggle('on',b.dataset.v===String(cfg[key])));GAME.sync&&GAME.sync();}
+// 소리
+let actx=null;const AC=()=>{if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();return actx;};
+function beep(f,d,type='sine',v=.1,when=0,f2){if(!cfg.sound||TEST)return;try{const a=AC();const t=a.currentTime+when,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
+  if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.008);g.gain.exponentialRampToValueAtTime(.0008,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.02);}catch(e){}}
+const SFX={click:()=>beep(600,.05,'triangle',.06),ok:(n=0)=>beep(523+n*40,.1,'triangle',.09,0,700+n*40),bad:()=>beep(180,.16,'sawtooth',.06,0,120),pop:(n=0)=>beep(500+n*60,.08,'triangle',.08,0,800+n*60),
+  slide:()=>beep(300,.08,'sine',.05,0,180),hint:()=>beep(880,.12,'sine',.07,0,1200),undo:()=>beep(700,.1,'sine',.06,0,400),
+  win:()=>[523,659,784,1047,784,1047,1319].forEach((f,i)=>beep(f,.2,'triangle',.11,i*.1)),lose:()=>[440,370,311,262].forEach((f,i)=>beep(f,.2,'sawtooth',.06,i*.13)),
+  star:()=>[784,1047,1319].forEach((f,i)=>beep(f,.14,'triangle',.09,i*.06))};
+const resume=()=>{try{AC().resume&&actx.resume();}catch(e){}};
+// 알림
+function toast(big,small,ms=1300){const t=$('toast');t.innerHTML=big+(small?`<small>${small}</small>`:'');t.classList.remove('show');void t.offsetWidth;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),TEST?60:ms);}
+function say(t){const b=$('bubble');if(!b)return;b.innerHTML=t;b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');}
+function confetti(cols=['#ff6b8b','#ffd23a','#5fd068','#4fb6ff','#a974ff','#ff9b3d']){if(TEST)return;
+  for(let i=0;i<70;i++){const c=document.createElement('i');c.className='conf';c.style.left=rnd(2,98)+'vw';c.style.background=pick(cols);
+    c.style.setProperty('--fy',innerHeight*rnd(.8,1.1)+'px');c.style.animationDelay=rnd(0,.5)+'s';c.style.borderRadius=Math.random()<.4?'50%':'2px';document.body.appendChild(c);setTimeout(()=>c.remove(),2300);}}
+// 화면 전환
+let playing=false;
+function showGame(){$('lobby').classList.add('hide');$('game').classList.remove('hide');$('resultOv').classList.add('hide');$('homeOv').classList.add('hide');playing=true;requestAnimationFrame(()=>GAME.layout&&GAME.layout());}
+function showLobby(){playing=false;GAME.stop&&GAME.stop();['game','resultOv','homeOv'].forEach(id=>$(id).classList.add('hide'));$('lobby').classList.remove('hide');syncSegs();}
+// 결과 창: {icon,title,stars,info,next:[label,fn],again:[label,fn]}
+function result(o){$('resIcon').innerHTML=o.icon||'';$('resTitle').textContent=o.title||'';$('resStars').textContent=o.stars==null?'':'⭐'.repeat(o.stars)+'☆'.repeat(3-o.stars);$('resStars').classList.toggle('hide',o.stars==null);
+  $('resInfo').innerHTML=o.info||'';const nb=$('nextBtn'),ab=$('againBtn');nb.classList.toggle('hide',!o.next);if(o.next){nb.textContent=o.next[0];nb.onclick=()=>{$('resultOv').classList.add('hide');o.next[1]();};}
+  ab.textContent=(o.again||['↺ 다시'])[0];ab.onclick=()=>{$('resultOv').classList.add('hide');(o.again?o.again[1]:GAME.restart)();};
+  setTimeout(()=>$('resultOv').classList.remove('hide'),TEST?20:(o.delay??900));}
+$('resClose').onclick=()=>$('resultOv').classList.add('hide');
+function setGuide(open){$('guide').classList.toggle('min',!open);$('helpBtn').classList.toggle('on',open);$('guideTxt').innerHTML=(GAME.guide||[]).map(t=>`<span>${t}</span>`).join('');if(playing)requestAnimationFrame(()=>GAME.layout&&GAME.layout());}
+function setPort(){const m=$('mainArea');if(!m)return false;const r=m.getBoundingClientRect();const p=r.height>r.width*.95;m.classList.toggle('port',p);return p;}
+function bootShell(){
+  $('helpBtn').onclick=()=>setGuide($('guide').classList.contains('min'));$('guideBtn').onclick=()=>setGuide(false);
+  $('startBtn').onclick=()=>{resume();GAME.start();};$('setBtn').onclick=showLobby;
+  $('homeBtn').onclick=()=>{if(!playing)return;if(GAME.busy&&!GAME.busy()){showLobby();return;}$('homeOv').classList.remove('hide');};
+  $('homeYes').onclick=showLobby;$('homeNo').onclick=()=>$('homeOv').classList.add('hide');
+  const syncSound=()=>{$('soundBtn').innerHTML=(cfg.sound?'🔊':'🔇')+'<small>소리</small>';};$('soundBtn').onclick=()=>{cfg.sound=!cfg.sound;syncSound();save();};syncSound();
+  const root=document.documentElement,fsOK=!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
+  document.querySelectorAll('.fsBtn').forEach(b=>{if(!fsOK){b.style.display='none';return;}
+    b.onclick=()=>{try{if(document.fullscreenElement||document.webkitFullscreenElement)(document.exitFullscreen||document.webkitExitFullscreen).call(document);else (root.requestFullscreen||root.webkitRequestFullscreen).call(root);}catch(e){}};});
+  try{if(window.top===window)$('zoneBtn').hidden=false;}catch(e){}
+  let rz=0;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(playing&&GAME.layout)GAME.layout();},80);});
+  document.addEventListener('contextmenu',e=>{if(e.target.tagName!=='INPUT')e.preventDefault();});
+  GAME.lobby&&GAME.lobby();syncSegs();}
+function postDone(type,detail){try{if(window.parent!==window)window.parent.postMessage({type:'tyranomath:'+type,...detail},'*');}catch(e){}}
+
+// ================= 티라노 쌓기나무 =================
+loadCfg('tyranomath-stackblocks-v1',{mode:'copy',size:3,q:5,best:{},sound:true});
+const BC={top:'#ffd27a',l:'#f2a33a',r:'#d9822b',st:'#7a4a1e'};
+// ---------- 그림 ----------
+function isoSVG(h,opt={}){const N=h.length,a=30,b=15,H=30;let s='',minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;const pt=(x,y)=>{minx=Math.min(minx,x);maxx=Math.max(maxx,x);miny=Math.min(miny,y);maxy=Math.max(maxy,y);return `${x.toFixed(1)},${y.toFixed(1)}`;};
+  // 바닥판
+  const P=(r,c)=>[(c-r)*a,(c+r)*b];const f=[P(0,0),P(0,N),P(N,N),P(N,0)];s+=`<polygon points="${f.map(([x,y])=>pt(x,y+2)).join(' ')}" fill="#e8efe9" stroke="#c6d6cc" stroke-width="2"/>`;
+  for(let i=1;i<N;i++){const p1=P(i,0),p2=P(i,N),p3=P(0,i),p4=P(N,i);s+=`<path d="M${pt(p1[0],p1[1]+2)}L${pt(p2[0],p2[1]+2)}M${pt(p3[0],p3[1]+2)}L${pt(p4[0],p4[1]+2)}" stroke="#d3e0d7" stroke-width="1.5"/>`;}
+  const cells=[];for(let r=0;r<N;r++)for(let c=0;c<N;c++)cells.push([r,c]);cells.sort((x,y)=>(x[0]+x[1])-(y[0]+y[1])||x[0]-y[0]);
+  for(const [r,c] of cells)for(let z=0;z<h[r][c];z++){const [sx,sy]=P(r,c);const y0=sy-(z+1)*H;const T=[[sx,y0],[sx+a,y0+b],[sx,y0+2*b],[sx-a,y0+b]];
+    const hi=opt.hl&&opt.hl.r===r&&opt.hl.c===c;
+    s+=`<g stroke="${BC.st}" stroke-width="2" stroke-linejoin="round"><polygon points="${[T[3],T[2],[T[2][0],T[2][1]+H],[T[3][0],T[3][1]+H]].map(p=>pt(...p)).join(' ')}" fill="${hi?'#9ad7ff':BC.l}"/>
+      <polygon points="${[T[2],T[1],[T[1][0],T[1][1]+H],[T[2][0],T[2][1]+H]].map(p=>pt(...p)).join(' ')}" fill="${hi?'#5fb8f0':BC.r}"/><polygon points="${T.map(p=>pt(...p)).join(' ')}" fill="${hi?'#c8ebff':BC.top}"/></g>`;}
+  if(opt.arrows){const fr=P(N,N/2),rt=P(N/2,N);s+=`<g font-family="Jua,sans-serif" font-size="20" fill="#3f8cff" stroke-width="0"><path d="M${pt(fr[0]-26,fr[1]+30)}L${pt(fr[0]-8,fr[1]+14)}" stroke="#3f8cff" stroke-width="4" marker-end="url(#ah)"/><text x="${(fr[0]-50).toFixed(0)}" y="${(fr[1]+48).toFixed(0)}">앞</text>
+    <path d="M${pt(rt[0]+26,rt[1]+30)}L${pt(rt[0]+8,rt[1]+14)}" stroke="#3f8cff" stroke-width="4" marker-end="url(#ah)"/><text x="${(rt[0]+30).toFixed(0)}" y="${(rt[1]+48).toFixed(0)}">옆</text></g>`;pt(fr[0]-56,fr[1]+52);pt(rt[0]+56,rt[1]+52);}
+  const pad=8;return `<svg viewBox="${minx-pad} ${miny-pad} ${maxx-minx+2*pad} ${maxy-miny+2*pad}" xmlns="http://www.w3.org/2000/svg"><defs><marker id="ah" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="7" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14Z" fill="#3f8cff"/></marker></defs>${s}</svg>`;}
+const viewsOf=h=>{const N=h.length;return {front:[...Array(N)].map((_,c)=>Math.max(...h.map(row=>row[c]))),side:[...Array(N)].map((_,i)=>Math.max(...h[N-1-i])),top:h.map(row=>row.map(v=>v>0))};};
+function viewSVG(kind,v,N,maxH){const s=20;if(kind==='top'){let o='';for(let r=0;r<N;r++)for(let c=0;c<N;c++)o+=`<rect x="${c*s+1}" y="${r*s+1}" width="${s-2}" height="${s-2}" rx="3" fill="${v[r][c]?BC.top:'#fff'}" stroke="${v[r][c]?BC.st:'#dde5e2'}" stroke-width="1.6"/>`;return `<svg viewBox="0 0 ${N*s} ${N*s}">${o}</svg>`;}
+  let o='';for(let c=0;c<N;c++)for(let z=0;z<maxH;z++){const on=z<v[c];o+=`<rect x="${c*s+1}" y="${(maxH-1-z)*s+1}" width="${s-2}" height="${s-2}" rx="3" fill="${on?(kind==='front'?BC.l:BC.r):'#fff'}" stroke="${on?BC.st:'#eef2f0'}" stroke-width="1.6"/>`;}
+  return `<svg viewBox="0 0 ${N*s} ${maxH*s+4}">${o}<line x1="0" y1="${maxH*s+2}" x2="${N*s}" y2="${maxH*s+2}" stroke="#9aa8b8" stroke-width="3"/></svg>`;}
+// ---------- 문제 ----------
+function genShape(N,mono){const maxH=N===3?3:4;for(let t=0;t<200;t++){const h=[...Array(N)].map(()=>Array(N).fill(0));
+    if(mono){for(let r=0;r<N;r++)for(let c=0;c<N;c++){const lim=Math.min(r>0?h[r-1][c]:maxH,c>0?h[r][c-1]:maxH);h[r][c]=Math.random()<(r+c===0?1:.78)?ri(Math.max(0,lim-2),lim):0;}}
+    else for(let r=0;r<N;r++)for(let c=0;c<N;c++)h[r][c]=Math.random()<.62?ri(1,maxH):0;
+    const tot=h.flat().reduce((a,b)=>a+b,0),occ=h.flat().filter(Boolean).length;if(tot<(N===3?4:7)||tot>(N===3?14:22)||occ<N+1)continue;
+    if(!mono){const v=viewsOf(h);if(v.front.some(x=>!x)||v.side.some(x=>!x))continue;}return h;}return [[1]];}
+let S=null;
+const MODEN={copy:'똑같이 쌓기',views:'보고 쌓기',count:'개수 세기'};
+const GAME={guide:['오른쪽 아래 칸은 위에서 본 바닥이에요. 칸을 누를 때마다 쌓기나무가 한 층씩 올라가요.','⬇ 내리기를 켜고 누르면 한 층씩 내려가요.','보고 쌓기: 앞·옆·위에서 본 모양이 모두 같아지면 성공! 쌓기나무를 가장 적게 쓰면 별 3개.','개수 세기: 위에서 본 모양의 칸마다 몇 층인지 세어서 더해요.','파란 화살표 쪽이 "앞"과 "옆"이에요.'],
+  lobby(){bindSeg('modeSeg','mode');bindSeg('sizeSeg','size');bindSeg('qSeg','q');
+    $('plusBtn').onclick=()=>{S.dir=1;btns();};$('minusBtn').onclick=()=>{S.dir=-1;btns();};$('checkBtn').onclick=()=>check(true);$('hintBtn').onclick=hint;$('clearBtn').onclick=()=>{if(!S||S.lock)return;S.my=S.my.map(r=>r.map(()=>0));draw();};
+    $('qHint').onclick=()=>{if(!S)return;S.hints++;$('hintN').textContent=S.hints;SFX.hint();topNums();};},
+  start(){S={mode:cfg.mode,N:cfg.size,q:cfg.q,i:0,ok:0,hints:0,dir:1,lock:false,tries:0};$('area').classList.toggle('count',S.mode==='count');$('qcard').classList.toggle('hide',S.mode!=='count');$('mcard').classList.toggle('hide',S.mode==='count');$('buildBtns').classList.toggle('hide',S.mode==='count');showGame();next();},
+  restart(){GAME.start();},busy:()=>S&&S.i<S.q,
+  layout(){if(!S)return;const port=setPort();const m=$('mcard').getBoundingClientRect();const tb=Math.max(38,Math.min(70,Math.floor((port?Math.min(m.width*.45,m.height*.32):Math.min(m.width*.5,m.height*.36))/S.N)));document.documentElement.style.setProperty('--tb',tb+'px');}};
+function next(){if(S.i>=S.q){finish();return;}S.T=genShape(S.N,S.mode!=='views');S.my=S.T.map(r=>r.map(()=>0));S.lock=false;S.tries=0;S.hl=null;
+  $('rndT').textContent=MODEN[S.mode]+` · ${S.N}×${S.N}`;$('rndS').textContent=`${S.i+1}번째 문제`;$('qT').textContent=`${S.i+1}/${S.q}`;$('okT').textContent=S.ok;$('hintN').textContent=S.hints;
+  if(S.mode==='copy'){$('tTitle').textContent='이렇게 쌓아요';$('tview').innerHTML=isoSVG(S.T,{arrows:true});say('그림과 똑같이 쌓아요!');}
+  else if(S.mode==='views'){$('tTitle').textContent='앞·옆·위에서 본 모양';const v=viewsOf(S.T),mh=S.N===3?3:4;$('tview').innerHTML=`<div class="views3"><div class="vbox" id="vf"><b>앞에서 본 모양</b>${viewSVG('front',v.front,S.N,mh)}</div><div class="vbox" id="vs"><b>옆에서 본 모양</b>${viewSVG('side',v.side,S.N,mh)}</div><div class="vbox" id="vt"><b>위에서 본 모양</b>${viewSVG('top',v.top,S.N)}</div><div class="vbox"><b>방향</b>${isoSVG(S.T.map(r=>r.map(()=>0)),{arrows:true})}</div></div>`;say('세 방향 모양이 똑같아지게 쌓아요!');}
+  else{$('tTitle').textContent='쌓기나무 그림';$('tview').innerHTML=isoSVG(S.T,{arrows:false});const tot=S.T.flat().reduce((a,b)=>a+b,0);const set=new Set([tot]);while(set.size<4){const d=tot+ri(-4,4);if(d>0)set.add(d);}
+    $('opts').innerHTML=shuffle([...set]).map(v=>`<button data-v="${v}">${v}개</button>`).join('');$('opts').querySelectorAll('button').forEach(b=>b.onclick=()=>answer(b,+b.dataset.v));$('qtop').innerHTML='';say('쌓기나무는 모두 몇 개일까요?');}
+  if(S.mode!=='count')buildTops();draw();requestAnimationFrame(GAME.layout);}
+function buildTops(){const N=S.N;$('tops').style.gridTemplateColumns=`repeat(${N},auto)`;$('tops').innerHTML=[...Array(N*N)].map((_,i)=>`<button data-i="${i}"></button>`).join('');
+  $('tops').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(S.lock)return;resume();const i=+b.dataset.i,r=i/N|0,c=i%N,mh=N===3?3:4;let v=S.my[r][c]+S.dir;if(v>mh)v=0;if(v<0)v=0;S.my[r][c]=v;S.hl={r,c};SFX.pop(v);draw();check(false);});}
+function btns(){$('plusBtn').classList.toggle('on',S.dir>0);$('minusBtn').classList.toggle('on',S.dir<0);}
+function draw(){if(S.mode==='count')return;const N=S.N;$('miso').innerHTML=isoSVG(S.my,{hl:S.hl});$('tops').querySelectorAll('button').forEach(b=>{const i=+b.dataset.i,v=S.my[i/N|0][i%N];b.textContent=v||'';b.className=v?'h'+v:'';});
+  $('cntT').textContent=S.my.flat().reduce((a,b)=>a+b,0);const mh=N===3?3:4;
+  if(S.mode==='views'){const v=viewsOf(S.my),t=viewsOf(S.T);$('myviews').innerHTML=`<div class="vbox"><b>앞</b>${viewSVG('front',v.front,N,mh)}</div><div class="vbox"><b>옆</b>${viewSVG('side',v.side,N,mh)}</div><div class="vbox"><b>위</b>${viewSVG('top',v.top,N)}</div>`;
+    const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);[['vf',eq(v.front,t.front)],['vs',eq(v.side,t.side)],['vt',eq(v.top,t.top)]].forEach(([id,o])=>{const e=$(id);if(e){e.classList.toggle('ok',o);}});}else $('myviews').innerHTML='';}
+function match(){if(S.mode==='copy')return JSON.stringify(S.my)===JSON.stringify(S.T);const v=viewsOf(S.my),t=viewsOf(S.T);return JSON.stringify(v)===JSON.stringify(t);}
+function check(manual){if(S.lock)return;if(match()){S.lock=true;const my=S.my.flat().reduce((a,b)=>a+b,0),tg=S.T.flat().reduce((a,b)=>a+b,0);S.ok++;$('okT').textContent=S.ok;SFX.ok(5);
+    let m='딱 맞아요! 👏';if(S.mode==='views'){m=my<=tg?`성공! 쌓기나무 ${my}개로 쌓았어요 👏`:`성공! (${my}개 사용 — 더 적게도 쌓을 수 있어요)`;}say(m);toast('정답!',m.replace(' 👏',''),1100);
+    setTimeout(()=>{S.i++;next();},TEST?20:1500);return;}
+  if(manual){S.tries++;SFX.bad();if(S.mode==='copy'){let d=0;for(let r=0;r<S.N;r++)for(let c=0;c<S.N;c++)if(S.my[r][c]!==S.T[r][c])d++;say(`아직 ${d}칸이 달라요. 그림을 다시 봐요!`);}
+    else{const v=viewsOf(S.my),t=viewsOf(S.T);const bad=[];if(JSON.stringify(v.front)!==JSON.stringify(t.front))bad.push('앞');if(JSON.stringify(v.side)!==JSON.stringify(t.side))bad.push('옆');if(JSON.stringify(v.top)!==JSON.stringify(t.top))bad.push('위');say(`${bad.join('·')}에서 본 모양이 달라요!`);}}}
+function hint(){if(!S||S.lock||S.mode==='count')return;const N=S.N;const c=[];for(let r=0;r<N;r++)for(let k=0;k<N;k++)if(S.my[r][k]!==S.T[r][k])c.push([r,k]);if(!c.length)return;const [r,k]=pick(c);S.my[r][k]=S.T[r][k];S.hl={r,c:k};S.hints++;$('hintN').textContent=S.hints;SFX.hint();draw();
+  const b=$('tops').querySelector(`[data-i="${r*N+k}"]`);b.classList.add('hint');say(`이 칸은 ${S.T[r][k]}층이에요!`);check(false);}
+function topNums(){const N=S.N,s=30;let o='';for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=S.T[r][c];o+=`<rect x="${c*s+1}" y="${r*s+1}" width="${s-2}" height="${s-2}" rx="4" fill="${v?BC.top:'#fff'}" stroke="${v?BC.st:'#dde5e2'}" stroke-width="1.6"/>${v?`<text x="${c*s+s/2}" y="${r*s+s*.7}" text-anchor="middle" font-family="Jua,sans-serif" font-size="17" fill="#7a4a1e">${v}</text>`:''}`;}
+  $('qtop').innerHTML=`<svg viewBox="0 0 ${N*s} ${N*s}">${o}</svg>`;say('칸에 쓴 수를 모두 더해 봐요!');}
+function answer(b,v){if(S.lock)return;const tot=S.T.flat().reduce((a,b)=>a+b,0);if(v===tot){S.lock=true;b.classList.add('right');S.ok+=S.tries?0:1;$('okT').textContent=S.ok;SFX.ok(4);say(`정답! ${tot}개예요 👏`);topNums();setTimeout(()=>{S.i++;next();},TEST?20:1600);}
+  else{S.tries++;b.classList.add('wrong');b.disabled=true;SFX.bad();say('다시 세어 봐요! 위에서 본 모양에 수를 써 보면 쉬워요.');}}
+function finish(){SFX.win();confetti(['#ffd27a','#f2a33a','#d9822b','#3f8cff','#5fd068']);const st=S.ok>=S.q&&S.hints===0?3:S.ok>=S.q*.7?2:1;const k=`${S.mode}-${S.N}`;cfg.best[k]=Math.max(cfg.best[k]||0,S.ok);save();say('모든 문제 끝! 🎉');
+  result({icon:'🧱',title:`${MODEN[S.mode]} 끝!`,stars:st,info:`${S.q}문제 중 <b>${S.ok}</b>개를 한 번에 맞혔어요 · 힌트 ${S.hints}번`,next:['▶ 새 문제',GAME.start],again:['⚙️ 다른 방법',showLobby]});postDone('stackblocks-done',{mode:S.mode,ok:S.ok,q:S.q});}
+if(TEST)window.__t={get S(){return S},setup:n=>{if(n==='board'){cfg.mode='views';cfg.size=4;}if(n==='tab'){cfg.mode='count';}if(n==='phone'){cfg.mode='views';}syncSegs();},
+  real:async()=>{if(S.mode==='count')return true;$('tops').querySelector('[data-i="0"]').click();return S.my[0][0]===1;},
+  solve:async()=>{for(let k=0;k<S.q+1&&S.i<S.q;k++){if(S.mode==='count'){const tot=S.T.flat().reduce((a,b)=>a+b,0);[...$('opts').querySelectorAll('button')].find(b=>+b.dataset.v===tot).click();}else{S.my=S.T.map(r=>r.slice());draw();check(true);}await new Promise(r=>setTimeout(r,60));}return {ok:S.ok,q:S.q};}};
+
+bootShell();
+})();</script></body></html>

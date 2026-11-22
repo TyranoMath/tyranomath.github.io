@@ -199,6 +199,7 @@ const TOOLS = [
   { title:'분수 도구', pin:2, desc:'분수 막대와 분수 원을 꺼내 색칠하고, 겹치고, 비교 자로 재며 분수의 크기와 계산을 함께 알아봐요. 수업 활동도 바로 꺼낼 수 있어요.', grade:'3~6학년', area:'수와 연산', icon:'🥧', color:'#FFE3EA', date:'2026-10-21', file:'tools/fraction-tools.html' },
   { title:'2D 기하도구', pin:1, desc:'모눈 위에 점·선·도형을 그리고, 각도기·자·컴퍼스로 재고, 넓이를 자르고 붙여 봐요. 주사위·모래시계 같은 수업 도구도 함께 있어요.', grade:'1~6학년', area:'도형과 측정', icon:'🔺', color:'#E4F5D6', date:'2026-10-25', file:'tools/geometry-2d.html' },
   { title:'소수 도구', pin:3, desc:'모눈판과 소수 막대로 0.1, 0.01을 색칠하고 수직선에 나타내며 소수의 크기 비교와 덧셈·뺄셈을 함께 알아봐요.', grade:'3~6학년', area:'수와 연산', icon:'🔟', color:'#DDF0FF', date:'2026-11-08', file:'tools/decimal-tools.html' },
+  { title:'거울 대칭 그리기', desc:'반쪽 그림을 보고 거울에 비친 나머지 반쪽을 칸에 색칠해요. 세로·가로 거울의 선대칭과 반 바퀴 돌린 점대칭을 연습해요.', grade:'3~6학년', area:'도형과 측정', icon:'🪞', color:'#EFE6FF', date:'2026-11-22', file:'tools/mirror-draw.html' },
   { title:'빙고', desc:'숫자나 낱말로 빙고판을 만들고, 번호를 뽑아 표시하며 반 친구들과 함께 빙고 놀이를 해요.', grade:'1~6학년', area:'수와 연산', icon:'🎱', color:'#FFF3C4', date:'2026-10-25', file:'tools/bingo.html' }
 ];
 
@@ -226,5 +227,12 @@ const PUZZLES = [
   { title:'티라노 버블 팡', desc:'방울을 쏘아 같은 색 3개 이상을 붙이면 팡! 매달린 곳이 끊긴 방울은 우수수 떨어져 점수가 두 배. 혼자 기록 도전 또는 최대 4명.', grade:'1~6학년', area:'논리 퍼즐', icon:'🫧', image:'puzzles/thumbs/bubble.svg', color:'#DDF0FF', date:'2026-11-21', file:'puzzles/bubble.html' },
   { title:'티라노 보석 대결', desc:'떨어지는 보석을 쌓다가 같은 색 폭탄 구슬로 한꺼번에 팡! 많이 터뜨릴수록 상대 판에 숫자 보석이 쏟아지는 대결 퍼즐.', grade:'2~6학년', area:'전략 퍼즐', icon:'💎', image:'puzzles/thumbs/gem-battle.svg', color:'#EFE6FF', date:'2026-11-21', file:'puzzles/gem-battle.html' },
   { title:'티라노 세균전', desc:'옆 칸은 복제, 두 칸 떨어진 곳은 점프! 도착한 곳 둘레의 상대 세균을 감염시켜 판을 차지해요. 스테이지·컴퓨터·친구 대결.', grade:'2~6학년', area:'전략 퍼즐', icon:'🦠', image:'puzzles/thumbs/germ-war.svg', color:'#E4F5D6', date:'2026-11-21', file:'puzzles/germ-war.html' },
-  { title:'티라노 젤리 팡', desc:'같은 색 젤리 4개가 이어지면 팡! 연쇄가 길수록 상대 판에 방해 젤리가 우르르 쏟아지는 대결 퍼즐.', grade:'1~6학년', area:'전략 퍼즐', icon:'🍬', image:'puzzles/thumbs/jelly-pang.svg', color:'#FFE6EC', date:'2026-11-21', file:'puzzles/jelly-pang.html' }
+  { title:'티라노 젤리 팡', desc:'같은 색 젤리 4개가 이어지면 팡! 연쇄가 길수록 상대 판에 방해 젤리가 우르르 쏟아지는 대결 퍼즐.', grade:'1~6학년', area:'전략 퍼즐', icon:'🍬', image:'puzzles/thumbs/jelly-pang.svg', color:'#FFE6EC', date:'2026-11-21', file:'puzzles/jelly-pang.html' },
+  { title:'티라노 마지막 사과', desc:'둘이 번갈아 사과를 1~3개씩 가져가요. 마지막 사과를 가져가면 승리! 늘 이기는 비밀 숫자를 찾아 컴퓨터를 이겨 봐요.', grade:'2~6학년', area:'전략 퍼즐', icon:'🍎', image:'puzzles/thumbs/apple-nim.svg', color:'#FFE3EA', date:'2026-11-22', file:'puzzles/apple-nim.html' },
+  { title:'티라노 숫자 슬라이드', desc:'판을 밀어 같은 수를 합치면 두 배! 두 배 수, 5단 두 배, 1/8 + 1/8 = 1/4 처럼 분수를 합쳐 1을 만드는 모드까지.', grade:'2~6학년', area:'수 퍼즐', icon:'🔢', image:'puzzles/thumbs/number-slide.svg', color:'#FFE7CC', date:'2026-11-22', file:'puzzles/number-slide.html' },
+  { title:'티라노 계산 십자말', desc:'숫자 카드를 빈칸에 놓아 가로·세로 식이 모두 맞게 채워요. 덧셈·뺄셈·곱셈·나눗셈을 골라 연습해요.', grade:'1~6학년', area:'수 퍼즐', icon:'➕', image:'puzzles/thumbs/math-crossword.svg', color:'#E4F5D6', date:'2026-11-22', file:'puzzles/math-crossword.html' },
+  { title:'티라노 넘버 링크', desc:'같은 숫자끼리 선으로 이어요. 선은 겹치면 안 되고 판의 모든 칸을 채워야 완성! 5×5부터 9×9까지.', grade:'1~6학년', area:'논리 퍼즐', icon:'🔗', image:'puzzles/thumbs/number-link.svg', color:'#FFF3C4', date:'2026-11-22', file:'puzzles/number-link.html' },
+  { title:'티라노 쌓기나무', desc:'그림과 똑같이 쌓고, 앞·옆·위에서 본 모양을 보고 쌓고, 쌓기나무 개수도 세어 봐요. 입체 모양이 바로 보여요.', grade:'3~6학년', area:'도형 퍼즐', icon:'🧱', image:'puzzles/thumbs/stack-blocks.svg', color:'#F3E6D3', date:'2026-11-22', file:'puzzles/stack-blocks.html' },
+  { title:'티라노 얼음 미끄럼', desc:'한 번 미끄러지면 바위에 부딪힐 때까지 멈추지 않아요! 가장 적게 움직여 이글루까지 가는 길을 찾아요.', grade:'1~6학년', area:'논리 퍼즐', icon:'⛸️', image:'puzzles/thumbs/ice-slide.svg', color:'#DDF0FF', date:'2026-11-22', file:'puzzles/ice-slide.html' },
+  { title:'티라노 그림 퍼즐', desc:'가로·세로·상자에 같은 그림이 한 번씩만! 과일·동물·탈것·간식 그림으로 즐기는 4×4~9×9 그림 스도쿠.', grade:'1~6학년', area:'논리 퍼즐', icon:'🧩', image:'puzzles/thumbs/picture-puzzle.svg', color:'#EFE6FF', date:'2026-11-22', file:'puzzles/picture-puzzle.html' }
 ];
