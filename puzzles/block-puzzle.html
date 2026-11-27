@@ -401,13 +401,13 @@ function layout(){const m=$('mainArea'),r=m.getBoundingClientRect();const W=r.wi
 addEventListener('resize',()=>{if(game.state==='off'||!S)return;layout();renderAll();});
 function renderBoard(){const b=$('board');b.style.setProperty('--n',S.W);b.style.gridTemplateRows=`repeat(${S.H},var(--cs))`;
   if(b.children.length!==S.H*S.W){b.innerHTML='';for(let r=0;r<S.H;r++)for(let c=0;c<S.W;c++){const d=document.createElement('div');d.dataset.r=r;d.dataset.c=c;b.appendChild(d);}}
-  [...b.children].forEach(d=>{const r=+d.dataset.r,c=+d.dataset.c,v=S.grid[r][c];let cls='cell';
+  [...b.children].forEach(d=>{const r=+d.dataset.r,c=+d.dataset.c,pv=!S.grid[r][c]&&S.pop&&S.pop.get(r*S.W+c),v=S.grid[r][c]||pv;let cls='cell';
     if(!inMask(r,c))cls+=' off';else if(S.mode==='classic'&&S.n===9&&((Math.floor(r/3)+Math.floor(c/3))%2===1))cls+=' alt';
-    if(v){cls+=' blk';d.style.cssText=colStyle(v.ci);}else d.style.cssText='';d.className=cls;});
+    if(v){cls+=' blk'+(pv?' pop':'');d.style.cssText=colStyle(v.ci);}else d.style.cssText='';d.className=cls;});
   $('boardBox').style.background=S.mode==='shape'?'transparent':'';$('boardBox').style.boxShadow=S.mode==='shape'?'none':'';}
 function pieceEl(p){const d=document.createElement('div');d.className='pc';d.style.cssText=`--w:${p.w};--h:${p.h};--ts:${TS}px;${colStyle(p.ci)}`;
   const set=new Set(p.cells.map(([r,c])=>r+','+c));for(let r=0;r<p.h;r++)for(let c=0;c<p.w;c++){const i=document.createElement('i');if(set.has(r+','+c))i.className='blk';d.appendChild(i);}
-  d.addEventListener('pointerdown',e=>{if(game.state!=='run'||d.classList.contains('used')||d.classList.contains('dim'))return;e.preventDefault();startDrag(p,e,d,null);});return d;}
+  d.addEventListener('pointerdown',e=>{if(game.state!=='run'||d.classList.contains('used')||d.classList.contains('dim'))return;e.preventDefault();if(!dragFree(e))return;startDrag(p,e,d,null);});return d;}
 function renderTray(anim){const t=$('tray');t.className='tray'+(S.mode==='shape'?' shape':'');t.innerHTML='';
   S.tray.forEach((p,i)=>{const s=document.createElement('div');s.className='slot';if(p){const el=pieceEl(p);if(anim)el.classList.add('newp'),el.style.animationDelay=i*.08+'s';
     if(S.mode==='classic'&&!fitsAnywhere(p))el.classList.add('dim');s.appendChild(el);p.el=el;}t.appendChild(s);});}
@@ -417,6 +417,10 @@ function updTop(){if(S.mode==='classic'){$('rndT').textContent=S.score;$('rndS')
 
 // ---------- 끌기 ----------
 let drag=null;
+// 끄는 중인 조각이 있으면: 같은 포인터(놓기 신호를 놓친 경우)는 원래 자리로 돌려놓고, 다른 손가락은 무시
+function dragFree(e){if(!drag)return true;if(e.pointerId===drag.id){cancelDrag();return true;}return false;}
+function cancelDrag(){if(!drag)return;endDrag({pointerId:drag.id,cancel:true});}
+addEventListener('blur',cancelDrag);document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelDrag();});
 function startDrag(p,e,srcEl,fromBoard){sfx.pick();const fl=document.createElement('div');fl.className='float';fl.style.cssText=`--w:${p.w};--h:${p.h};--cs:${CS}px;${colStyle(p.ci)}`;
   const set=new Set(p.cells.map(([r,c])=>r+','+c));for(let r=0;r<p.h;r++)for(let c=0;c<p.w;c++){const i=document.createElement('i');if(set.has(r+','+c))i.className='blk';fl.appendChild(i);}
   document.body.appendChild(fl);let ox,oy;
@@ -427,21 +431,23 @@ function startDrag(p,e,srcEl,fromBoard){sfx.pick();const fl=document.createEleme
   moveDrag(e);
   addEventListener('pointermove',moveDrag);addEventListener('pointerup',endDrag);addEventListener('pointercancel',endDrag);}
 function moveDrag(e){if(!drag||e.pointerId!==drag.id)return;const x=e.clientX-drag.ox,y=e.clientY-drag.oy-drag.lift;drag.fl.style.left=x+'px';drag.fl.style.top=y+'px';
-  const b=$('board').getBoundingClientRect();const c=Math.round((x-b.left)/CS),r=Math.round((y-b.top)/CS);
-  const ok=canPlace(drag.p,r,c);if(ok&&r===drag.r&&c===drag.c)return;drag.r=ok?r:null;drag.c=ok?c:null;showGhost();}
+  const b=$('board').getBoundingClientRect();const fc=(x-b.left)/CS,fr=(y-b.top)/CS;
+  // 바로 아래 자리가 막혀 있으면 가까운 빈자리(1칸 안)로 붙여 줘요
+  let best=null,bd=.85*.85;for(let r=Math.floor(fr)-1;r<=Math.ceil(fr)+1;r++)for(let c=Math.floor(fc)-1;c<=Math.ceil(fc)+1;c++){const dd=(r-fr)**2+(c-fc)**2;if(dd<bd&&canPlace(drag.p,r,c)){bd=dd;best=[r,c];}}
+  const r=best?best[0]:null,c=best?best[1]:null;if(r===drag.r&&c===drag.c)return;drag.r=r;drag.c=c;showGhost();}
 function clearMarks(){[...$('board').children].forEach(d=>d.classList.remove('ghost','will'));}
 function showGhost(){clearMarks();if(drag.r==null)return;const b=$('board').children,p=drag.p;
   p.cells.forEach(([r,c])=>{const d=b[(drag.r+r)*S.W+drag.c+c];d.classList.add('ghost');d.style.cssText=colStyle(p.ci);});
   if(S.mode==='classic'){const full=findFull(p,drag.r,drag.c);full.forEach(([r,c])=>{const d=b[r*S.W+c];d.classList.add('will');if(!S.grid[r][c])d.style.cssText=colStyle(p.ci);});}}
 function endDrag(e){if(!drag||e.pointerId!==drag.id)return;removeEventListener('pointermove',moveDrag);removeEventListener('pointerup',endDrag);removeEventListener('pointercancel',endDrag);
   const d=drag;drag=null;clearMarks();
-  if(d.r!=null&&game.state==='run'){d.fl.remove();place(d.p,d.r,d.c);return;}
+  if(!e.cancel&&d.r!=null&&game.state==='run'){d.fl.remove();place(d.p,d.r,d.c);return;}
   // 제자리로
   sfx.no();if(S.mode==='shape'&&d.fromBoard){S.tray.push(d.p);renderAll();updTop();d.fl.remove();return;}
   const tr=d.src?d.src.getBoundingClientRect():null;if(tr){d.fl.classList.add('back');d.fl.style.left=tr.left+'px';d.fl.style.top=tr.top+'px';}
   setTimeout(()=>{d.fl.remove();if(d.src)d.src.classList.remove('used');},200);}
 // 보드 위 조각 다시 집기(모양 채우기)
-$('board').addEventListener('pointerdown',e=>{if(game.state!=='run'||S.mode!=='shape')return;const t=e.target.closest('.cell');if(!t)return;const r=+t.dataset.r,c=+t.dataset.c,v=S.grid[r][c];if(!v)return;e.preventDefault();
+$('board').addEventListener('pointerdown',e=>{if(game.state!=='run'||S.mode!=='shape')return;const t=e.target.closest('.cell');if(!t)return;const r=+t.dataset.r,c=+t.dataset.c,v=S.grid[r][c];if(!v)return;e.preventDefault();if(!dragFree(e))return;
   const pl=S.placed.get(v.id);if(!pl)return;const p=S.pieces.find(x=>x.id===v.id);p.cells.forEach(([pr,pc])=>S.grid[pl[0]+pr][pl[1]+pc]=null);S.placed.delete(v.id);renderBoard();
   startDrag(p,e,null,{gr:r-pl[0],gc:c-pl[1]});});
 
@@ -462,10 +468,10 @@ function place(p,r0,c0){sfx.put();S.moves++;const b=$('board').children;
   const units=countUnits(),full=findFull(null);renderBoard();p.cells.forEach(([r,c])=>b[(r0+r)*S.W+c0+c].classList.add('drop'));
   const cx=(c0+p.w/2)*CS,cy=(r0+p.h/2)*CS;
   if(units){S.combo++;S.lines+=units;const gain=units*10*S.n/9*units+(S.combo>1?(S.combo-1)*10:0);S.score+=Math.round(gain);
-    full.forEach(([r,c])=>b[r*S.W+c].classList.add('pop'));sfx.clear(units);
+    S.pop=S.pop||new Map();full.forEach(([r,c])=>{S.pop.set(r*S.W+c,S.grid[r][c]);S.grid[r][c]=null;});renderBoard();p.cells.forEach(([r,c])=>{if(S.grid[r0+r][c0+c])b[(r0+r)*S.W+c0+c].classList.add('drop');});sfx.clear(units);
     floatTxt(`+${Math.round(gain)}`,cx,cy,units>1);if(S.combo>1){setTimeout(()=>floatTxt(`콤보 ×${S.combo}`,S.W*CS/2,S.H*CS/2-CS,true),180);sfx.combo();}
     if(units>=2||S.combo>=3)cheer(units>=3?'대단해요!':units>=2?'더블 클리어!':`콤보 ${S.combo}!`);
-    setTimeout(()=>{full.forEach(([r,c])=>S.grid[r][c]=null);renderBoard();afterMove();},380);}
+    afterMove();setTimeout(()=>{full.forEach(([r,c])=>S.pop.delete(r*S.W+c));if(S.mode==='classic')renderBoard();},380);}
   else{S.combo=0;floatTxt(`+${p.cells.length}`,cx,cy,false);afterMove();}
   const t=$('rndT');t.classList.remove('bump');void t.offsetWidth;t.classList.add('bump');updTop();}
 function afterMove(){if(S.tray.every(x=>!x)){newTray();renderTray(true);}else renderTray(false);updTop();

@@ -235,5 +235,6 @@ const PUZZLES = [
   { title:'티라노 넘버 링크', desc:'같은 숫자끼리 선으로 이어요. 선은 겹치면 안 되고 판의 모든 칸을 채워야 완성! 5×5부터 9×9까지.', grade:'1~6학년', area:'논리 퍼즐', icon:'🔗', image:'puzzles/thumbs/number-link.svg', color:'#FFF3C4', date:'2026-11-22', file:'puzzles/number-link.html' },
   { title:'티라노 쌓기나무', desc:'그림과 똑같이 쌓고, 앞·옆·위에서 본 모양을 보고 쌓고, 쌓기나무 개수도 세어 봐요. 입체 모양이 바로 보여요.', grade:'3~6학년', area:'도형 퍼즐', icon:'🧱', image:'puzzles/thumbs/stack-blocks.svg', color:'#F3E6D3', date:'2026-11-22', file:'puzzles/stack-blocks.html' },
   { title:'티라노 얼음 미끄럼', desc:'한 번 미끄러지면 바위에 부딪힐 때까지 멈추지 않아요! 가장 적게 움직여 이글루까지 가는 길을 찾아요.', grade:'1~6학년', area:'논리 퍼즐', icon:'⛸️', image:'puzzles/thumbs/ice-slide.svg', color:'#DDF0FF', date:'2026-11-22', file:'puzzles/ice-slide.html' },
-  { title:'티라노 그림 퍼즐', desc:'가로·세로·상자에 같은 그림이 한 번씩만! 과일·동물·탈것·간식 그림으로 즐기는 4×4~9×9 그림 스도쿠.', grade:'1~6학년', area:'논리 퍼즐', icon:'🧩', image:'puzzles/thumbs/picture-puzzle.svg', color:'#EFE6FF', date:'2026-11-22', file:'puzzles/picture-puzzle.html' }
+  { title:'티라노 그림 퍼즐', desc:'가로·세로·상자에 같은 그림이 한 번씩만! 과일·동물·탈것·간식 그림으로 즐기는 4×4~9×9 그림 스도쿠.', grade:'1~6학년', area:'논리 퍼즐', icon:'🧩', image:'puzzles/thumbs/picture-puzzle.svg', color:'#EFE6FF', date:'2026-11-22', file:'puzzles/picture-puzzle.html' },
+  { title:'티라노 윷놀이', desc:'윷을 던져 도·개·걸·윷·모만큼 말을 옮겨요. 상대 말을 잡거나 윷·모가 나오면 한 번 더! 2~4팀이 함께하고 윷 확률 기록판도 볼 수 있어요.', grade:'1~6학년', area:'전략 퍼즐', icon:'🎲', image:'puzzles/thumbs/yut.svg', color:'#FFE7CC', date:'2026-11-27', file:'puzzles/yut.html' }
 ];
