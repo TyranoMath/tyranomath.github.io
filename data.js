@@ -200,6 +200,7 @@ const TOOLS = [
   { title:'2D 기하도구', pin:1, desc:'모눈 위에 점·선·도형을 그리고, 각도기·자·컴퍼스로 재고, 넓이를 자르고 붙여 봐요. 주사위·모래시계 같은 수업 도구도 함께 있어요.', grade:'1~6학년', area:'도형과 측정', icon:'🔺', color:'#E4F5D6', date:'2026-10-25', file:'tools/geometry-2d.html' },
   { title:'소수 도구', pin:3, desc:'모눈판과 소수 막대로 0.1, 0.01을 색칠하고 수직선에 나타내며 소수의 크기 비교와 덧셈·뺄셈을 함께 알아봐요.', grade:'3~6학년', area:'수와 연산', icon:'🔟', color:'#DDF0FF', date:'2026-11-08', file:'tools/decimal-tools.html' },
   { title:'대칭 도구', desc:'세로·가로 거울의 선대칭과 반 바퀴 돌린 점대칭을 칸이나 펜으로 자유롭게 그려 봐요. 반쪽 그림을 완성하는 거울 퍼즐도 들어 있어요.', grade:'3~6학년', area:'도형과 측정', icon:'🪞', color:'#EFE6FF', date:'2026-11-22', file:'tools/mirror-draw.html' },
+  { title:'주산 교실', desc:'화면 속 주판의 알을 올리고 내리며 수를 놓고 읽어요. 손가락 안내와 함께 덧셈·뺄셈, 연습문제, 플래시 문제지까지 풀어 봐요.', grade:'1~4학년', area:'수와 연산', icon:'🧮', color:'#F3E6D3', date:'2026-11-27', file:'tools/jusan.html' },
   { title:'빙고', desc:'숫자나 낱말로 빙고판을 만들고, 번호를 뽑아 표시하며 반 친구들과 함께 빙고 놀이를 해요.', grade:'1~6학년', area:'수와 연산', icon:'🎱', color:'#FFF3C4', date:'2026-10-25', file:'tools/bingo.html' }
 ];
 
